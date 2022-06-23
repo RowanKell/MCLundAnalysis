@@ -86,7 +86,7 @@ int LundAnalysis()
     double antidownpid = -1;
     
     //Initialization
-    int qindex;
+    int qcount;
     int MCindex;
     
     int pid;
@@ -163,7 +163,7 @@ int LundAnalysis()
     std::vector<float> vparent;
     std::vector<float> vmass;
     //quark vectors
-//    std::vector<float> vquarkindex;
+    std::vector<float> vquarkindex;
     std::vector<float> vquarkPx;
     std::vector<float> vquarkPy;
     std::vector<float> vquarkPz;
@@ -221,7 +221,7 @@ int LundAnalysis()
         if(c12->getDetParticles().empty())
             continue;
         
-        qindex = 0;
+        qcount = 0;
         MC92index = 0;
         
         vpid.clear();
@@ -238,6 +238,7 @@ int LundAnalysis()
         vquarkparent.clear();
         vquarkdaughter.clear();
         vquarkmass.clear();
+	vquarkindex.clear();
         
         vMC92pid.clear();
         vMC92parent.clear();
@@ -289,8 +290,8 @@ int LundAnalysis()
             }
             //inital up
             else if(pid==uppid){
-                qindex += 1;
-//                vquarkindex.push_back(qindex);
+	        qcount += 1;
+                vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
                 vquarkPz.push_back(pz);
@@ -300,8 +301,8 @@ int LundAnalysis()
             }
             //down
             else if(pid==downpid){
-                qindex += 1;
-//                vquarkindex.push_back(qindex);
+	        qcount += 1;
+                vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
                 vquarkPz.push_back(pz);
@@ -311,8 +312,8 @@ int LundAnalysis()
             }
             //anti-up
             else if(pid==antiuppid){
-                qindex += 1;
-//                vquarkindex.push_back(qindex);
+	        qcount += 1;
+                vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
                 vquarkPz.push_back(pz);
@@ -322,8 +323,8 @@ int LundAnalysis()
             }    
             //anti-down
             else if(pid==antidownpid){
-                qindex += 1;
-//                vquarkindex.push_back(qindex);
+	        qcount += 1;
+                vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
                 vquarkPz.push_back(pz);
@@ -364,14 +365,20 @@ int LundAnalysis()
 //        kf.SetPxPyPzE(); //parton final
 //        deltak = ;
 //        k = kf - q; //parton
-/*
+
         //For loop for finding quarks that fragment from proton and into hadron
         for(int i = 0; i<qindex; i++)
         {
-            if(vquarkparent[i] == 0){initparent[i] = true};
-            else
+            if(vquarkparent[i] == 0)
+	      {
+		initparent[i] = true;
+              } else
+	      {
+		initparent[i] = false;
+	      }
+	    if(
         }
-        */
+        
         t->Fill();
     }
     f->Write();
