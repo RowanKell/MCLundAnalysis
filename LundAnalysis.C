@@ -88,6 +88,7 @@ int LundAnalysis()
     //Initialization
     int qcount;
     int MCindex;
+    int qindex;
     
     int pid;
     double id;
@@ -119,6 +120,14 @@ int LundAnalysis()
     double Mdihadron;
     double MC92index;
     double protonE;
+    double MC92px;
+    double MC92py;
+    double MC92pz;
+    double MC92mass;
+    double quarkinitP;
+    double quarkfinalP;
+    double Ptarget;
+    double Pdihadron;
     
 //    double energy;
 
@@ -175,6 +184,7 @@ int LundAnalysis()
     std::vector<float> vMC92parent;
     std::vector<float> vMC92daughter;
     std::vector<bool> initparent;
+    std::vector<float> vinitquarkindex;
 //    std::vector<float> vMC92index; //keeps track of position in vector
     
 //    std::vector<float> venergy;
@@ -197,9 +207,15 @@ int LundAnalysis()
     t->Branch("x",&x);
     t->Branch("pt",&pt);
     t->Branch("Q2",&Q2);
+    t->Branch("Ph",&Pdihadron);
+    t->Branch("P",&Ptarget); //target momentum
     t->Branch("Mdihadron",&Mdihadron); //dihadron mass
-    t->Branch("qindex",&qindex);
-    t->Branch("MC92index",&MC92index);
+    t->Branch("qindex",&qindex); //number of quarks in each event
+    t->Branch("MC92index",&MC92index); //index for Lund string
+    t->Branch("ki",&quarkinitP); //initial parton momentum
+    t->Branch("kf",&quarkfinalP); //final parton momentum
+    t->Branch("k",&k);
+    
     
 //    t->Branch("qparent",&qparent);
 //    t->Branch("diparent",&diparent);
@@ -239,7 +255,7 @@ int LundAnalysis()
         vquarkparent.clear();
         vquarkdaughter.clear();
         vquarkmass.clear();
-	vquarkindex.clear();
+        vquarkindex.clear();
         
         vMC92pid.clear();
         vMC92parent.clear();
@@ -291,7 +307,7 @@ int LundAnalysis()
             }
             //inital up
             else if(pid==uppid){
-	        qcount += 1;
+                qcount += 1;
                 vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
@@ -302,7 +318,7 @@ int LundAnalysis()
             }
             //down
             else if(pid==downpid){
-	        qcount += 1;
+                qcount += 1;
                 vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
@@ -313,7 +329,7 @@ int LundAnalysis()
             }
             //anti-up
             else if(pid==antiuppid){
-	        qcount += 1;
+                qcount += 1;
                 vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
@@ -324,7 +340,7 @@ int LundAnalysis()
             }    
             //anti-down
             else if(pid==antidownpid){
-	        qcount += 1;
+                qcount += 1;
                 vquarkindex.push_back(id);
                 vquarkPx.push_back(px);
                 vquarkPy.push_back(py);
@@ -338,6 +354,11 @@ int LundAnalysis()
                 MC92index += 1;
                 vMC92parent.push_back(parent);
                 vMC92daughter.push_back(daughter);
+                MC92px = px;
+                MC92py = py;
+                MC92pz = pz;
+                MC92mass = mass;
+                MC92index = id;
 //                vMC92index.push_back(index);
             }
         }
@@ -347,9 +368,11 @@ int LundAnalysis()
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
         protonE = Efunc(0,protonMass);
         init_target.SetPxPyPzE(0, 0, 0, protonE);
+        Ptarget = init_target.P();
         
         dihadron = piplus + piminus;
         Mdihadron = dihadron.M();
+        Pdihadron = dihadron.P();
         q = init_electron - electron; //virtual photon
         cth = cthfunc(electron.Px(),electron.Py(),electron.Pz());
         Q2 = Q2func(electron_beam_energy,electron.E(),cth); //Momentum transfer
@@ -368,17 +391,21 @@ int LundAnalysis()
 //        k = kf - q; //parton
 
         //For loop for finding quarks that fragment from proton and into hadron
-        for(int i = 0; i<qindex; i++)
+        for(int i = 0; i<qindex; i++) //quark is from proton target 
         {
             if(vquarkparent[i] == 0)
 	      {
-		initparent[i] = true;
-              } else
+            initparent[i] = true;
+            vinitquarkindex.push_back(i);
+              } else //quark is not from the proton target
 	      {
-		initparent[i] = false;
+            initparent[i] = false;
 	      }
-	    if(
+        
         }
+        
+        quarkfinalP = Pfunc(MC92px,MC92py,MC92pz);
+        k = quarkfinalP - q
         
         t->Fill();
     }
