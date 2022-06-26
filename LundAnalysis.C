@@ -174,6 +174,7 @@ int LundAnalysis()
     std::vector<float> vMC92pid;
     std::vector<float> vMC92parent;
     std::vector<float> vMC92daughter;
+    std::vector<bool> initparent;
 //    std::vector<float> vMC92index; //keeps track of position in vector
     
 //    std::vector<float> venergy;
