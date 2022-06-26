@@ -694,6 +694,9 @@ For tomorrow - Need to figure out what quarks I want to use for parton momentum
       3. {
       4. if(MC92parent == quark0parent){fragmentindex = index}
       5. }
+   5. NEED TO MAKE SURE I GO THROUGH AND FIX MOMENTUM ASSIGNMENTS
+      1. right now, the momentums in the ttree are the total momentum
+      2. for affinity, I need the P vector, so I need to either save an angle to solve for px py pz or just save px py pz in the tree so I can reconstruct later
 
 ## Meeting Notes
 
