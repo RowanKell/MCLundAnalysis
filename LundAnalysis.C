@@ -52,6 +52,35 @@ double sfunc(double M1,double M2,double E) //proton mass is M1, electron mass is
 {
     return M1 * M1 + M2 * M2 + 2 * M1 * E;
 }
+
+double R0func(TLorentzVector ki, TLorentzVector kf, TLorentzVector deltak, double Q2)
+{
+    TLorentzVector init;
+    TLorentzVector final;
+    TLorentzVector delta;
+    
+    double mag;
+    
+    init = (ki * ki) / (Q2);
+    final = (kf * kf) / (Q2);
+    delta = (deltak * deltak) / (Q2);
+    
+    //Selecting the max of the ratios
+    if(init > final && init > delta){mag = init.Mag();}
+    else if(final > init && final > delta){mag = final.Mag();}
+    else if(delta > init && delta > final){mag = delta.Mag();}
+    return mag;
+}
+
+double R1func(TLorentzVector Ph, TLorentzVector ki, TLorentzVector kf)
+{
+    return (Ph * ki) / (Ph * kf);
+}
+
+double R2func(TLorentzVector k, double Q2)
+{
+    return k.Mag() / Q2;
+}
 int LundAnalysis()
 {
     
@@ -124,10 +153,13 @@ int LundAnalysis()
     double MC92py;
     double MC92pz;
     double MC92mass;
-    double quarkinitP;
-    double quarkfinalP;
+    double MC92parent;
+    double MC92daughter;
     double Ptarget;
     double Pdihadron;
+    double MC92P;
+    double MC92E;
+    double quarkinitP;
     
 //    double energy;
 
@@ -180,9 +212,9 @@ int LundAnalysis()
     std::vector<float> vquarkdaughter;
     std::vector<float> vquarkmass;
     //MC92 particle (pid = 92) vectors
-    std::vector<float> vMC92pid;
-    std::vector<float> vMC92parent;
-    std::vector<float> vMC92daughter;
+//    std::vector<float> vMC92pid;
+//    std::vector<float> vMC92parent;
+//    std::vector<float> vMC92daughter;
     std::vector<bool> initparent;
     std::vector<float> vinitquarkindex;
 //    std::vector<float> vMC92index; //keeps track of position in vector
@@ -212,9 +244,9 @@ int LundAnalysis()
     t->Branch("Mdihadron",&Mdihadron); //dihadron mass
     t->Branch("qindex",&qindex); //number of quarks in each event
     t->Branch("MC92index",&MC92index); //index for Lund string
-    t->Branch("ki",&quarkinitP); //initial parton momentum
-    t->Branch("kf",&quarkfinalP); //final parton momentum
-    t->Branch("k",&k);
+    t->Branch("R0",&R0); //initial parton momentum
+    t->Branch("R1",&R1); //final parton momentum
+    t->Branch("R2",&R2);
     
     
 //    t->Branch("qparent",&qparent);
@@ -257,9 +289,9 @@ int LundAnalysis()
         vquarkmass.clear();
         vquarkindex.clear();
         
-        vMC92pid.clear();
-        vMC92parent.clear();
-        vMC92daughter.clear();
+//        vMC92pid.clear();
+//        vMC92parent.clear();
+//        vMC92daughter.clear();
 //        vMC92index.clear();
         
 //      venergy.clear();
@@ -352,8 +384,8 @@ int LundAnalysis()
             //MCParticle
             else if(pid==92){
                 MC92index += 1;
-                vMC92parent.push_back(parent);
-                vMC92daughter.push_back(daughter);
+                MC92parent = parent;
+                MC92daughter = daughter;
                 MC92px = px;
                 MC92py = py;
                 MC92pz = pz;
@@ -393,20 +425,24 @@ int LundAnalysis()
         //For loop for finding quarks that fragment from proton and into hadron
         for(int i = 0; i<qindex; i++) //quark is from proton target 
         {
-            if(vquarkparent[i] == 0)
+            if(vquarkindex[i] == MC92parent)
 	      {
-            initparent[i] = true;
-            vinitquarkindex.push_back(i);
-              } else //quark is not from the proton target
-	      {
-            initparent[i] = false;
-	      }
-        
+            quarkinitP = Pfunc(vquarkPx[i], vquarkPy[i], vquarkPz[i]);
+            quarkinitE = Efunc(quarkinitP, vquarkmass[i]);
+            ki.SetPxPyPzE(vquarkPx[i],vquarkPy[i],vquarkPz[i],quarkinitE);
+          }
         }
         
-        quarkfinalP = Pfunc(MC92px,MC92py,MC92pz);
-        k = quarkfinalP - q
+        MC92P = Pfunc(MC92px,MC92py,MC92pz);
+        MC92E = Efunc(MC92mass, MC92P);
         
+        kf.SetPxPyPzE(MC92px,MC92py,MC92pz,MC92E);
+        k = quarkfinalP - q;
+        
+        
+        R0 = R0func(quarkinitP, quarkfinalP, quarkdeltak, Q2);
+        R1 = R1func(dihadron, quarkinitP, quarkfinalP);
+        R2 = R2func(k, Q2);
         t->Fill();
     }
     f->Write();
