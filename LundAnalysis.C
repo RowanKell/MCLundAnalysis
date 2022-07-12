@@ -87,6 +87,31 @@ double R2func(TLorentzVector k, double Q2)
     return abs(k * k) / Q2;
 }
 
+double Mxfunc(TLorentzVector q, TLorentzVector target, TLorentzVector hadron1, TLorentzVector hadron2)
+{
+    TLorentzVector lv_Mx;
+    lv_Mx = q + target - hadron1 - hadron2;
+    return lv_Mx.M();
+}
+double xFfunc(TLorentzVector p, TLorentzVector q, double W)
+{
+    return 2 * (p.Vect().Dot(q.Vect())) / (q.Vect().Mag() * W);
+}
+
+double nufunc(double E1, double E2)
+{
+  return E1-E2;
+}
+
+double Wfunc(double Q2, double mT, double nu)
+{
+    return sqrt(-Q2 + pow(mT,2) + 2 * mT * nu);
+}
+
+double thetafunc(double pt, double pz)
+{
+    return abs(atan(pt/pz));
+}
 // 
 //    Main body of analysis function
 //
@@ -134,6 +159,7 @@ int LundAnalysis()
     double px;
     double py;
     double pz;
+    double dihadronpt;
     double daughter;
     double parent;
     double mass;
@@ -179,6 +205,16 @@ int LundAnalysis()
     double kfe;
     double kfp;
     double qparentcount;
+    
+    double M_x; //Missing Mass
+    double xFpiplus;
+    double xFpiminus;
+    double nu;
+    double W;
+    double theta;
+    
+    bool Mxcut;
+    bool xFcut;
 
     //Initializing particle vectors
     TLorentzVector q;
@@ -193,6 +229,13 @@ int LundAnalysis()
     TLorentzVector kf;
     TLorentzVector ki;
     TLorentzVector deltak;
+    
+    TLorentzVector lv_p1_gN;
+    TLorentzVector lv_p2_gN;
+    TLorentzVector lv_q_gN;
+    TLorentzVector gN;
+    TVector3 gNBoost;
+    TVector3 gNBoostNeg;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -490,7 +533,41 @@ int LundAnalysis()
         kfm = kf.M();
         kfe = kf.E();
         kfp = kf.P();
-        t->Fill();
+        
+        //Cut Kinematics
+        M_x = Mxfunc(q,init_target,piplus,piminus);
+        
+        nu = nufunc(electron_beam_energy,electron.E());
+        W = Wfunc(Q2,protonMass,nu);
+        dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
+        theta = thetafunc(dihadronpt,dihadron.Pz());
+        
+        gN = q;
+        gN += init_target;
+        gNBoost = gN.BoostVector();
+        gNBoostNeg = -gNBoost;
+        
+        lv_p1_gN = piplus;
+        lv_p2_gN = piminus;
+        lv_p1_gN.Boost(gNBoostNeg);
+        lv_p2_gN.Boost(gNBoostNeg);
+        
+        lv_q_gN = q;
+        lv_q_gN.Boost(gNBoostNeg);
+        
+        xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
+        xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
+        //Cuts
+        if(M_x > 1.5){Mxcut = true;}//Missing mass > 1.5GeV
+        else{Mxcut = false;}
+        
+        if(xFpiplus > 0 && xFpiminus > 0){xFcut = true;}
+        else{xFcut = false;}
+        
+        if(Mxcut == true && xFcut == true){t->Fill();}
+        
+//        t->Fill(); //commented out to put the fill command in the cut if statement
+                     //This way, if any cuts are not met, the event will not be added to the tree
     }
     f->Write();
     delete f;
