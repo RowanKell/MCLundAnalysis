@@ -153,6 +153,7 @@ int LundAnalysis()
     int qcount;
     int MCindex;
     int qindex;
+    int vdiquarksize;
     
     int pid;
     double id;
@@ -236,6 +237,20 @@ int LundAnalysis()
     TLorentzVector gN;
     TVector3 gNBoost;
     TVector3 gNBoostNeg;
+    //For checking momentum conservation / if the lundstring contains momentum for all hadrons
+    TLorentzVector diquark;
+    TLorentzVector lundstring;
+    TLorentzVector photon;
+    TLorentzVector proton;
+    bool fourmomentumcheck;
+    bool pxcheck;
+    bool pycheck;
+    bool pzcheck;
+    bool echeck;
+    float pxdiff;
+    float pydiff;
+    float pzdiff;
+    float ediff;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -279,6 +294,16 @@ int LundAnalysis()
     std::vector<bool> initparent;
     std::vector<float> vinitquarkindex;
 //    std::vector<float> vMC92index; //keeps track of position in vector
+    std::vector<int> vdiquarklist;
+    
+    //Vectors for comparing momentum
+    std::vector<float> vpxcompare;
+    std::vector<float> vpycompare;
+    std::vector<float> vpzcompare;
+    std::vector<float> vecompare;
+    std::vector<float> vpidcompare;
+    std::vector<float> vdaughtercompare;
+    std::vector<float> vparentcompare;
     
 //    std::vector<float> venergy;
     //Making new MC tree
@@ -319,7 +344,16 @@ int LundAnalysis()
     t->Branch("qparentcount",&qparentcount);
     t->Branch("MC92parent",&MC92parent);
     t->Branch("vquarkindex",&vquarkindex);
-
+    
+    t->Branch("fourmomentumcheck",&fourmomentumcheck);
+    t->Branch("pxcheck",&pxcheck);
+    t->Branch("pycheck",&pycheck);
+    t->Branch("pzcheck",&pzcheck);
+    t->Branch("echeck",&echeck);
+    t->Branch("pxdiff",&pxdiff);
+    t->Branch("pydiff",&pydiff);
+    t->Branch("pzdiff",&pzdiff);
+    t->Branch("ediff",&ediff);
     
     
 //    t->Branch("qparent",&qparent);
@@ -364,6 +398,8 @@ int LundAnalysis()
         vquarkindex.clear();
         vquarkenergy.clear();
         
+        vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
+        vdiquarksize = vdiquarklist.size();
 //        vMC92pid.clear();
 //        vMC92parent.clear();
 //        vMC92daughter.clear();
@@ -471,7 +507,18 @@ int LundAnalysis()
                 MC92mass = mass;
                 MC92index = id;
                 MC92energy = E;
+                lundstring.SetPxPyPzE(px,py,pz,E);
 //                vMC92index.push_back(index);
+
+            }
+            else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
+                diquark.SetPxPyPzE(px,py,pz,E);
+            }
+            else if(pid == 22){
+                photon.SetPxPyPzE(px,py,pz,E);
+            }
+            else if(id == 2){
+                proton.SetPxPyPzE(px,py,pz,E);
             }
         }
         //Kinematics
@@ -557,16 +604,37 @@ int LundAnalysis()
         
         xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
         xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
+        
+        if(proton + photon == diquark + lundstring){
+            fourmomentumcheck = true;
+        }
+        if(proton.Px() + photon.Px() == diquark.Px() + lundstring.Px()){
+            pxcheck = true;
+        }
+        if(proton.Py() + photon.Py() == diquark.Py() + lundstring.Py()){
+            pycheck = true;
+        }
+        if(proton.Pz() + photon.Pz() == diquark.Pz() + lundstring.Pz()){
+            pzcheck = true;
+        }
+        if(proton.E() + photon.E() == diquark.E() + lundstring.E()){
+            pzcheck = true;
+        }
+        pxdiff = proton.Px() + photon.Px() - diquark.Px() - lundstring.Px();
+        pydiff = proton.Py() + photon.Py() - diquark.Py() - lundstring.Py();
+        pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - lundstring.Pz();
+        ediff = proton.E() + photon.E() - diquark.E() - lundstring.E();
+        
         //Cuts
-        if(M_x > 1.5){Mxcut = true;}//Missing mass > 1.5GeV
-        else{Mxcut = false;}
+//        if(M_x > 1.5){Mxcut = true;}//Missing mass > 1.5GeV
+//        else{Mxcut = false;}
         
-        if(xFpiplus > 0 && xFpiminus > 0){xFcut = true;}
-        else{xFcut = false;}
+//        if(xFpiplus > 0 && xFpiminus > 0){xFcut = true;}
+//        else{xFcut = false;}
         
-        if(Mxcut == true && xFcut == true){t->Fill();}
+//        if(Mxcut == true && xFcut == true){t->Fill();}
         
-//        t->Fill(); //commented out to put the fill command in the cut if statement
+        t->Fill(); //commented out to put the fill command in the cut if statement
                      //This way, if any cuts are not met, the event will not be added to the tree
     }
     f->Write();
