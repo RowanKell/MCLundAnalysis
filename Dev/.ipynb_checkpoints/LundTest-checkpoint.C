@@ -116,27 +116,18 @@ double thetafunc(double pt, double pz)
 //    Main body of analysis function
 //
 
-int LundAnalysis()
+int LundTest()
 {
     
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "LundFiles7_28/file5.root";
-    
-    TFile *f = TFile::Open(rootfile,"RECREATE");
     
     HipoChain chain;
     
     //Add file to HipoChain
     chain.Add(hipofile);
     auto config_c12 = chain.GetC12Reader();
-    
-    //Set PID cuts
-    config_c12->addExactPid(11,1);    //exactly 1 electron
-    config_c12->addExactPid(211,1);    //exactly 1 pi+
-    config_c12->addExactPid(-211,1);    //exactly 1 pi-
-    config_c12->addExactPid(2212,1);    //exactly 1 proton
 
     //Constants 
     double electron_beam_energy = 10.6; //(fall2018)
@@ -256,7 +247,8 @@ int LundAnalysis()
     int piplusparent;
     int piminusparent;
     bool piparent;
-    int event_count;
+    
+    int event_count = 0;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -313,25 +305,6 @@ int LundAnalysis()
     std::vector<float> vparentcompare;
     std::vector<int> vhadronparent;
     
-//    std::vector<float> venergy;
-    //Making new MC tree
-    TTree *t = new TTree("tree_MC","Tree with MC data");
-
-    t->Branch("z_h",&z_h);
-    t->Branch("x",&x);
-    t->Branch("pt",&pt);
-    t->Branch("Q2",&Q2);
-    t->Branch("Ph",&Pdihadron);
-    t->Branch("P",&Ptarget); //target momentum
-    t->Branch("Mdihadron",&Mdihadron); //dihadron mass
-    t->Branch("MC92index",&MC92index); //index for Lund string
-    t->Branch("R0",&R0); //initial parton momentum
-    t->Branch("R1",&R1); //final parton momentum
-    t->Branch("R2",&R2);
-    t->Branch("pxdiff",&pxdiff);
-    t->Branch("pydiff",&pydiff);
-    t->Branch("pzdiff",&pzdiff);
-    t->Branch("ediff",&ediff);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -344,6 +317,7 @@ int LundAnalysis()
     
     //Loop over all events in the file
     while(chain.Next()==true){
+        event_count += 1;
         if(c12->getDetParticles().empty())
             continue;
         
@@ -352,10 +326,7 @@ int LundAnalysis()
         MC92count = 0;
         pioncount = 0;
         vhadroncount = 0;
-        event_count += 1;
-        if(event_count >= 1683371721) {
-            break;
-        }
+
         
         vpid.clear();
         vpx.clear();
@@ -486,7 +457,7 @@ int LundAnalysis()
             else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
                 diquark.SetPxPyPzE(px,py,pz,E);
             }
-            else if(pid == 22){
+            else if(pid == 22 && id == 3){
                 photon.SetPxPyPzE(px,py,pz,E);
             }
             else if(id == 2){
@@ -548,46 +519,20 @@ int LundAnalysis()
         R1 = R1func(dihadron, ki, kf);
         R2 = R2func(k, Q2);
             
-        kim = ki.M();
-        kie = ki.E();
-        kip = ki.P();
-        
-        kfm = kf.M();
-        kfe = kf.E();
-        kfp = kf.P();
-        
-        //Cut Kinematics
-        M_x = Mxfunc(q,init_target,piplus,piminus);
-        
-        nu = nufunc(electron_beam_energy,electron.E());
-        W = Wfunc(Q2,protonMass,nu);
-        dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
-        theta = thetafunc(dihadronpt,dihadron.Pz());
-        
-        gN = q;
-        gN += init_target;
-        gNBoost = gN.BoostVector();
-        gNBoostNeg = -gNBoost;
-        
-        lv_p1_gN = piplus;
-        lv_p2_gN = piminus;
-        lv_p1_gN.Boost(gNBoostNeg);
-        lv_p2_gN.Boost(gNBoostNeg);
-        
-        lv_q_gN = q;
-        lv_q_gN.Boost(gNBoostNeg);
-        
-        xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
-        xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
         
         pxdiff = proton.Px() + photon.Px() - diquark.Px() - kf.Px();
         pydiff = proton.Py() + photon.Py() - diquark.Py() - kf.Py();
         pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - kf.Pz();
         ediff = proton.E() + photon.E() - diquark.E() - kf.E();
-        t->Fill();
+        
+        if(pzdiff <= 0.001 && pxdiff <= 0.001 && pydiff <= 0.001) {continue;}
+        else{   ofstream file("Output.txt", ios::app);
+                file << event_count << "\n";
+                file << "The px, py, pz diff is: " << pxdiff << ", " << pydiff << ", " << pzdiff << "\n";
+                file << "photon, diquark, quark: " <<  photon.Pz() << ", " << diquark.Pz() << ", " << kf.Pz() << "\n";
+                file.close();
+             break;
+            }
     }
-    f->Write();
-    delete f;
-    
     return 0;
 }

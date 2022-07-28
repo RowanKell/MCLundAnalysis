@@ -1,0 +1,15 @@
+10
+The px, py, pz diff is: 0.2839, 0.677, -8.396
+
+954092914
+The px, py, pz diff is: 0.2839, 0.677, -8.396
+850707138
+The px, py, pz diff is: -0.7534, 0.7345, 3.7997
+1370
+The px, py, pz diff is: -0.7534, 0.7345, 3.7997
+1370
+The px, py, pz diff is: -0.7534, 0.7345, 3.7997
+photon, diquark, quark: 6.3369, 0.4408, 2.0964
+1377
+The px, py, pz diff is: -0.7534, 0.7345, 3.7997
+photon, diquark, quark: 6.3369, 0.4408, 2.0964
