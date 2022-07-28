@@ -122,7 +122,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "testfile.root";
+    auto rootfile = "LundFiles7_28/file4.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -152,8 +152,11 @@ int LundAnalysis()
     //Initialization
     int qcount;
     int MCindex;
+    int MC92count;
     int qindex;
     int vdiquarksize;
+    int pioncount;
+    int vhadroncount;
     
     int pid;
     double id;
@@ -205,7 +208,9 @@ int LundAnalysis()
     double kfm;
     double kfe;
     double kfp;
-    double qparentcount;
+    double qdaughtercount;
+    
+    double qdiff;
     
     double M_x; //Missing Mass
     double xFpiplus;
@@ -242,15 +247,15 @@ int LundAnalysis()
     TLorentzVector lundstring;
     TLorentzVector photon;
     TLorentzVector proton;
-    bool fourmomentumcheck;
-    bool pxcheck;
-    bool pycheck;
-    bool pzcheck;
-    bool echeck;
+    
     float pxdiff;
     float pydiff;
     float pzdiff;
     float ediff;
+    
+    int piplusparent;
+    int piminusparent;
+    bool piparent;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -295,6 +300,7 @@ int LundAnalysis()
     std::vector<float> vinitquarkindex;
 //    std::vector<float> vMC92index; //keeps track of position in vector
     std::vector<int> vdiquarklist;
+    std::vector<int> vhadronlist;
     
     //Vectors for comparing momentum
     std::vector<float> vpxcompare;
@@ -304,24 +310,13 @@ int LundAnalysis()
     std::vector<float> vpidcompare;
     std::vector<float> vdaughtercompare;
     std::vector<float> vparentcompare;
+    std::vector<int> vhadronparent;
     
 //    std::vector<float> venergy;
     //Making new MC tree
     TTree *t = new TTree("tree_MC","Tree with MC data");
-    
-    //Assigning variables to branches
-/*    t->Branch("pid",&pid);
-    t->Branch("px",&px);
-    t->Branch("py",&py);
-    t->Branch("pz",&pz);
-    t->Branch("daughter",&daughter);
-    t->Branch("parent",&parent);
-    t->Branch("mass",&mass);
-*/
+
     t->Branch("z_h",&z_h);
-//    t->Branch("R0",&R0);
-//    t->Branch("R1",&R1);
-//    t->Branch("R2",&R2);
     t->Branch("x",&x);
     t->Branch("pt",&pt);
     t->Branch("Q2",&Q2);
@@ -332,36 +327,10 @@ int LundAnalysis()
     t->Branch("R0",&R0); //initial parton momentum
     t->Branch("R1",&R1); //final parton momentum
     t->Branch("R2",&R2);
-    
-    //debugging to solve ki = 0 mystery
-    t->Branch("kim",&kim);
-    t->Branch("kie",&kie);
-    t->Branch("kip",&ki);
-    t->Branch("kfm",&kfm);
-    t->Branch("kfe",&kfe);
-    t->Branch("kfp",&kf);
-    t->Branch("qcount",&qcount);
-    t->Branch("qparentcount",&qparentcount);
-    t->Branch("MC92parent",&MC92parent);
-    t->Branch("vquarkindex",&vquarkindex);
-    
-    t->Branch("fourmomentumcheck",&fourmomentumcheck);
-    t->Branch("pxcheck",&pxcheck);
-    t->Branch("pycheck",&pycheck);
-    t->Branch("pzcheck",&pzcheck);
-    t->Branch("echeck",&echeck);
     t->Branch("pxdiff",&pxdiff);
     t->Branch("pydiff",&pydiff);
     t->Branch("pzdiff",&pzdiff);
     t->Branch("ediff",&ediff);
-    
-    
-//    t->Branch("qparent",&qparent);
-//    t->Branch("diparent",&diparent);
-//    t->Branch("MC92parent",&MC92parent);
-//    t->Branch("",&);
-//    t->Branch("",&);
-//    t->Branch("energy",&energy);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -378,8 +347,10 @@ int LundAnalysis()
             continue;
         
         qcount = 0;
-        qparentcount = 0;
-        MC92index = 0;
+        qdaughtercount = 0;
+        MC92count = 0;
+        pioncount = 0;
+        vhadroncount = 0;
         
         vpid.clear();
         vpx.clear();
@@ -398,26 +369,16 @@ int LundAnalysis()
         vquarkindex.clear();
         vquarkenergy.clear();
         
+        vhadronparent.clear();
+        
         vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
         vdiquarksize = vdiquarklist.size();
-//        vMC92pid.clear();
-//        vMC92parent.clear();
-//        vMC92daughter.clear();
-//        vMC92index.clear();
         
-//      venergy.clear();
+        vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
+        
         //Loop over MC::Lund entries in this event using its ID = idx_MCLund
         //Get PID from its id = iPid
         for(auto imc=0;imc<c12->getBank(idx_MCLund)->getRows();imc++){
-/*            pid = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            px = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            py = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            pz = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            daughter = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            parent = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            mass = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-            energy = c12->getBank(idx_MCLund)->getInt(iPid,imc);
-*/
             auto mcparticles = c12->mcparts();
             
             id = mcparticles->getIndex(imc);
@@ -430,7 +391,6 @@ int LundAnalysis()
             mass = mcparticles->getMass(imc);
             P = Pfunc(px,py,pz);
             E = Efunc(mass,P);
-//            energy = mcparticles->getEnergy(imc);
 
             //Kinematics
             // 
@@ -443,10 +403,14 @@ int LundAnalysis()
             //pi+
             else if(pid==pipluspid){
                 piplus.SetPxPyPzE(px,py,pz,E);
+                piplusparent = parent;
+                pioncount += 1;
             }
             //pi-
             else if(pid==piminuspid){
                 piminus.SetPxPyPzE(px,py,pz,E);
+                piminusparent = parent;
+                pioncount += 1;
             }
             //inital up
             else if(pid==uppid){
@@ -498,7 +462,7 @@ int LundAnalysis()
             }
             //MCParticle
             else if(pid==92){
-                MC92index += 1;
+                MC92count += 1;
                 MC92parent = parent;
                 MC92daughter = daughter;
                 MC92px = px;
@@ -509,7 +473,10 @@ int LundAnalysis()
                 MC92energy = E;
                 lundstring.SetPxPyPzE(px,py,pz,E);
 //                vMC92index.push_back(index);
-
+            }
+            else if(std::count(vhadronlist.begin(), vhadronlist.end(), pid) && parent == 2) {
+                vhadronparent.push_back(parent);
+                vhadroncount += 1;
             }
             else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
                 diquark.SetPxPyPzE(px,py,pz,E);
@@ -521,8 +488,25 @@ int LundAnalysis()
                 proton.SetPxPyPzE(px,py,pz,E);
             }
         }
-        //Kinematics
-
+        //Skipping events with multiple quarks as I can't extract momentum from these events yet
+        if((piplusparent != MC92index) || (piminusparent != MC92index)) {
+            piparent = false;
+        }
+        else {piparent = true;}
+        for(int i = 0; i < vhadroncount; i++) {
+            if(vhadronparent[i] == 2) {
+                continue;
+            }
+        }
+        if(
+            (qcount != 2) || 
+            (pioncount > 2) || 
+            (piparent == false) || 
+            (MC92count != 1)
+           ){
+            continue;
+        }
+        
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
         protonE = Efunc(0,protonMass);
@@ -533,6 +517,7 @@ int LundAnalysis()
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
         q = init_electron - electron; //virtual photon
+        qdiff = (q - photon).P();
         cth = cthfunc(electron.Px(),electron.Py(),electron.Pz());
         Q2 = Q2func(electron_beam_energy,electron.E(),cth); //Momentum transfer
         zpiplus = (init_target * piplus) / (init_target * q);
@@ -542,32 +527,17 @@ int LundAnalysis()
         y = yfunc(electron_beam_energy,E);
         x = Q2/s/y; // Bjorken x
         pt = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
-//        init_qE = E();
-//        final_qE = E();
-//        ki.SetPxPyPzE(); //parton initial
-//        kf.SetPxPyPzE(); //parton final
-//        deltak = ;
-//        k = kf - q; //parton
 
         //For loop for finding quarks that fragment from proton and into hadron
         for(int i = 0; i<qcount; i++) //quark is from proton target 
         {
-            if(vquarkindex[i] == MC92parent)
+            if(vquarkparent[i] == 0)
 	      {
-//            quarkinitP = Pfunc(vquarkPx[i], vquarkPy[i], vquarkPz[i]);
-//            quarkinitE = Efunc(quarkinitP, vquarkmass[i]);
-                qparentcount += 1;
-                ki.SetPxPyPzE(vquarkPx[i],vquarkPy[i],vquarkPz[i],vquarkenergy[i]);
-                kim = vquarkmass[i];
-                kie = vquarkenergy[i];
+                kf.SetPxPyPzE(vquarkPx[i],vquarkPy[i],vquarkPz[i],vquarkenergy[i]);
           }
         }
-        
-        MC92P = Pfunc(MC92px,MC92py,MC92pz);
-        
-        kf.SetPxPyPzE(MC92px,MC92py,MC92pz,MC92energy);
+        ki = kf - q;
         k = kf - q;
-        
         
         R0 = R0func(ki, kf, deltak, Q2);
         R1 = R1func(dihadron, ki, kf);
@@ -605,37 +575,11 @@ int LundAnalysis()
         xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
         xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
         
-        if(proton + photon == diquark + lundstring){
-            fourmomentumcheck = true;
-        }
-        if(proton.Px() + photon.Px() == diquark.Px() + lundstring.Px()){
-            pxcheck = true;
-        }
-        if(proton.Py() + photon.Py() == diquark.Py() + lundstring.Py()){
-            pycheck = true;
-        }
-        if(proton.Pz() + photon.Pz() == diquark.Pz() + lundstring.Pz()){
-            pzcheck = true;
-        }
-        if(proton.E() + photon.E() == diquark.E() + lundstring.E()){
-            pzcheck = true;
-        }
-        pxdiff = proton.Px() + photon.Px() - diquark.Px() - lundstring.Px();
-        pydiff = proton.Py() + photon.Py() - diquark.Py() - lundstring.Py();
-        pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - lundstring.Pz();
-        ediff = proton.E() + photon.E() - diquark.E() - lundstring.E();
-        
-        //Cuts
-//        if(M_x > 1.5){Mxcut = true;}//Missing mass > 1.5GeV
-//        else{Mxcut = false;}
-        
-//        if(xFpiplus > 0 && xFpiminus > 0){xFcut = true;}
-//        else{xFcut = false;}
-        
-//        if(Mxcut == true && xFcut == true){t->Fill();}
-        
-        t->Fill(); //commented out to put the fill command in the cut if statement
-                     //This way, if any cuts are not met, the event will not be added to the tree
+        pxdiff = proton.Px() + photon.Px() - diquark.Px() - kf.Px();
+        pydiff = proton.Py() + photon.Py() - diquark.Py() - kf.Py();
+        pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - kf.Pz();
+        ediff = proton.E() + photon.E() - diquark.E() - kf.E();
+        t->Fill();
     }
     f->Write();
     delete f;
