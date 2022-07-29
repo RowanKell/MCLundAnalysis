@@ -112,6 +112,16 @@ double thetafunc(double pt, double pz)
 {
     return abs(atan(pt/pz));
 }
+
+double LightConeMinus(TLorentzVector lv)
+{
+    return (lv.E() - lv.Pz()) / (sqrt(2));
+}
+
+double LightConePlus(TLorentzVector lv)
+{
+    return (lv.E() + lv.Pz()) / (sqrt(2));
+}
 // 
 //    Main body of analysis function
 //
@@ -122,7 +132,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "LundFiles7_28/file5.root";
+    auto rootfile = "OutputFiles/Lund_7_29/file1.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -247,6 +257,33 @@ int LundAnalysis()
     TLorentzVector lundstring;
     TLorentzVector photon;
     TLorentzVector proton;
+    
+    //Breit frame variables
+    TLorentzVector Breit;
+    TLorentzVector Breit_target;
+    TVector3 BreitBoost;
+    TLorentzVector kfBreit;
+    double kfBreitTran;
+    TLorentzVector dihadronBreit;
+    double dihadronBreitTran;
+    
+    //Photon Frame variables
+    TLorentzVector PFFrame;
+    TVector3 PFBoost;
+    TLorentzVector qPF;
+    TVector3 qPFVect;
+    TVector3 qPFVectUnit;
+    TVector3 zAxis(0,0,1);
+    double PFAngle;
+    TVector3 PFAxis;
+    
+    double qPFMinus;
+    TLorentzVector dihadronPF;
+    double dihadronPFMinus;
+    
+    double z_N;
+    TLorentzVector q_T;
+    
     
     float pxdiff;
     float pydiff;
@@ -541,20 +578,7 @@ int LundAnalysis()
                 kf.SetPxPyPzE(vquarkPx[i],vquarkPy[i],vquarkPz[i],vquarkenergy[i]);
           }
         }
-        ki = kf - q;
-        k = kf - q;
         
-        R0 = R0func(ki, kf, deltak, Q2);
-        R1 = R1func(dihadron, ki, kf);
-        R2 = R2func(k, Q2);
-            
-        kim = ki.M();
-        kie = ki.E();
-        kip = ki.P();
-        
-        kfm = kf.M();
-        kfe = kf.E();
-        kfp = kf.P();
         
         //Cut Kinematics
         M_x = Mxfunc(q,init_target,piplus,piminus);
@@ -584,6 +608,63 @@ int LundAnalysis()
         pydiff = proton.Py() + photon.Py() - diquark.Py() - kf.Py();
         pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - kf.Pz();
         ediff = proton.E() + photon.E() - diquark.E() - kf.E();
+        
+        // Breit Frame Kinematics for delta k
+        Breit = q;
+        Breit_target.SetPxPyPzE(0,0,0,2 * x * protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
+        Breit += Breit_target;
+        BreitBoost = Breit.BoostVector();
+        BreitBoost = -1 * BreitBoost;
+        kfBreit = kf;
+        kfBreit.Boost(BreitBoost);
+        kfBreitTran = Ptfunc(kfBreit.Px(),kfBreit.Py()); //kfbT in delta k calculation
+        
+        dihadronBreit = dihadron;
+        dihadronBreit.Boost(BreitBoost);
+        dihadronBreitTran = Ptfunc(dihadronBreit.Px(),dihadronBreit.Py()); //PBbT in qT part of delta k calculation
+        
+        PFFrame = q + init_target;
+        PFBoost = PFFrame.BoostVector();
+        PFBoost = -1 * PFBoost;
+        qPF = q;
+        qPF.Boost(PFBoost);
+        qPFVect = qPF.Vect();
+        qPFVectUnit = qPFVect.Unit();
+        PFAngle = qPFVectUnit.Angle(zAxis);
+        PFAxis = qPFVectUnit.Cross(zAxis);
+        //To rotate -> vector.Rotate(PFAngle,PFAxis);
+        
+        //
+        //Photon Frame
+        //
+        
+        //Dihadron
+        dihadronPF = dihadron;
+        dihadronPF.Boost(PFBoost);
+        dihadronPF.Rotate(PFAngle,PFAxis);
+        dihadronPFMinus = LightConeMinus(dihadronPF);
+        //Virtual Photon
+        qPF.Rotate(PFAngle,PFAxis);
+        qPFMinus = LightConeMinus(qPFMinus);
+        //z_N and q_T
+        z_N = dihadronPFMinus / qPFMinus;
+        q_T = -1 * dihadronBreitTran / z_N;
+        //ki, k, and delta k
+        deltak = kfBreitTran - (-1 * z_N * q_T); 
+        ki = kf - q;
+        k = kf - q;
+        
+        R0 = R0func(ki, kf, deltak, Q2);
+        R1 = R1func(dihadron, ki, kf);
+        R2 = R2func(k, Q2);
+            
+        kim = ki.M();
+        kie = ki.E();
+        kip = ki.P();
+        
+        kfm = kf.M();
+        kfe = kf.E();
+        kfp = kf.P();
         t->Fill();
     }
     f->Write();
