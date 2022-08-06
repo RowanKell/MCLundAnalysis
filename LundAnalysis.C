@@ -43,8 +43,8 @@ TVector2 PtVectfunc(TLorentzVector lv)
     TVector2 Pt;
     double Px = lv.Px();
     double Py = lv.Py();
-    Pt.SetPx(Px);
-    Pt.SetPy(Py);
+    Pt.SetX(Px);
+    Pt.SetY(Py);
     return Pt;
 }
 
@@ -68,7 +68,7 @@ double sfunc(double M1,double M2,double E) //proton mass is M1, electron mass is
     return M1 * M1 + M2 * M2 + 2 * M1 * E;
 }
 
-double R0func(TLorentzVector ki, TLorentzVector kf, TLorentzVector deltak, double Q2)
+double R0func(TLorentzVector ki, TLorentzVector kf, TVector2 deltak, double Q2)
 {
     double init;
     double final;
@@ -142,7 +142,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_2/file2.root";
+    auto rootfile = "OutputFiles/Lund_8_6/file2.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -255,6 +255,8 @@ int LundAnalysis()
     TLorentzVector kf;
     TLorentzVector ki;
     TVector2 deltak; // Transverse light cone vector - (V_x,V_y)
+    double deltakx;
+    double deltaky;
     
     TLorentzVector lv_p1_gN;
     TLorentzVector lv_p2_gN;
@@ -275,7 +277,7 @@ int LundAnalysis()
     TLorentzVector kfBreit;
     TVector2 kfBreitTran;
     TLorentzVector dihadronBreit;
-    double dihadronBreitTran;
+    TVector2 dihadronBreitTran;
     
     //Photon Frame variables
     TLorentzVector PFFrame;
@@ -292,7 +294,7 @@ int LundAnalysis()
     double dihadronPFMinus;
     
     double z_N;
-    TLorentzVector q_T;
+    TVector2 q_T;
     
     
     float pxdiff;
@@ -316,6 +318,9 @@ int LundAnalysis()
     double PFkfy;
     double PFkfz;
     double PFkft;
+    
+    double ki2;
+    double kf2;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -399,6 +404,10 @@ int LundAnalysis()
     t->Branch("PFkfy",&PFkfy);
     t->Branch("PFkfz",&PFkfz);
     t->Branch("PFkft",&PFkft);
+    t->Branch("deltakx",&deltakx)
+    t->Branch("deltaky",&deltaky)
+    t->Branch("ki2",&ki2);
+    t->Branch("kf2",&kf2);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -649,7 +658,7 @@ int LundAnalysis()
         
         dihadronBreit = dihadron;
         dihadronBreit.Boost(BreitBoost);
-        dihadronBreitTran = Ptfunc(dihadronBreit.Px(),dihadronBreit.Py()); //PBbT in qT part of delta k calculation
+        dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
         
         PFFrame = q + init_target;
         PFBoost = PFFrame.BoostVector();
@@ -670,16 +679,20 @@ int LundAnalysis()
         dihadronPF = dihadron;
         dihadronPF.Boost(PFBoost);
         dihadronPF.Rotate(PFAngle,PFAxis);
-//        dihadronPFMinus = LightConeMinus(dihadronPF);
+        dihadronPFMinus = LightConeMinus(dihadronPF);
         //Virtual Photon
         qPF.Rotate(PFAngle,PFAxis);
-//        qPFMinus = LightConeMinus(qPFMinus);
+        qPFMinus = LightConeMinus(qPF);
         //z_N and q_T
         z_N = dihadronPFMinus / qPFMinus;
-//        q_T = -1 * dihadronBreitTran / z_N;
+        q_T = -1 * dihadronBreitTran / z_N;
         //ki, k, and delta k
-//        deltak = kfBreitTran - (-1 * z_N * q_T); 
+        deltak = kfBreitTran - (-1 * z_N * q_T); 
+        deltakx = deltak.Px();
+        deltaky = deltak.Py();
         ki = kf - q;
+        ki2 = ki * ki;
+        kf2 = kf * kf;
         k = kf - q;
         
         R0 = R0func(ki, kf, deltak, Q2);
