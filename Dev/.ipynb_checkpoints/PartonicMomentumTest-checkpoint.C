@@ -38,6 +38,13 @@ double Ptfunc(double Px, double Py)
     return sqrt(Px*Px + Py*Py);
 }
 
+double PtVectfunc(TLorentzVector lv)
+{
+    double Px = lv.Px();
+    double Py = lv.Py();
+    return sqrt(Px*Px + Py*Py);
+}
+
 double cthfunc(double Px, double Py, double Pz)
 {
     double Pt = sqrt(Px*Px + Py*Py);
@@ -126,13 +133,13 @@ double LightConePlus(TLorentzVector lv)
 //    Main body of analysis function
 //
 
-int LundAnalysis()
+int PartonicMomentumTest()
 {
     
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_2/file2.root";
+    auto rootfile = "../OutputFiles/Lund_8_3/Aug_3_file3.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -292,6 +299,9 @@ int LundAnalysis()
     
     int piplusparent;
     int piminusparent;
+    int pifirstparent;
+    int pisecondparent;
+    
     bool piparent;
     int event_count;
     
@@ -306,6 +316,11 @@ int LundAnalysis()
     double PFkfy;
     double PFkfz;
     double PFkft;
+    
+    double qPFx;
+    double qPFy;
+    double qPFz;
+    double qPFpt;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -362,25 +377,13 @@ int LundAnalysis()
     std::vector<float> vparentcompare;
     std::vector<int> vhadronparent;
     
+    int qparent0;
+    
 //    std::vector<float> venergy;
     //Making new MC tree
     TTree *t = new TTree("tree_MC","Tree with MC data");
 
-    t->Branch("z_h",&z_h);
-    t->Branch("x",&x);
-    t->Branch("pt",&pt);
-    t->Branch("Q2",&Q2);
-    t->Branch("Ph",&Pdihadron);
-    t->Branch("P",&Ptarget); //target momentum
-    t->Branch("Mdihadron",&Mdihadron); //dihadron mass
-    t->Branch("MC92index",&MC92index); //index for Lund string
-    t->Branch("R0",&R0); //initial parton momentum
-    t->Branch("R1",&R1); //final parton momentum
-    t->Branch("R2",&R2);
-    t->Branch("pxdiff",&pxdiff);
-    t->Branch("pydiff",&pydiff);
-    t->Branch("pzdiff",&pzdiff);
-    t->Branch("ediff",&ediff);
+
     t->Branch("PFkix",&PFkix); //Photon frame partonic momentum for checking ki values
     t->Branch("PFkiy",&PFkiy);
     t->Branch("PFkiz",&PFkiz);
@@ -389,6 +392,11 @@ int LundAnalysis()
     t->Branch("PFkfy",&PFkfy);
     t->Branch("PFkfz",&PFkfz);
     t->Branch("PFkft",&PFkft);
+    t->Branch("qparent0",&qparent0);
+    t->Branch("qPFx",&qPFx);
+    t->Branch("qPFy",&qPFy);
+    t->Branch("qPFz",&qPFz);
+    t->Branch("qPFpt",&qPFpt);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -410,6 +418,7 @@ int LundAnalysis()
         pioncount = 0;
         vhadroncount = 0;
         event_count += 1;
+        qparent0 = 0;
         
         vpid.clear();
         vpx.clear();
@@ -454,23 +463,40 @@ int LundAnalysis()
             //Kinematics
             // 
 
-
+            if(pioncount == 0){
+                //pi+
+                if(pid==pipluspid){
+                    piplus.SetPxPyPzE(px,py,pz,E);
+                    pifirstparent = parent;
+                    pioncount += 1;
+                }
+                //pi-
+                else if(pid==piminuspid){
+                    piminus.SetPxPyPzE(px,py,pz,E);
+                    pifirstparent = parent;
+                    pioncount += 1;
+                }
+            }
+            if(pioncount == 1){
+                //pi+
+                if(pid==pipluspid && parent == pifirstparent){
+                    piplus.SetPxPyPzE(px,py,pz,E);
+                    pisecondparent = parent;
+                    pioncount += 1;
+                }
+                //pi-
+                else if(pid==piminuspid && parent == pifirstparent){
+                    piminus.SetPxPyPzE(px,py,pz,E);
+                    pisecondparent = parent;
+                    pioncount += 1;
+                }
+            }
             //Setting scattered electron
             if(pid==11 && parent==1){
                 electron.SetPxPyPzE(px,py,pz,E);
             }
-            //pi+
-            else if(pid==pipluspid){
-                piplus.SetPxPyPzE(px,py,pz,E);
-                piplusparent = parent;
-                pioncount += 1;
-            }
-            //pi-
-            else if(pid==piminuspid){
-                piminus.SetPxPyPzE(px,py,pz,E);
-                piminusparent = parent;
-                pioncount += 1;
-            }
+            
+            
             //inital up
             else if(pid==uppid){
                 qcount += 1;
@@ -520,7 +546,7 @@ int LundAnalysis()
                 vquarkenergy.push_back(E);
             }
             //MCParticle
-            else if(pid==92){
+            else if(pid==92 or pid == 91){
                 MC92count += 1;
                 MC92parent = parent;
                 MC92daughter = daughter;
@@ -548,24 +574,6 @@ int LundAnalysis()
             }
         }
         
-        //Skipping events with multiple quarks as I can't extract momentum from these events yet
-        if((piplusparent != MC92index) || (piminusparent != MC92index)) {
-            piparent = false;
-        }
-        else {piparent = true;}
-        for(int i = 0; i < vhadroncount; i++) {
-            if(vhadronparent[i] == 2) {
-                continue;
-            }
-        }
-        if(
-            (qcount != 2) || 
-            (pioncount > 2) || 
-            (piparent == false) || 
-            (MC92count != 1)
-           ){
-            continue;
-        }
         
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
@@ -586,7 +594,7 @@ int LundAnalysis()
         s = sfunc(protonMass, electronMass, electron_beam_energy);
         y = yfunc(electron_beam_energy,E);
         x = Q2/s/y; // Bjorken x
-        pt = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
+        pt = PtVectfunc(dihadron); //hadron transverse momentum
 
         //For loop for finding quarks that fragment from proton and into hadron
         for(int i = 0; i<qcount; i++) //quark is from proton target 
@@ -594,38 +602,12 @@ int LundAnalysis()
             if(vquarkparent[i] == 0)
 	      {
                 kf.SetPxPyPzE(vquarkPx[i],vquarkPy[i],vquarkPz[i],vquarkenergy[i]);
+                qparent0 += 1;
           }
         }
         
         
-        //Cut Kinematics
-        M_x = Mxfunc(q,init_target,piplus,piminus);
-        
-        nu = nufunc(electron_beam_energy,electron.E());
-        W = Wfunc(Q2,protonMass,nu);
-        dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
-        theta = thetafunc(dihadronpt,dihadron.Pz());
-        
-        gN = q;
-        gN += init_target;
-        gNBoost = gN.BoostVector();
-        gNBoostNeg = -gNBoost;
-        
-        lv_p1_gN = piplus;
-        lv_p2_gN = piminus;
-        lv_p1_gN.Boost(gNBoostNeg);
-        lv_p2_gN.Boost(gNBoostNeg);
-        
-        lv_q_gN = q;
-        lv_q_gN.Boost(gNBoostNeg);
-        
-        xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
-        xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
-        
-        pxdiff = proton.Px() + photon.Px() - diquark.Px() - kf.Px();
-        pydiff = proton.Py() + photon.Py() - diquark.Py() - kf.Py();
-        pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - kf.Pz();
-        ediff = proton.E() + photon.E() - diquark.E() - kf.E();
+
         
         // Breit Frame Kinematics for delta k
         Breit = q;
@@ -639,7 +621,7 @@ int LundAnalysis()
         
         dihadronBreit = dihadron;
         dihadronBreit.Boost(BreitBoost);
-        dihadronBreitTran = Ptfunc(dihadronBreit.Px(),dihadronBreit.Py()); //PBbT in qT part of delta k calculation
+        dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
         
         PFFrame = q + init_target;
         PFBoost = PFFrame.BoostVector();
@@ -663,6 +645,10 @@ int LundAnalysis()
 //        dihadronPFMinus = LightConeMinus(dihadronPF);
         //Virtual Photon
         qPF.Rotate(PFAngle,PFAxis);
+        qPFpt = PtVectfunc(qPF);
+        qPFx = qPF.Px();
+        qPFy = qPF.Py();
+        qPFz = qPF.Pz();
 //        qPFMinus = LightConeMinus(qPFMinus);
         //z_N and q_T
         z_N = dihadronPFMinus / qPFMinus;
@@ -691,12 +677,15 @@ int LundAnalysis()
         PFkix = PFki.Px();
         PFkiy = PFki.Py();
         PFkiz = PFki.Pz();
-        PFkit = Ptfunc(PFkix,PFkiy);
+        PFkit = PtVectfunc(PFki);
         
         PFkfx = PFkf.Px();
         PFkfy = PFkf.Py();
         PFkfz = PFkf.Pz();
-        PFkft = Ptfunc(PFkfx,PFkfy);
+        PFkft = PtVectfunc(PFkf);
+        if(pifirstparent != pisecondparent || pioncount != 2){
+            continue;
+        }
         t->Fill();
     }
     f->Write();
