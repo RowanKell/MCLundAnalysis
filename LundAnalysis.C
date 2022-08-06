@@ -404,8 +404,8 @@ int LundAnalysis()
     t->Branch("PFkfy",&PFkfy);
     t->Branch("PFkfz",&PFkfz);
     t->Branch("PFkft",&PFkft);
-    t->Branch("deltakx",&deltakx)
-    t->Branch("deltaky",&deltaky)
+    t->Branch("deltakx",&deltakx);
+    t->Branch("deltaky",&deltaky);
     t->Branch("ki2",&ki2);
     t->Branch("kf2",&kf2);
     
