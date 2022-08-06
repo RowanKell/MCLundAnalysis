@@ -464,6 +464,7 @@ int LundTest()
                 proton.SetPxPyPzE(px,py,pz,E);
             }
         }
+        /*
         //Skipping events with multiple quarks as I can't extract momentum from these events yet
         if((piplusparent != MC92index) || (piminusparent != MC92index)) {
             piparent = false;
@@ -482,7 +483,7 @@ int LundTest()
            ){
             continue;
         }
-        
+        */
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
         protonE = Efunc(0,protonMass);
@@ -525,8 +526,9 @@ int LundTest()
         pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - kf.Pz();
         ediff = proton.E() + photon.E() - diquark.E() - kf.E();
         
-        if(pzdiff <= 0.001 && pxdiff <= 0.001 && pydiff <= 0.001) {continue;}
-        else{   ofstream file("Output.txt", ios::app);
+        if(event_count == 4 || event_count == 5) {continue;}
+        if(qcount == 4)
+            {   ofstream file("Output.txt", ios::app);
                 file << event_count << "\n";
                 file << "The px, py, pz diff is: " << pxdiff << ", " << pydiff << ", " << pzdiff << "\n";
                 file << "photon, diquark, quark: " <<  photon.Pz() << ", " << diquark.Pz() << ", " << kf.Pz() << "\n";

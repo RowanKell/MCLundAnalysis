@@ -547,7 +547,7 @@ int LundAnalysis()
                 proton.SetPxPyPzE(px,py,pz,E);
             }
         }
-        
+        /*
         //Skipping events with multiple quarks as I can't extract momentum from these events yet
         if((piplusparent != MC92index) || (piminusparent != MC92index)) {
             piparent = false;
@@ -566,7 +566,7 @@ int LundAnalysis()
            ){
             continue;
         }
-        
+        */
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
         protonE = Efunc(0,protonMass);
