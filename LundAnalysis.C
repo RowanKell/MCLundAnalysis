@@ -38,6 +38,16 @@ double Ptfunc(double Px, double Py)
     return sqrt(Px*Px + Py*Py);
 }
 
+TVector2 PtVectfunc(TLorentzVector lv)
+{
+    TVector2 Pt;
+    double Px = lv.Px();
+    double Py = lv.Py();
+    Pt.SetPx(Px);
+    Pt.SetPy(Py);
+    return Pt;
+}
+
 double cthfunc(double Px, double Py, double Pz)
 {
     double Pt = sqrt(Px*Px + Py*Py);
@@ -244,7 +254,7 @@ int LundAnalysis()
     TLorentzVector k;
     TLorentzVector kf;
     TLorentzVector ki;
-    TLorentzVector deltak;
+    TVector2 deltak; // Transverse light cone vector - (V_x,V_y)
     
     TLorentzVector lv_p1_gN;
     TLorentzVector lv_p2_gN;
@@ -263,7 +273,7 @@ int LundAnalysis()
     TLorentzVector Breit_target;
     TVector3 BreitBoost;
     TLorentzVector kfBreit;
-    double kfBreitTran;
+    TVector2 kfBreitTran;
     TLorentzVector dihadronBreit;
     double dihadronBreitTran;
     
@@ -635,7 +645,7 @@ int LundAnalysis()
         BreitBoost = -1 * BreitBoost;
         kfBreit = kf;
         kfBreit.Boost(BreitBoost);
-//        kfBreitTran = Ptfunc(kfBreit.Px(),kfBreit.Py()); //kfbT in delta k calculation
+        kfBreitTran = PtVectfunc(kfBreit); //kfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
         
         dihadronBreit = dihadron;
         dihadronBreit.Boost(BreitBoost);
