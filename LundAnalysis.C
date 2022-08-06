@@ -29,10 +29,12 @@ double Pfunc(double Px, double Py, double Pz)
 {
     return sqrt(Px*Px + Py*Py + Pz*Pz);
 }
+
 double Efunc(double M, double P)
 {
     return sqrt(M * M + P * P);
 }
+
 double Ptfunc(double Px, double Py)
 {
     return sqrt(Px*Px + Py*Py);
@@ -168,8 +170,11 @@ int LundAnalysis()
     double downpid = 1;
     double antiuppid = -2;
     double antidownpid = -1;
-    
+    //
     //Initialization
+    //
+
+    //Counters
     int qcount;
     int MCindex;
     int MC92count;
@@ -177,18 +182,20 @@ int LundAnalysis()
     int vdiquarksize;
     int pioncount;
     int vhadroncount;
-    
+
+    //MC::Lund bank entries
     int pid;
     double id;
     double px;
     double py;
     double pz;
-    double dihadronpt;
     double daughter;
     double parent;
     double mass;
     double P;
     double E;
+
+    //Calculated SIDIS kinematics
     double cth;
     double Q2;
     double x;
@@ -205,7 +212,10 @@ int LundAnalysis()
     double y;
     double init_qE;
     double final_qE;
+
+    //Dihadron kinematics
     double Mdihadron;
+    double dihadronpt;
     double MC92index;
     double protonE;
     double MC92px;
@@ -257,6 +267,7 @@ int LundAnalysis()
     TVector2 deltak; // Transverse light cone vector - (V_x,V_y)
     double deltakx;
     double deltaky;
+    double deltak2;
     
     TLorentzVector lv_p1_gN;
     TLorentzVector lv_p2_gN;
@@ -406,6 +417,7 @@ int LundAnalysis()
     t->Branch("PFkft",&PFkft);
     t->Branch("deltakx",&deltakx);
     t->Branch("deltaky",&deltaky);
+    t->Branch("deltak2",&deltak2);
     t->Branch("ki2",&ki2);
     t->Branch("kf2",&kf2);
     
@@ -690,9 +702,10 @@ int LundAnalysis()
         deltak = kfBreitTran - (-1 * z_N * q_T); 
         deltakx = deltak.Px();
         deltaky = deltak.Py();
+        deltak2 = deltak * deltak;
         ki = kf - q;
-        ki2 = ki * ki;
-        kf2 = kf * kf;
+        ki2 = abs(ki * ki);
+        kf2 = abs(kf * kf);
         k = kf - q;
         
         R0 = R0func(ki, kf, deltak, Q2);
