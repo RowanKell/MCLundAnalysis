@@ -144,7 +144,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_6/file2.root";
+    auto rootfile = "OutputFiles/Lund_8_6/file3.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
