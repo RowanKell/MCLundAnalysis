@@ -25,6 +25,37 @@ using namespace std;
 //     Functions for calculating kinematics and ratios
 //
 
+class MCParticle
+{
+    public:
+    
+    //Lund bank variables
+    int pid;
+    double id;
+    double px;
+    double py;
+    double pz;
+    double daughter;
+    double parent;
+    double mass;
+    double P;
+    double E;
+    
+    E = Efunc(mass, P);
+    //TLorentzVector
+    TLorentzVector lv;
+    lv.SetPxPyPzE(px,py,pz,E)
+    
+    //Calculated kinematics
+    double Pt;
+    TVector2 PtVect;
+    
+    //Calculations
+    P = Pfunc(px, py, pz);
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+}
+
 double Pfunc(double Px, double Py, double Pz)
 {
     return sqrt(Px*Px + Py*Py + Pz*Pz);
@@ -242,6 +273,7 @@ int LundAnalysis()
     
     double qdiff;
     
+    //Cut Kinematics
     double M_x; //Missing Mass
     double xFpiplus;
     double xFpiminus;
@@ -249,8 +281,13 @@ int LundAnalysis()
     double W;
     double theta;
     
-    bool Mxcut;
-    bool xFcut;
+    bool Mx_cut;
+    bool xF_cut;
+    bool momentum_cut;
+    bool W_cut;
+    bool y_cut;
+    bool vz_cut;
+    bool Q2_cut;
 
     //Initializing particle vectors
     TLorentzVector q;
@@ -435,6 +472,12 @@ int LundAnalysis()
         if(c12->getDetParticles().empty())
             continue;
         
+        W_cut = false;
+        xF_cut = false;
+        Mx_cut = false;
+        momentum_cut = false;
+        vz_cut = false;
+        
         qcount = 0;
         qdaughtercount = 0;
         MC92count = 0;
@@ -481,6 +524,7 @@ int LundAnalysis()
             mass = mcparticles->getMass(imc);
             P = Pfunc(px,py,pz);
             E = Efunc(mass,P);
+            vz = mcparticles->getVz(imc);
 
             //Kinematics
             // 
@@ -489,18 +533,21 @@ int LundAnalysis()
             //Setting scattered electron
             if(pid==11 && parent==1){
                 electron.SetPxPyPzE(px,py,pz,E);
+                vz_electron = vz;
             }
             //pi+
             else if(pid==pipluspid){
                 piplus.SetPxPyPzE(px,py,pz,E);
                 piplusparent = parent;
                 pioncount += 1;
+                vz_piplus = vz;
             }
             //pi-
             else if(pid==piminuspid){
                 piminus.SetPxPyPzE(px,py,pz,E);
                 piminusparent = parent;
                 pioncount += 1;
+                vz_piminus = vz
             }
             //inital up
             else if(pid==uppid){
@@ -634,8 +681,33 @@ int LundAnalysis()
         
         nu = nufunc(electron_beam_energy,electron.E());
         W = Wfunc(Q2,protonMass,nu);
+        
+        if((W > 2) && (W < 100)) {
+            W_cut = true;
+        }
+        else {W_cut = false;}
+        
+        if((Q2 > 1) && (Q2 < 100)) {
+            Q2_cut = true;
+        }
+        else {Q2_cut = false;}
+        
+        if(abs(vz_electron-vz_piplus)<20 && abs(vz_electron-vz_piminus)<20) {
+            vz_cut = true;
+        }
+        else {vz_cut = false}
+        
+        if((y > 0) && (y < 0.8)) {
+            y_cut = true;
+        }
+        else {y_cut = false;}
         dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
         theta = thetafunc(dihadronpt,dihadron.Pz());
+        
+        if((piplus.P() > 1.25) && (piplus.P() > 1.25)) {
+            momentum_cut = true;
+        }
+        else {momentum_cut = false;}
         
         gN = q;
         gN += init_target;
@@ -652,6 +724,9 @@ int LundAnalysis()
         
         xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
         xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
+        if((xFpiplus > 0) && (xFpiminus > 0)) {
+            xF_cut = true;
+        }
         
         pxdiff = proton.Px() + photon.Px() - diquark.Px() - kf.Px();
         pydiff = proton.Py() + photon.Py() - diquark.Py() - kf.Py();
@@ -733,7 +808,10 @@ int LundAnalysis()
         PFkfy = PFkf.Py();
         PFkfz = PFkf.Pz();
         PFkft = Ptfunc(PFkfx,PFkfy);
-        t->Fill();
+        if((Mx_cut == true) && (xF_cut == true) && (momentum_cut == true) && (W_cut == true) && (y_cut == true) && (vz_cut == true) && (Q2_cut == true) {
+            t->Fill();
+        }
+        else{continue;}
     }
     f->Write();
     delete f;
