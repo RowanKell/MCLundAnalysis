@@ -21,41 +21,6 @@ using namespace std;
 11. pT (transverse hadron momentum)
 */
 
-//
-//     Functions for calculating kinematics and ratios
-//
-
-class MCParticle
-{
-    public:
-    
-    //Lund bank variables
-    int pid;
-    double id;
-    double px;
-    double py;
-    double pz;
-    double daughter;
-    double parent;
-    double mass;
-    double P;
-    double E;
-    
-    E = Efunc(mass, P);
-    //TLorentzVector
-    TLorentzVector lv;
-    lv.SetPxPyPzE(px,py,pz,E)
-    
-    //Calculated kinematics
-    double Pt;
-    TVector2 PtVect;
-    
-    //Calculations
-    P = Pfunc(px, py, pz);
-    Pt = Ptfunc(px, py);
-    PtVect = PtVectfunc(lv);
-}
-
 double Pfunc(double Px, double Py, double Pz)
 {
     return sqrt(Px*Px + Py*Py + Pz*Pz);
@@ -164,6 +129,94 @@ double LightConeMinus(TLorentzVector lv)
 double LightConePlus(TLorentzVector lv)
 {
     return (lv.E() + lv.Pz()) / (sqrt(2));
+}
+
+//
+//    Class Stuff
+//
+
+class MCParticle
+{
+    public:
+    
+    //Lund bank variables
+    int pid = 0;
+    double id = 0;
+    double px = 0;
+    double py = 0;
+    double pz = 0;
+    double daughter = 0;
+    double parent = 0;
+    double mass = 0;
+    double P = 0;
+    double E = 0;
+    double vz = 0;
+    //TLorentzVector
+    TLorentzVector lv;
+    
+    //Calculations
+    double Pt = 0;
+    TVector2 PtVect;
+    
+    void inputPxPyPzM(double _px, double _py, double _pz, double _m);
+    
+    void SetParentDaughter(double _parent,double _daughter);
+    
+    void fillParticle(auto _mcparticles, auto _imc);
+    
+    void Calculate();
+};
+
+void MCParticle::inputPxPyPzM(double _px, double _py, double _pz, double _m)
+{
+    px = _px;
+    py = _py;
+    pz = _pz;
+    mass = _m;
+    
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    lv.SetPxPyPzE(px,py,pz,E);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+    
+}
+void MCParticle::SetParentDaughter(double _parent,double _daughter)
+{
+    parent = _parent;
+    daughter = _daughter;
+}
+void MCParticle::Calculate()
+{
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    lv.SetPxPyPzE(px,py,pz,E);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
+}
+void MCParticle::fillParticle(auto _mcparticles, auto _imc)
+{
+    id = _mcparticles->getIndex(_imc);
+    pid = _mcparticles->getPid(_imc);
+    px = _mcparticles->getPx(_imc);
+    py = _mcparticles->getPy(_imc);
+    pz = _mcparticles->getPz(_imc);
+    daughter = _mcparticles->getDaughter(_imc);
+    parent = _mcparticles->getParent(_imc);
+    mass = _mcparticles->getMass(_imc);
+    vz = _mcparticles->getVz(_imc);
+    
+    P = Pfunc(px, py, pz);
+    E = Efunc(mass, P);
+    
+    lv.SetPxPyPzE(px,py,pz,E);
+    
+    Pt = Ptfunc(px, py);
+    PtVect = PtVectfunc(lv);
 }
 // 
 //    Main body of analysis function
@@ -444,6 +497,7 @@ int LundAnalysis()
     t->Branch("pydiff",&pydiff);
     t->Branch("pzdiff",&pzdiff);
     t->Branch("ediff",&ediff);
+    t->Branch("qdiff",&qdiff);
     t->Branch("PFkix",&PFkix); //Photon frame partonic momentum for checking ki values
     t->Branch("PFkiy",&PFkiy);
     t->Branch("PFkiz",&PFkiz);
@@ -532,8 +586,8 @@ int LundAnalysis()
 
             //Setting scattered electron
             if(pid==11 && parent==1){
-                electron.SetPxPyPzE(px,py,pz,E);
-                vz_electron = vz;
+                MCParticle electron;
+                electron.fillParticle(mcparticles, imc)
             }
             //pi+
             else if(pid==pipluspid){
@@ -616,13 +670,16 @@ int LundAnalysis()
                 vhadroncount += 1;
             }
             else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
-                diquark.SetPxPyPzE(px,py,pz,E);
+                MCParticle diquark;
+                diquark.fillParticle(mcparticles, imc)
             }
             else if(pid == 22){
-                photon.SetPxPyPzE(px,py,pz,E);
+                MCParticle photon;
+                photon.fillParticle(mcparticles, imc)
             }
             else if(id == 2){
-                proton.SetPxPyPzE(px,py,pz,E);
+                MCParticle proton;
+                proton.fillParticle(mcparticles, imc)
             }
         }
         
@@ -647,22 +704,21 @@ int LundAnalysis()
         
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
-        protonE = Efunc(0,protonMass);
-        init_target.SetPxPyPzE(0, 0, 0, protonE);
+        init_target.SetPxPyPzE(0, 0, 0, proton.E);
         Ptarget = init_target.P();
         
         dihadron = piplus + piminus;
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
-        q = init_electron - electron; //virtual photon
-        qdiff = (q - photon).P();
-        cth = cthfunc(electron.Px(),electron.Py(),electron.Pz());
-        Q2 = Q2func(electron_beam_energy,electron.E(),cth); //Momentum transfer
+        q = init_electron - electron.lv; //virtual photon
+        qdiff = (q - photon.lv).P();
+        cth = cthfunc(electron.px,electron.py,electron.pz);
+        Q2 = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
         zpiplus = (init_target * piplus) / (init_target * q);
         zpiminus = (init_target * piminus) / (init_target * q);
         z_h = zpiplus + zpiminus;
         s = sfunc(protonMass, electronMass, electron_beam_energy);
-        y = yfunc(electron_beam_energy,E);
+        y = yfunc(electron_beam_energy,electron.E);
         x = Q2/s/y; // Bjorken x
         pt = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
 
@@ -679,7 +735,7 @@ int LundAnalysis()
         //Cut Kinematics
         M_x = Mxfunc(q,init_target,piplus,piminus);
         
-        nu = nufunc(electron_beam_energy,electron.E());
+        nu = nufunc(electron_beam_energy,electron.E);
         W = Wfunc(Q2,protonMass,nu);
         
         if((W > 2) && (W < 100)) {
@@ -692,7 +748,7 @@ int LundAnalysis()
         }
         else {Q2_cut = false;}
         
-        if(abs(vz_electron-vz_piplus)<20 && abs(vz_electron-vz_piminus)<20) {
+        if(abs(electron.vz-vz_piplus)<20 && abs(electron.vz-vz_piminus)<20) {
             vz_cut = true;
         }
         else {vz_cut = false}
@@ -728,10 +784,10 @@ int LundAnalysis()
             xF_cut = true;
         }
         
-        pxdiff = proton.Px() + photon.Px() - diquark.Px() - kf.Px();
-        pydiff = proton.Py() + photon.Py() - diquark.Py() - kf.Py();
-        pzdiff = proton.Pz() + photon.Pz() - diquark.Pz() - kf.Pz();
-        ediff = proton.E() + photon.E() - diquark.E() - kf.E();
+        pxdiff = proton.px + photon.px - diquark.px - kf.Px();
+        pydiff = proton.py + photon.py - diquark.py - kf.Py();
+        pzdiff = proton.pz + photon.pz - diquark.pz - kf.Pz();
+        ediff = proton.E + photon.E - diquark.E - kf.E();
         
         // Breit Frame Kinematics for delta k
         Breit = q;
