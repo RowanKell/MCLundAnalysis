@@ -218,6 +218,49 @@ void MCParticle::fillParticle(int _id, int _pid, double _px, double _py, double 
     Pt = Ptfunc(px, py);
     PtVect = PtVectfunc(lv);
 }
+
+class MultiParticle : public MCParticle
+{
+    public:
+    
+    vector<int> v_id;
+    vector<int> v_pid;
+    vector<double> v_px;
+    vector<double> v_py;
+    vector<double> v_pz;
+    vector<int> v_daughter;
+    vector<int> v_parent;
+    vector<double> v_mass;
+    vector<double> v_P;
+    vector<double> v_E;
+    vector<double> v_vz
+    vector<TLorentzVector> v_lv;
+    vector<double> v_Pt;
+    vector<TVector2> v_PtVect;
+    
+    void update(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz, double _momentum, double _energy, TLorentzVector _lv, double _pt, TVector2 _ptvect)
+    {
+        v_id.push_back(_id);
+        v_pid.push_back(_pid);
+        v_px.push_back(_px);
+        v_py.push_back(_py);
+        v_pz.push_back(_pz);
+        v_daughter.push_back(_daughter);
+        v_parent.push_back(_parent);
+        v_mass.push_back(_mass);
+        v_vz.push_back(_vz);
+    
+        v_P.push_back(_momentum);
+        v_E.push_back(_energy);
+    
+        v_lv.push_back(_lv);
+    
+        v_Pt.push_back(_pt);
+        v_PtVect.push_back(_ptvect);
+    }
+    
+};
+
 // 
 //    Main body of analysis function
 //
@@ -261,7 +304,6 @@ int LundAnalysis()
     //Counters
     int qcount;
     int MCindex;
-    int MC92count;
     int qindex;
     int vdiquarksize;
     int pioncount;
@@ -301,18 +343,18 @@ int LundAnalysis()
     //Dihadron kinematics
     double Mdihadron;
     double dihadronpt;
-    int MC92index;
+    int Lundindex;
     double protonE;
-    double MC92px;
-    double MC92py;
-    double MC92pz;
-    double MC92mass;
-    int MC92parent;
-    int MC92daughter;
+    double Lundpx;
+    double Lundpy;
+    double Lundpz;
+    double Lundmass;
+    int Lundparent;
+    int Lunddaughter;
     double Ptarget;
     double Pdihadron;
-    double MC92P;
-    double MC92energy;
+    double LundP;
+    double Lundenergy;
     double quarkinitP;
     double quarkinitE;  
     double energy;
@@ -349,14 +391,23 @@ int LundAnalysis()
     MCParticle electron;
     MCParticle proton;
     MCParticle photon;
-    MCParticle diquark;
+    MCParticle Lund;
+    
+    MultiParticle piplus;
+    MultiParticle piminus;
+    
+    MultiParticle up;
+    MultiParticle upbar;
+    MultiParticle down;
+    MultiParticle downbar;
+    
+    MultiParticle diquark;
+    MultiParticle Hadron;
     //Initializing particle vectors
     TLorentzVector q;
     TLorentzVector init_electron;
     TLorentzVector init_target;
 //    TLorentzVector electron;
-    TLorentzVector piplus;
-    TLorentzVector piminus;
     TLorentzVector dihadron;
     
     TLorentzVector k;
@@ -466,13 +517,13 @@ int LundAnalysis()
     std::vector<float> vquarkdaughter;
     std::vector<float> vquarkmass;
     std::vector<float> vquarkenergy;
-    //MC92 particle (pid = 92) vectors
-//    std::vector<float> vMC92pid;
-//    std::vector<float> vMC92parent;
-//    std::vector<float> vMC92daughter;
+    //Lund particle (pid = 92) vectors
+//    std::vector<float> vLundpid;
+//    std::vector<float> vLundparent;
+//    std::vector<float> vLunddaughter;
     std::vector<bool> initparent;
     std::vector<float> vinitquarkindex;
-//    std::vector<float> vMC92index; //keeps track of position in vector
+//    std::vector<float> vLundindex; //keeps track of position in vector
     std::vector<int> vdiquarklist;
     std::vector<int> vhadronlist;
     
@@ -497,7 +548,7 @@ int LundAnalysis()
     t->Branch("Ph",&Pdihadron);
     t->Branch("P",&Ptarget); //target momentum
     t->Branch("Mdihadron",&Mdihadron); //dihadron mass
-    t->Branch("MC92index",&MC92index); //index for Lund string
+    t->Branch("Lundindex",&Lundindex); //index for Lund string
     t->Branch("R0",&R0); //initial parton momentum
     t->Branch("R1",&R1); //final parton momentum
     t->Branch("R2",&R2);
@@ -542,7 +593,6 @@ int LundAnalysis()
         
         qcount = 0;
         qdaughtercount = 0;
-        MC92count = 0;
         pioncount = 0;
         vhadroncount = 0;
         event_count += 1;
@@ -599,86 +649,56 @@ int LundAnalysis()
             }
             //pi+
             else if(pid==pipluspid){
-                piplus.SetPxPyPzE(px,py,pz,E);
-                piplusparent = parent;
-                pioncount += 1;
-                vz_piplus = vz;
+                piplus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                piplus.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //pi-
             else if(pid==piminuspid){
-                piminus.SetPxPyPzE(px,py,pz,E);
-                piminusparent = parent;
-                pioncount += 1;
-                vz_piminus = vz;
+                piminus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                piminus.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //inital up
             else if(pid==uppid){
-                qcount += 1;
-                vquarkindex.push_back(id);
-                vquarkPx.push_back(px);
-                vquarkPy.push_back(py);
-                vquarkPz.push_back(pz);
-                vquarkparent.push_back(parent);
-                vquarkdaughter.push_back(daughter);
-                vquarkmass.push_back(mass);
-                vquarkenergy.push_back(E);
+                up.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                up.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //down
             else if(pid==downpid){
-                qcount += 1;
-                vquarkindex.push_back(id);
-                vquarkPx.push_back(px);
-                vquarkPy.push_back(py);
-                vquarkPz.push_back(pz);
-                vquarkparent.push_back(parent);
-                vquarkdaughter.push_back(daughter);
-                vquarkmass.push_back(mass);
-                vquarkenergy.push_back(E);
+                down.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                down.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //anti-up
             else if(pid==antiuppid){
-                qcount += 1;
-                vquarkindex.push_back(id);
-                vquarkPx.push_back(px);
-                vquarkPy.push_back(py);
-                vquarkPz.push_back(pz);
-                vquarkparent.push_back(parent);
-                vquarkdaughter.push_back(daughter);
-                vquarkmass.push_back(mass);
-                vquarkenergy.push_back(E);
+                upbar.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                upbar.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }    
             //anti-down
             else if(pid==antidownpid){
-                qcount += 1;
-                vquarkindex.push_back(id);
-                vquarkPx.push_back(px);
-                vquarkPy.push_back(py);
-                vquarkPz.push_back(pz);
-                vquarkparent.push_back(parent);
-                vquarkdaughter.push_back(daughter);
-                vquarkmass.push_back(mass);
-                vquarkenergy.push_back(E);
+                downbar.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                downbar.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //MCParticle
-            else if(pid==92){
-                MC92count += 1;
-                MC92parent = parent;
-                MC92daughter = daughter;
-                MC92px = px;
-                MC92py = py;
-                MC92pz = pz;
-                MC92mass = mass;
-                MC92index = id;
-                MC92energy = E;
-                lundstring.SetPxPyPzE(px,py,pz,E);
-//                vMC92index.push_back(index);
+            else if(pid==92 || pid == 91){
+                Lund.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                Lund.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
+//                vLundindex.push_back(index);
             }
-            else if(std::count(vhadronlist.begin(), vhadronlist.end(), pid) && parent == 2) {
-                vhadronparent.push_back(parent);
-                vhadroncount += 1;
+            else if(std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
+                Hadron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                Hadron.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
-            else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
+            else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid)){
                 diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                diquark.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             else if(pid == 22){
                 photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
@@ -689,7 +709,7 @@ int LundAnalysis()
         }
         
         //Skipping events with multiple quarks as I can't extract momentum from these events yet
-        if((piplusparent != MC92index) || (piminusparent != MC92index)) {
+        if((piplusparent != Lundindex) || (piminusparent != Lundindex)) {
             piparent = false;
         }
         else {piparent = true;}
@@ -701,8 +721,7 @@ int LundAnalysis()
         if(
             (qcount != 2) || 
             (pioncount > 2) || 
-            (piparent == false) || 
-            (MC92count != 1)
+            (piparent == false)
            ){
             continue;
         }
@@ -788,11 +807,6 @@ int LundAnalysis()
         if((xFpiplus > 0) && (xFpiminus > 0)) {
             xF_cut = true;
         }
-        
-        pxdiff = proton.px + photon.px - diquark.px - kf.Px();
-        pydiff = proton.py + photon.py - diquark.py - kf.Py();
-        pzdiff = proton.pz + photon.pz - diquark.pz - kf.Pz();
-        ediff = proton.E + photon.E - diquark.E - kf.E();
         
         // Breit Frame Kinematics for delta k
         Breit = q;
