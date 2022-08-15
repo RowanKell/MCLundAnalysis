@@ -141,12 +141,12 @@ class MCParticle
     
     //Lund bank variables
     int pid = 0;
-    double id = 0;
+    int id = 0;
     double px = 0;
     double py = 0;
     double pz = 0;
-    double daughter = 0;
-    double parent = 0;
+    int daughter = 0;
+    int parent = 0;
     double mass = 0;
     double P = 0;
     double E = 0;
@@ -162,7 +162,7 @@ class MCParticle
     
     void SetParentDaughter(double _parent,double _daughter);
     
-    void fillParticle(auto _mcparticles, auto _imc);
+    void fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz);
     
     void Calculate();
 };
@@ -198,17 +198,17 @@ void MCParticle::Calculate()
     Pt = Ptfunc(px, py);
     PtVect = PtVectfunc(lv);
 }
-void MCParticle::fillParticle(auto _mcparticles, auto _imc)
+void MCParticle::fillParticle(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz)
 {
-    id = _mcparticles->getIndex(_imc);
-    pid = _mcparticles->getPid(_imc);
-    px = _mcparticles->getPx(_imc);
-    py = _mcparticles->getPy(_imc);
-    pz = _mcparticles->getPz(_imc);
-    daughter = _mcparticles->getDaughter(_imc);
-    parent = _mcparticles->getParent(_imc);
-    mass = _mcparticles->getMass(_imc);
-    vz = _mcparticles->getVz(_imc);
+    id = _id;
+    pid = _pid;
+    px = _px;
+    py = _py;
+    pz = _pz;
+    daughter = _daughter;
+    parent = _parent;
+    mass = _mass;
+    vz = _vz;
     
     P = Pfunc(px, py, pz);
     E = Efunc(mass, P);
@@ -228,7 +228,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_6/file3.root";
+    auto rootfile = "OutputFiles/Lund_8_12/file1.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -269,15 +269,16 @@ int LundAnalysis()
 
     //MC::Lund bank entries
     int pid;
-    double id;
+    int id;
     double px;
     double py;
     double pz;
-    double daughter;
-    double parent;
+    int daughter;
+    int parent;
     double mass;
     double P;
     double E;
+    double vz;
 
     //Calculated SIDIS kinematics
     double cth;
@@ -290,8 +291,8 @@ int LundAnalysis()
     double R0;
     double R1;
     double R2;
-    double qparent;
-    double diparent;
+    int qparent;
+    int diparent;
     double s;
     double y;
     double init_qE;
@@ -300,14 +301,14 @@ int LundAnalysis()
     //Dihadron kinematics
     double Mdihadron;
     double dihadronpt;
-    double MC92index;
+    int MC92index;
     double protonE;
     double MC92px;
     double MC92py;
     double MC92pz;
     double MC92mass;
-    double MC92parent;
-    double MC92daughter;
+    int MC92parent;
+    int MC92daughter;
     double Ptarget;
     double Pdihadron;
     double MC92P;
@@ -315,6 +316,8 @@ int LundAnalysis()
     double quarkinitP;
     double quarkinitE;  
     double energy;
+    double vz_piplus;
+    double vz_piminus;
     
     double kim;
     double kie;
@@ -342,11 +345,16 @@ int LundAnalysis()
     bool vz_cut;
     bool Q2_cut;
 
+    //Intializing MCParticles
+    MCParticle electron;
+    MCParticle proton;
+    MCParticle photon;
+    MCParticle diquark;
     //Initializing particle vectors
     TLorentzVector q;
     TLorentzVector init_electron;
     TLorentzVector init_target;
-    TLorentzVector electron;
+//    TLorentzVector electron;
     TLorentzVector piplus;
     TLorentzVector piminus;
     TLorentzVector dihadron;
@@ -366,10 +374,10 @@ int LundAnalysis()
     TVector3 gNBoost;
     TVector3 gNBoostNeg;
     //For checking momentum conservation / if the lundstring contains momentum for all hadrons
-    TLorentzVector diquark;
+//    TLorentzVector diquark;
     TLorentzVector lundstring;
-    TLorentzVector photon;
-    TLorentzVector proton;
+//    TLorentzVector photon;
+//    TLorentzVector proton;
     
     //Breit frame variables
     TLorentzVector Breit;
@@ -435,7 +443,7 @@ int LundAnalysis()
     auto imass=config_c12->getBankOrder(idx_MCLund,"mass");
 //    auto ivx=config_c12->getBankOrder(idx_MCLund,"vx");
 //    auto ivy=config_c12->getBankOrder(idx_MCLund,"vy");
-//    auto ivz=config_c12->getBankOrder(idx_MCLund,"vz");
+    auto ivz=config_c12->getBankOrder(idx_MCLund,"vz");
 //    auto iE=config_c12->getBankOrder(idx_MCLund,"energy");
 //    auto ipy=config_c12->getBankOrder(idx_MCLund,"type");
     
@@ -586,8 +594,8 @@ int LundAnalysis()
 
             //Setting scattered electron
             if(pid==11 && parent==1){
-                MCParticle electron;
-                electron.fillParticle(mcparticles, imc)
+                electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+
             }
             //pi+
             else if(pid==pipluspid){
@@ -601,7 +609,7 @@ int LundAnalysis()
                 piminus.SetPxPyPzE(px,py,pz,E);
                 piminusparent = parent;
                 pioncount += 1;
-                vz_piminus = vz
+                vz_piminus = vz;
             }
             //inital up
             else if(pid==uppid){
@@ -670,16 +678,13 @@ int LundAnalysis()
                 vhadroncount += 1;
             }
             else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid) && parent == 2){
-                MCParticle diquark;
-                diquark.fillParticle(mcparticles, imc)
+                diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
             else if(pid == 22){
-                MCParticle photon;
-                photon.fillParticle(mcparticles, imc)
+                photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
             else if(id == 2){
-                MCParticle proton;
-                proton.fillParticle(mcparticles, imc)
+                proton.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
         }
         
@@ -751,7 +756,7 @@ int LundAnalysis()
         if(abs(electron.vz-vz_piplus)<20 && abs(electron.vz-vz_piminus)<20) {
             vz_cut = true;
         }
-        else {vz_cut = false}
+        else {vz_cut = false;}
         
         if((y > 0) && (y < 0.8)) {
             y_cut = true;
@@ -864,10 +869,7 @@ int LundAnalysis()
         PFkfy = PFkf.Py();
         PFkfz = PFkf.Pz();
         PFkft = Ptfunc(PFkfx,PFkfy);
-        if((Mx_cut == true) && (xF_cut == true) && (momentum_cut == true) && (W_cut == true) && (y_cut == true) && (vz_cut == true) && (Q2_cut == true) {
-            t->Fill();
-        }
-        else{continue;}
+        t->Fill();
     }
     f->Write();
     delete f;
