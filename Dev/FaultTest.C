@@ -280,9 +280,8 @@ class Quark : public MultiParticle
 //    Main body of analysis function
 //
 
-int LundAnalysis()
+int FaultTest()
 {
-    cout << "Entering LundAnalysis()";
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
@@ -308,10 +307,6 @@ int LundAnalysis()
     double protonMass = 0.938272;
     double pipluspid = 211;
     double piminuspid =- 211;
-    double uppid = 2;
-    double downpid = 1;
-    double antiuppid = -2;
-    double antidownpid = -1;
     //
     //Initialization
     //
@@ -325,6 +320,8 @@ int LundAnalysis()
     int daughter;
     int parent;
     double mass;
+    double P;
+    double E;
     double vz;
 
     //Calculated SIDIS kinematics
@@ -335,8 +332,6 @@ int LundAnalysis()
     double z_h;
     double zpiplus;
     double zpiminus;
-    
-    //Affinity ratios
     double R0;
     double R1;
     double R2;
@@ -344,11 +339,27 @@ int LundAnalysis()
     int diparent;
     double s;
     double y;
+    double init_qE;
+    double final_qE;
 
     //Dihadron kinematics
     double Mdihadron;
     double dihadronpt;
+    double protonE;
+    double Ptarget;
     double Pdihadron;
+    double quarkinitP;
+    double quarkinitE;  
+    double vz_piplus;
+    double vz_piminus;
+    
+    //Cut Kinematics
+    double M_x; //Missing Mass
+    double xFpiplus;
+    double xFpiminus;
+    double nu;
+    double W;
+    double theta;
 
     //Intializing MCParticles
     MCParticle electron;
@@ -363,15 +374,11 @@ int LundAnalysis()
     
     MultiParticle diquark;
     MultiParticle Hadron;
-    
-    //MCParticle variables
-    double P;
-    double E;
-    
     //Initializing particle vectors
     TLorentzVector q;
     TLorentzVector init_electron;
     TLorentzVector init_target;
+//    TLorentzVector electron;
     TLorentzVector dihadron;
     
     TLorentzVector k;
@@ -420,23 +427,8 @@ int LundAnalysis()
     double z_N;
     TVector2 q_T;
     
-    // Checking ki for gauss fit
-    TLorentzVector PFki;
-    double PFkix;
-    double PFkiy;
-    double PFkiz;
-    double PFkit;
-    TLorentzVector PFkf;
-    double PFkfx;
-    double PFkfy;
-    double PFkfz;
-    double PFkft;
+    double vdiquarksize;
     
-    double ki2;
-    double kf2;
-    
-    //Checking for low momentum quarks
-    double kffrac;
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -448,16 +440,51 @@ int LundAnalysis()
     auto idaughter=config_c12->getBankOrder(idx_MCLund,"daughter");
     auto iparent=config_c12->getBankOrder(idx_MCLund,"parent");
     auto imass=config_c12->getBankOrder(idx_MCLund,"mass");
-    auto ivz = config_c12->getBankOrder(idx_MCLund,"vz");
+//    auto ivx=config_c12->getBankOrder(idx_MCLund,"vx");
+//    auto ivy=config_c12->getBankOrder(idx_MCLund,"vy");
+    auto ivz=config_c12->getBankOrder(idx_MCLund,"vz");
+//    auto iE=config_c12->getBankOrder(idx_MCLund,"energy");
+//    auto ipy=config_c12->getBankOrder(idx_MCLund,"type");
     
     //Creating vectors to fill using push_back in loop
     
-    vector<int> vdiquarklist;
-    vector<int> vhadronlist;
+    //hadron vectors
+    std::vector<float> vpid;
+    std::vector<float> vpx;
+    std::vector<float> vpy;
+    std::vector<float> vpz;
+    std::vector<float> vdaughter;
+    std::vector<float> vparent;
+    std::vector<float> vmass;
+    //quark vectors
+    std::vector<float> vquarkindex;
+    std::vector<float> vquarkPx;
+    std::vector<float> vquarkPy;
+    std::vector<float> vquarkPz;
+    std::vector<float> vquarkparent;
+    std::vector<float> vquarkdaughter;
+    std::vector<float> vquarkmass;
+    std::vector<float> vquarkenergy;
+    //Lund particle (pid = 92) vectors
+//    std::vector<float> vLundpid;
+//    std::vector<float> vLundparent;
+//    std::vector<float> vLunddaughter;
+    std::vector<bool> initparent;
+    std::vector<float> vinitquarkindex;
+//    std::vector<float> vLundindex; //keeps track of position in vector
+    std::vector<int> vdiquarklist;
+    std::vector<int> vhadronlist;
     vector<int> vquarklist;
-    vquarklist = {-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8};
-    vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
-    vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
+    
+    //Vectors for comparing momentum
+    std::vector<float> vpxcompare;
+    std::vector<float> vpycompare;
+    std::vector<float> vpzcompare;
+    std::vector<float> vecompare;
+    std::vector<float> vpidcompare;
+    std::vector<float> vdaughtercompare;
+    std::vector<float> vparentcompare;
+    std::vector<int> vhadronparent;
     
     vector<int> extra_pid;
     
@@ -470,30 +497,14 @@ int LundAnalysis()
     t->Branch("pt",&pt);
     t->Branch("Q2",&Q2);
     t->Branch("Ph",&Pdihadron);
+    t->Branch("P",&Ptarget); //target momentum
     t->Branch("Mdihadron",&Mdihadron); //dihadron mass
     t->Branch("R0",&R0); //initial parton momentum
     t->Branch("R1",&R1); //final parton momentum
     t->Branch("R2",&R2);
-    t->Branch("PFkix",&PFkix); //Photon frame partonic momentum for checking ki values
-    t->Branch("PFkiy",&PFkiy);
-    t->Branch("PFkiz",&PFkiz);
-    t->Branch("PFkit",&PFkit);
-    t->Branch("PFkfx",&PFkfx);
-    t->Branch("PFkfy",&PFkfy);
-    t->Branch("PFkfz",&PFkfz);
-    t->Branch("PFkft",&PFkft);
-    t->Branch("deltakx",&deltakx);
-    t->Branch("deltaky",&deltaky);
-    t->Branch("deltak2",&deltak2);
-    t->Branch("ki2",&ki2);
-    t->Branch("kf2",&kf2);
-    t->Branch("extra",&extra_pid);
-    t->Branch("kffrac", &kffrac);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
-    
-    int event_count = 0;
         
     //now get reference to (unique)ptr for accessing data in loop
     //this will point to the correct place when file changes
@@ -505,6 +516,33 @@ int LundAnalysis()
     while(chain.Next()==true){
         if(c12->getDetParticles().empty())
             continue;
+        
+        vpid.clear();
+        vpx.clear();
+        vpy.clear();
+        vpz.clear();
+        vdaughter.clear();
+        vparent.clear();
+        vmass.clear();
+        
+        vquarkPx.clear();
+        vquarkPy.clear();
+        vquarkPz.clear();
+        vquarkparent.clear();
+        vquarkdaughter.clear();
+        vquarkmass.clear();
+        vquarkindex.clear();
+        vquarkenergy.clear();
+        
+        vhadronparent.clear();
+        
+        vquarklist = {-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8};
+        
+        vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
+        vdiquarksize = vdiquarklist.size();
+        
+        vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
+        
         //Loop over MC::Lund entries in this event using its ID = idx_MCLund
         //Get PID from its id = iPid
         for(auto imc=0;imc<c12->getBank(idx_MCLund)->getRows();imc++){
@@ -588,122 +626,6 @@ int LundAnalysis()
             continue;
         }
         
-        //Setting inital beam and target particles
-        init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
-        init_target.SetPxPyPzE(0, 0, 0, proton.E);
-        
-        dihadron = piplus.lv + piminus.lv;
-        Mdihadron = dihadron.M();
-        Pdihadron = dihadron.P();
-        q = init_electron - electron.lv; //virtual photon
-        cth = cthfunc(electron.px,electron.py,electron.pz);
-        Q2 = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
-        zpiplus = (init_target * piplus.lv) / (init_target * q);
-        zpiminus = (init_target * piminus.lv) / (init_target * q);
-        z_h = zpiplus + zpiminus;
-        s = sfunc(protonMass, electronMass, electron_beam_energy);
-        y = yfunc(electron_beam_energy,electron.E);
-        x = Q2/s/y; // Bjorken x
-        pt = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
-
-        //For loop for finding quarks that fragment from proton and into hadron
-        for(int i = 0; i<quark.v_pid.size(); i++) //quark is from proton target 
-        {
-            if(quark.v_parent[i] == 0)
-	      {
-                quark.final_id = i;
-          }
-        }
-        quark.fillParticle(quark.v_id[quark.final_id], quark.v_pid[quark.final_id], quark.v_px[quark.final_id], quark.v_py[quark.final_id], 
-                           quark.v_pz[quark.final_id], quark.v_daughter[quark.final_id], quark.v_parent[quark.final_id], quark.v_mass[quark.final_id], quark.v_vz[quark.final_id]);
-        kf = quark.lv;
-        ki = kf - q;
-        //Cut Kinematics
-        
-        dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
-        
-        gN = q;
-        gN += init_target;
-        gNBoost = gN.BoostVector();
-        gNBoostNeg = -gNBoost;
-        
-        lv_p1_gN = piplus.lv;
-        lv_p2_gN = piminus.lv;
-        lv_p1_gN.Boost(gNBoostNeg);
-        lv_p2_gN.Boost(gNBoostNeg);
-        
-        lv_q_gN = q;
-        lv_q_gN.Boost(gNBoostNeg);
-        
-        // Breit Frame Kinematics for delta k
-        Breit = q;
-        Breit_target.SetPxPyPzE(0,0,0,2 * x * protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
-        Breit += Breit_target;
-        BreitBoost = Breit.BoostVector();
-        BreitBoost = -1 * BreitBoost;
-        kfBreit = kf;
-        kfBreit.Boost(BreitBoost);
-        kfBreitTran = PtVectfunc(kfBreit); //kfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
-        
-        dihadronBreit = dihadron;
-        dihadronBreit.Boost(BreitBoost);
-        dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
-        
-        PFFrame = q + init_target;
-        PFBoost = PFFrame.BoostVector();
-        PFBoost = -1 * PFBoost;
-        qPF = q;
-        qPF.Boost(PFBoost);
-        qPFVect = qPF.Vect();
-        qPFVectUnit = qPFVect.Unit();
-        PFAngle = qPFVectUnit.Angle(zAxis);
-        PFAxis = qPFVectUnit.Cross(zAxis);
-        //To rotate -> vector.Rotate(PFAngle,PFAxis);
-        
-        //
-        //Photon Frame
-        //
-        
-        //Dihadron
-        dihadronPF = dihadron;
-        dihadronPF.Boost(PFBoost);
-        dihadronPF.Rotate(PFAngle,PFAxis);
-        dihadronPFMinus = LightConeMinus(dihadronPF);
-        //Virtual Photon
-        qPF.Rotate(PFAngle,PFAxis);
-        qPFMinus = LightConeMinus(qPF);
-        //z_N and q_T
-        z_N = dihadronPFMinus / qPFMinus;
-        q_T = -1 * dihadronBreitTran / z_N;
-        //ki, k, and delta k
-        deltak = kfBreitTran - (-1 * z_N * q_T); 
-        deltakx = deltak.Px();
-        deltaky = deltak.Py();
-        deltak2 = deltak * deltak;
-        
-        kffrac = kf.Pz() / q.Pz();
-        
-        ki2 = abs(ki * ki);
-        kf2 = abs(kf * kf);
-        k = kf - q;
-        
-        R0 = R0func(ki, kf, deltak, Q2);
-        R1 = R1func(dihadron, ki, kf);
-        R2 = R2func(k, Q2);
-        
-        PFki = ki;
-        PFki.Rotate(PFAngle,PFAxis);
-        PFkf = kf;
-        PFkf.Rotate(PFAngle,PFAxis);
-        PFkix = PFki.Px();
-        PFkiy = PFki.Py();
-        PFkiz = PFki.Pz();
-        PFkit = Ptfunc(PFkix,PFkiy);
-        
-        PFkfx = PFkf.Px();
-        PFkfy = PFkf.Py();
-        PFkfz = PFkf.Pz();
-        PFkft = Ptfunc(PFkfx,PFkfy);
         t->Fill();
     }
     f->Write();
