@@ -233,7 +233,7 @@ class MultiParticle : public MCParticle
     vector<double> v_mass;
     vector<double> v_P;
     vector<double> v_E;
-    vector<double> v_vz
+    vector<double> v_vz;
     vector<TLorentzVector> v_lv;
     vector<double> v_Pt;
     vector<TVector2> v_PtVect;
@@ -261,17 +261,32 @@ class MultiParticle : public MCParticle
     
 };
 
+class Pion : public MultiParticle
+{
+    public:
+    
+    int select_id = -999;
+    
+};
+class Quark : public MultiParticle
+{
+    public:
+    
+    int initial_id = -999;
+    int final_id = -999;
+};
+
 // 
 //    Main body of analysis function
 //
 
 int LundAnalysis()
 {
-    
+    cout << "Entering LundAnalysis()";
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_12/file1.root";
+    auto rootfile = "OutputFiles/Lund_8_15/file1.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -393,13 +408,10 @@ int LundAnalysis()
     MCParticle photon;
     MCParticle Lund;
     
-    MultiParticle piplus;
-    MultiParticle piminus;
+    Pion piplus;
+    Pion piminus;
     
-    MultiParticle up;
-    MultiParticle upbar;
-    MultiParticle down;
-    MultiParticle downbar;
+    Quark quark;
     
     MultiParticle diquark;
     MultiParticle Hadron;
@@ -482,6 +494,9 @@ int LundAnalysis()
     double ki2;
     double kf2;
     
+    //Checking for low momentum quarks
+    double kffrac;
+    
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
     //Add a few items
@@ -526,6 +541,7 @@ int LundAnalysis()
 //    std::vector<float> vLundindex; //keeps track of position in vector
     std::vector<int> vdiquarklist;
     std::vector<int> vhadronlist;
+    vector<int> vquarklist;
     
     //Vectors for comparing momentum
     std::vector<float> vpxcompare;
@@ -536,6 +552,8 @@ int LundAnalysis()
     std::vector<float> vdaughtercompare;
     std::vector<float> vparentcompare;
     std::vector<int> vhadronparent;
+    
+    vector<int> extra_pid;
     
 //    std::vector<float> venergy;
     //Making new MC tree
@@ -570,6 +588,8 @@ int LundAnalysis()
     t->Branch("deltak2",&deltak2);
     t->Branch("ki2",&ki2);
     t->Branch("kf2",&kf2);
+    t->Branch("extra",&extra_pid);
+    t->Branch("kffrac", &kffrac);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -582,9 +602,12 @@ int LundAnalysis()
     
     //Loop over all events in the file
     while(chain.Next()==true){
+        event_count += 1;
         if(c12->getDetParticles().empty())
             continue;
-        
+        if((event_count % 1000) == 0) {
+            cout << "Loop #" << event_count;
+        }
         W_cut = false;
         xF_cut = false;
         Mx_cut = false;
@@ -616,6 +639,8 @@ int LundAnalysis()
         
         vhadronparent.clear();
         
+        vquarklist = {-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8};
+        
         vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
         vdiquarksize = vdiquarklist.size();
         
@@ -638,6 +663,7 @@ int LundAnalysis()
             E = Efunc(mass,P);
             vz = mcparticles->getVz(imc);
 
+            //
             //Kinematics
             // 
 
@@ -645,7 +671,6 @@ int LundAnalysis()
             //Setting scattered electron
             if(pid==11 && parent==1){
                 electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-
             }
             //pi+
             else if(pid==pipluspid){
@@ -659,36 +684,15 @@ int LundAnalysis()
                 piminus.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
-            //inital up
-            else if(pid==uppid){
-                up.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                up.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
-            }
-            //down
-            else if(pid==downpid){
-                down.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                down.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
-            }
-            //anti-up
-            else if(pid==antiuppid){
-                upbar.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                upbar.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
-            }    
-            //anti-down
-            else if(pid==antidownpid){
-                downbar.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                downbar.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
+            //all quarks
+            else if(std::count(vquarklist.begin(), vquarklist.end(), pid)){
+                quark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                quark.update(id, pid, px, py, pz, daughter, parent, 
+                              mass, vz, quark.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //MCParticle
             else if(pid==92 || pid == 91){
                 Lund.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                Lund.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
-//                vLundindex.push_back(index);
             }
             else if(std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
                 Hadron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
@@ -706,23 +710,22 @@ int LundAnalysis()
             else if(id == 2){
                 proton.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
+            else{extra_pid.push_back(pid);}
         }
         
         //Skipping events with multiple quarks as I can't extract momentum from these events yet
-        if((piplusparent != Lundindex) || (piminusparent != Lundindex)) {
-            piparent = false;
-        }
-        else {piparent = true;}
-        for(int i = 0; i < vhadroncount; i++) {
-            if(vhadronparent[i] == 2) {
-                continue;
+        for(int i = 0; i < piplus.v_id.size(); i++) {
+            if(piplus.v_parent[i] == Lund.id) {
+                piplus.select_id = i;
             }
         }
-        if(
-            (qcount != 2) || 
-            (pioncount > 2) || 
-            (piparent == false)
-           ){
+        for(int i = 0; i < piminus.v_id.size(); i++) {
+            if(piminus.v_parent[i] == Lund.id) {
+                piminus.select_id = i;
+            }
+        }
+        //Skip non-dipion events
+        if((piplus.select_id || piminus.select_id) == -999) {
             continue;
         }
         
@@ -731,15 +734,15 @@ int LundAnalysis()
         init_target.SetPxPyPzE(0, 0, 0, proton.E);
         Ptarget = init_target.P();
         
-        dihadron = piplus + piminus;
+        dihadron = piplus.lv + piminus.lv;
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
         q = init_electron - electron.lv; //virtual photon
         qdiff = (q - photon.lv).P();
         cth = cthfunc(electron.px,electron.py,electron.pz);
         Q2 = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
-        zpiplus = (init_target * piplus) / (init_target * q);
-        zpiminus = (init_target * piminus) / (init_target * q);
+        zpiplus = (init_target * piplus.lv) / (init_target * q);
+        zpiminus = (init_target * piminus.lv) / (init_target * q);
         z_h = zpiplus + zpiminus;
         s = sfunc(protonMass, electronMass, electron_beam_energy);
         y = yfunc(electron_beam_energy,electron.E);
@@ -747,9 +750,9 @@ int LundAnalysis()
         pt = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
 
         //For loop for finding quarks that fragment from proton and into hadron
-        for(int i = 0; i<qcount; i++) //quark is from proton target 
+        for(int i = 0; i<quark.v_pid.size(); i++) //quark is from proton target 
         {
-            if(vquarkparent[i] == 0)
+            if(quark.v_parent[i] == 0)
 	      {
                 kf.SetPxPyPzE(vquarkPx[i],vquarkPy[i],vquarkPz[i],vquarkenergy[i]);
           }
@@ -757,7 +760,7 @@ int LundAnalysis()
         
         
         //Cut Kinematics
-        M_x = Mxfunc(q,init_target,piplus,piminus);
+        M_x = Mxfunc(q,init_target,piplus.lv,piminus.lv);
         
         nu = nufunc(electron_beam_energy,electron.E);
         W = Wfunc(Q2,protonMass,nu);
@@ -784,7 +787,7 @@ int LundAnalysis()
         dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
         theta = thetafunc(dihadronpt,dihadron.Pz());
         
-        if((piplus.P() > 1.25) && (piplus.P() > 1.25)) {
+        if((piplus.P > 1.25) && (piplus.P > 1.25)) {
             momentum_cut = true;
         }
         else {momentum_cut = false;}
@@ -794,8 +797,8 @@ int LundAnalysis()
         gNBoost = gN.BoostVector();
         gNBoostNeg = -gNBoost;
         
-        lv_p1_gN = piplus;
-        lv_p2_gN = piminus;
+        lv_p1_gN = piplus.lv;
+        lv_p2_gN = piminus.lv;
         lv_p1_gN.Boost(gNBoostNeg);
         lv_p2_gN.Boost(gNBoostNeg);
         
@@ -854,6 +857,9 @@ int LundAnalysis()
         deltaky = deltak.Py();
         deltak2 = deltak * deltak;
         ki = kf - q;
+        
+        kffrac = kf.Pz() / q.Pz();
+        
         ki2 = abs(ki * ki);
         kf2 = abs(kf * kf);
         k = kf - q;
