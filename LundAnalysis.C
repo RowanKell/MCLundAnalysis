@@ -503,8 +503,27 @@ int LundAnalysis()
     
     //Loop over all events in the file
     while(chain.Next()==true){
+        event_count += 1;
+//        cout << "Starting event #" << event_count << '\n';
         if(c12->getDetParticles().empty())
             continue;
+        if(event_count >= 100) {
+            break;
+        }
+        
+        //Intializing MCParticles
+        MCParticle electron;
+        MCParticle proton;
+        MCParticle photon;
+        MCParticle Lund;
+
+        Pion piplus;
+        Pion piminus;
+
+        Quark quark;
+
+        MultiParticle diquark;
+        MultiParticle Hadron;
         //Loop over MC::Lund entries in this event using its ID = idx_MCLund
         //Get PID from its id = iPid
         for(auto imc=0;imc<c12->getBank(idx_MCLund)->getRows();imc++){
@@ -572,21 +591,32 @@ int LundAnalysis()
             else{extra_pid.push_back(pid);}
         }
         
+        if(quark.v_id.size() > 2) {
+            cout << "Continuing past event #" << event_count << " due to quark count: " << quark.v_id.size() << '\n';
+            continue;
+        }
+        
         //Skipping events with multiple quarks as I can't extract momentum from these events yet
         for(int i = 0; i < piplus.v_id.size(); i++) {
             if(piplus.v_parent[i] == Lund.id) {
-                piplus.select_id = i;
+                piplus.select_id = piplus.v_id[i];
             }
         }
         for(int i = 0; i < piminus.v_id.size(); i++) {
             if(piminus.v_parent[i] == Lund.id) {
-                piminus.select_id = i;
+                piminus.select_id = piminus.v_id[i];
             }
         }
         //Skip non-dipion events
-        if((piplus.select_id || piminus.select_id) == -999) {
+        if(piplus.select_id == -999) {
+//            cout << "Skipping due to selec_id: " << piplus.select_id << ", " << piminus.select_id << '\n';
             continue;
         }
+        else if( piminus.select_id == -999) {
+//            cout << "Skipping due to selec_id: " << piplus.select_id << ", " << piminus.select_id << '\n';
+            continue;
+        }
+        else{cout << "Select_id: " << piplus.select_id << ", " << piminus.select_id << '\n';}
         
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
