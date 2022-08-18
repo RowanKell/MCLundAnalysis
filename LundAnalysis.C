@@ -510,6 +510,7 @@ int LundAnalysis()
     while(chain.Next()==true){
         event_count += 1;
         
+        //Break at event 100 for testing with shorter run time
         if(event_count >= 100) {
             cout << "Breaking at event: " << event_count << '\n';
             break;
@@ -556,8 +557,6 @@ int LundAnalysis()
             if(pid==11 && parent==1){
                 electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 electron.setVectors();
-//                cout << "Event: " << event_count << '\n';
-//                cout << "Electron px, py, pz: " << px << ", " << py << ", " << pz << '\n';
             }
             //pi+
             else if(pid==pipluspid){
@@ -587,9 +586,6 @@ int LundAnalysis()
                 diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 diquark.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
-                cout << "diquark: ";
-                diquark.lv.Print();
-                cout << '\n';
             }
             else if(pid == 22){
                 photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
@@ -711,18 +707,11 @@ int LundAnalysis()
         dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
         
         PFFrame = q + init_target;
-//        cout << "Event: " << event_count << '\n';
-//        cout << "PFFrame: "; PFFrame.Print(); cout << '\n';
         PFBoost = PFFrame.BoostVector();
         PFBoost = -1 * PFBoost;
-//        cout << "event_count: " << event_count << '\n';
-//        cout << "q: " << q.Px() << ", " << q.Py() << ", " << q.Pz() << ", " << q.E() << '\n';
         qPF = q;
         qPF.Boost(PFBoost);
         qPFVect = qPF.Vect();
-        cout << "qPF: ";
-        qPF.Print();
-        cout << '\n';
         qPFVectUnit = qPFVect.Unit();
         PFAngle = qPFVectUnit.Angle(zAxis);
         PFAxis = qPFVectUnit.Cross(zAxis);
@@ -737,9 +726,6 @@ int LundAnalysis()
         dihadronPF.Boost(PFBoost);
         dihadronPF.Rotate(PFAngle,PFAxis);
         dihadronPFMinus = LightConeMinus(dihadronPF);
-//        cout << "dihadron";
-//        dihadron.Print();
-//        cout << '\n' << "PFMinus: " << dihadronPF[0] << ", " << dihadronPF[1] << '\n';
         //Virtual Photon
         qPF.Rotate(PFAngle,PFAxis);
         qPFMinus = LightConeMinus(qPF);
