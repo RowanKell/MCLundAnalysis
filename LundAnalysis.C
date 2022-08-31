@@ -302,7 +302,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_15/file2.root";
+    auto rootfile = "OutputFiles/Lund_8_19/Exactfile2.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -314,8 +314,8 @@ int LundAnalysis()
     
     //Set PID cuts
     config_c12->addExactPid(11,1);    //exactly 1 electron
-    config_c12->addAtLeastPid(211,1);    //exactly 1 pi+
-    config_c12->addAtLeastPid(-211,1);    //exactly 1 pi-
+    config_c12->addExactPid(211,1);    //exactly 1 pi+
+    config_c12->addExactPid(-211,1);    //exactly 1 pi-
     config_c12->addExactPid(2212,1);    //exactly 1 proton
 
     //Constants 
@@ -510,7 +510,7 @@ int LundAnalysis()
         event_count += 1;
         
         //Break at event 100 for testing with shorter run time
-        if(event_count >= 100) {
+        if(event_count >= 10000) {
             cout << "Breaking at event: " << event_count << '\n';
             break;
         }
@@ -585,7 +585,7 @@ int LundAnalysis()
                 diquark.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
             }
-            else if(pid == 22){
+            else if(pid == 22 && parent == 1){
                 photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 photon.setVectors();
             }
@@ -759,12 +759,22 @@ int LundAnalysis()
         PFkfy = PFkf.Py();
         PFkfz = PFkf.Pz();
         PFkft = Ptfunc(PFkfx,PFkfy);
+        
         tree_count += 1;
-        cout << tree_count << '\n';
         if(tree_count % 1000 == 0) {
             cout << "Tree_count: " << tree_count << '\n';
         }
         t->Fill();
+    }
+    //Sorting into bins
+    Double_t Q2t;
+    
+    vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
+    t->SetBranchAddress("Q2",&Q2t);
+    for(int i = 0; i <100; i ++ ) {
+        t->GetEntry(i);
+        if(Q2t)
+        cout << "in event: " << i << "Q2 is: " << Q2t << "\n";
     }
     f->Write();
     delete f;
