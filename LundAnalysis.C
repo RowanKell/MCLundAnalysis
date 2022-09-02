@@ -292,7 +292,82 @@ class Diquark : public MultiParticle
         v_vz.clear();
     }
 };
-
+class BinVariable
+{
+    
+    public:
+    //Need: x, z_h, Q2, pT, R0, R1, R2
+    vector<double> v_x;
+    vector<double> v_z_h;
+    vector<double> v_Q2;
+    vector<double> v_pT;
+    vector<double> v_R0;
+    vector<double> v_R1;
+    vector<double> v_R2;
+    
+    double xmean;
+    double z_hmean;
+    double Q2mean;
+    double pTmean;
+    double R0mean;
+    double R1mean;
+    double R2mean;
+    //zFillVectors(z_h, Q2, pT, R0, R1, R2)
+    void zFillVectors(double x, double Q2, double pT, double R0, double R1, double R2) {
+        v_x.push_back(x);
+        v_Q2.push_back(Q2);
+        v_pT.push_back(pT);
+        v_R0.push_back(R0);
+        v_R1.push_back(R1);
+        v_R2.push_back(R2);
+    }
+    //xFillVectors(z_h, Q2, pT, R0, R1, R2);
+    void xFillVectors(double z_h, double Q2, double pT, double R0, double R1, double R2) {
+        v_x.push_back(z_h);
+        v_Q2.push_back(Q2);
+        v_pT.push_back(pT);
+        v_R0.push_back(R0);
+        v_R1.push_back(R1);
+        v_R2.push_back(R2);
+    }
+    //mhFillVectors(x, z_h, Q2, pT, R0, R1, R2);
+    void mhFillVectors(double x, double z_h, double Q2, double pT, double R0, double R1, double R2) {
+        v_x.push_back(x);
+        v_z_h.push_back(z_h);
+        v_Q2.push_back(Q2);
+        v_pT.push_back(pT);
+        v_R0.push_back(R0);
+        v_R1.push_back(R1);
+        v_R2.push_back(R2);
+    }
+    
+    //Methods for calculating mean
+    void meanZ_h() {
+        xmean = accumulate(v_x.begin(), v_x.end(), 0) / v_x.size();
+        Q2mean = accumulate(v_Q2.begin(), v_Q2.end(), 0) / v_Q2.size();
+        pTmean = accumulate(v_pT.begin(), v_pT.end(), 0) / v_pT.size();
+        R0mean = accumulate(v_R0.begin(), v_R0.end(), 0) / v_R0.size();
+        R1mean = accumulate(v_R1.begin(), v_R1.end(), 0) / v_R1.size();
+        R2mean = accumulate(v_R2.begin(), v_R2.end(), 0) / v_R2.size();
+    }
+    void meanx() {
+        z_hmean = accumulate(v_z_h.begin(), v_z_h.end(), 0) / v_z_h.size();
+        Q2mean = accumulate(v_Q2.begin(), v_Q2.end(), 0) / v_Q2.size();
+        pTmean = accumulate(v_pT.begin(), v_pT.end(), 0) / v_pT.size();
+        R0mean = accumulate(v_R0.begin(), v_R0.end(), 0) / v_R0.size();
+        R1mean = accumulate(v_R1.begin(), v_R1.end(), 0) / v_R1.size();
+        R2mean = accumulate(v_R2.begin(), v_R2.end(), 0) / v_R2.size();
+    }
+    void meanmh() {
+        z_hmean = accumulate(v_z_h.begin(), v_z_h.end(), 0) / v_z_h.size();
+        xmean = accumulate(v_x.begin(), v_x.end(), 0) / v_x.size();
+        Q2mean = accumulate(v_Q2.begin(), v_Q2.end(), 0) / v_Q2.size();
+        pTmean = accumulate(v_pT.begin(), v_pT.end(), 0) / v_pT.size();
+        R0mean = accumulate(v_R0.begin(), v_R0.end(), 0) / v_R0.size();
+        R1mean = accumulate(v_R1.begin(), v_R1.end(), 0) / v_R1.size();
+        R2mean = accumulate(v_R2.begin(), v_R2.end(), 0) / v_R2.size();
+    }
+};
 // 
 //    Main body of analysis function
 //
@@ -302,7 +377,7 @@ int LundAnalysis()
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_19/Exactfile2.root";
+    auto rootfile = "OutputFiles/AffinityFiles/Files_9_1/Exactfile2.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -493,6 +568,32 @@ int LundAnalysis()
     t->Branch("extra",&extra_pid);
     t->Branch("kffrac", &kffrac);
     t->Branch("DihadronPFMinus", &dihadronPFMinus);
+    
+    // Bin objects for collecting kinematic variables
+    
+    BinVariable zbin0;
+    BinVariable zbin1;
+    BinVariable zbin2;
+    BinVariable zbin3;
+    BinVariable zbin4;
+    BinVariable zbin5;
+    BinVariable zbin6;
+    
+    BinVariable xbin0;
+    BinVariable xbin1;
+    BinVariable xbin2;
+    BinVariable xbin3;
+    BinVariable xbin4;
+    BinVariable xbin5;
+    BinVariable xbin6;
+    
+    BinVariable Mhbin0;
+    BinVariable Mhbin1;
+    BinVariable Mhbin2;
+    BinVariable Mhbin3;
+    BinVariable Mhbin4;
+    BinVariable Mhbin5;
+    BinVariable Mhbin6;
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -761,21 +862,348 @@ int LundAnalysis()
         PFkft = Ptfunc(PFkfx,PFkfy);
         
         tree_count += 1;
+        vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
+        vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
+        vector<double> Mhbins;
+        double startingMhBin = 0.3;
+        for(int i = 0;i < 7; i++) {
+            Mhbins.push_back(startingMhBin);
+            startingMhBin += 1 / 6;
+        }
+        //Need: x, z, Q2, pT, R0, R1, R2
+        //zbins:
+        if(z_h <= zbins[0]) {
+            zbin0.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(z_h <= zbins[1]) {
+            zbin1.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(z_h <= zbins[2]) {
+            zbin2.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(z_h <= zbins[3]) {
+            zbin3.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(z_h <= zbins[4]) {
+            zbin4.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(z_h <= zbins[5]) {
+            zbin5.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(z_h <= zbins[6]) {
+            zbin6.zFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        
+        //xbins
+        if(x <= xbins[0]) {
+            xbin0.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(x <= xbins[1]) {
+            xbin1.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(x <= xbins[2]) {
+            xbin2.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(x <= xbins[3]) {
+            xbin3.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(x <= xbins[4]) {
+            xbin4.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(x <= xbins[5]) {
+            xbin5.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        else if(x <= xbins[6]) {
+            xbin6.xFillVectors(x, Q2, pt, R0, R1, R2);
+        }
+        
+        //Mhbins
+        if(Mdihadron <= Mhbins[0]) {
+            Mhbin0.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
+        else if(Mdihadron <= Mhbins[1]) {
+            Mhbin1.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
+        else if(Mdihadron <= Mhbins[2]) {
+            Mhbin2.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
+        else if(Mdihadron <= Mhbins[3]) {
+            Mhbin3.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
+        else if(Mdihadron <= Mhbins[4]) {
+            Mhbin4.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
+        else if(Mdihadron <= Mhbins[5]) {
+            Mhbin5.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
+        else if(Mdihadron <= Mhbins[6]) {
+            Mhbin6.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+        }
         if(tree_count % 1000 == 0) {
             cout << "Tree_count: " << tree_count << '\n';
         }
         t->Fill();
     }
-    //Sorting into bins
-    Double_t Q2t;
+    //Making new Affinity trees
+    TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
+    TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
+    TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
     
-    vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
-    t->SetBranchAddress("Q2",&Q2t);
-    for(int i = 0; i <100; i ++ ) {
-        t->GetEntry(i);
-        if(Q2t)
-        cout << "in event: " << i << "Q2 is: " << Q2t << "\n";
-    }
+    string infoString;
+    Double_t z_h_t;
+    Double_t x_t;
+    Double_t Q2_t;
+    Double_t pT_t;
+    Double_t R0_t;
+    Double_t R1_t;
+    Double_t R2_t;
+    
+    t_z_h->Branch("Name",&infoString);
+    t_z_h->Branch("x", &x_t);
+    t_z_h->Branch("Q2", &Q2_t);
+    t_z_h->Branch("pT", &pT_t);
+    t_z_h->Branch("R0", &R0_t);
+    t_z_h->Branch("R1", &R1_t);
+    t_z_h->Branch("R2", &R2_t);
+    
+    t_x->Branch("Name",&infoString);
+    t_x->Branch("x", &x_t);
+    t_x->Branch("Q2", &Q2_t);
+    t_x->Branch("pT", &pT_t);
+    t_x->Branch("R0", &R0_t);
+    t_x->Branch("R1", &R1_t);
+    t_x->Branch("R2", &R2_t);
+    
+    t_Mh->Branch("Name",&infoString);
+    t_Mh->Branch("x", &x_t);
+    t_Mh->Branch("Q2", &Q2_t);
+    t_Mh->Branch("pT", &pT_t);
+    t_Mh->Branch("R0", &R0_t);
+    t_Mh->Branch("R1", &R1_t);
+    t_Mh->Branch("R2", &R2_t);
+    //Calculating means
+    //Setting zbin means
+    zbin0.meanZ_h();
+    infoString = "0th bin";
+    x_t = zbin0.xmean;
+    Q2_t = zbin0.Q2mean;
+    pT_t = zbin0.pTmean;
+    R0_t = zbin0.R0mean;
+    R1_t = zbin0.R1mean;
+    R2_t = zbin0.R2mean;
+    t_z_h->Fill();
+    
+    zbin1.meanZ_h();
+    infoString = "1st bin";
+    x_t = zbin1.xmean;
+    Q2_t = zbin1.Q2mean;
+    pT_t = zbin1.pTmean;
+    R0_t = zbin1.R0mean;
+    R1_t = zbin1.R1mean;
+    R2_t = zbin1.R2mean;
+    t_z_h->Fill();
+    
+    zbin2.meanZ_h();
+    infoString = "2nd bin";
+    x_t = zbin2.xmean;
+    Q2_t = zbin2.Q2mean;
+    pT_t = zbin2.pTmean;
+    R0_t = zbin2.R0mean;
+    R1_t = zbin2.R1mean;
+    R2_t = zbin2.R2mean;
+    t_z_h->Fill();
+    
+    zbin3.meanZ_h();
+    infoString = "3rd bin";
+    x_t = zbin3.xmean;
+    Q2_t = zbin3.Q2mean;
+    pT_t = zbin3.pTmean;
+    R0_t = zbin3.R0mean;
+    R1_t = zbin3.R1mean;
+    R2_t = zbin3.R2mean;
+    t_z_h->Fill();
+    
+    zbin4.meanZ_h();
+    infoString = "4th bin";
+    x_t = zbin4.xmean;
+    Q2_t = zbin4.Q2mean;
+    pT_t = zbin4.pTmean;
+    R0_t = zbin4.R0mean;
+    R1_t = zbin4.R1mean;
+    R2_t = zbin4.R2mean;
+    t_z_h->Fill();
+    
+    zbin5.meanZ_h();
+    infoString = "5th bin";
+    x_t = zbin5.xmean;
+    Q2_t = zbin5.Q2mean;
+    pT_t = zbin5.pTmean;
+    R0_t = zbin5.R0mean;
+    R1_t = zbin5.R1mean;
+    R2_t = zbin5.R2mean;
+    t_z_h->Fill();
+    
+    zbin6.meanZ_h();
+    infoString = "6th bin";
+    x_t = zbin6.xmean;
+    Q2_t = zbin6.Q2mean;
+    pT_t = zbin6.pTmean;
+    R0_t = zbin6.R0mean;
+    R1_t = zbin6.R1mean;
+    R2_t = zbin6.R2mean;
+    t_z_h->Fill();
+    
+    //Setting means for xbins
+    xbin0.meanx();
+    infoString = "0th bin";
+    z_h_t = xbin0.z_hmean;
+    Q2_t = xbin0.Q2mean;
+    pT_t = xbin0.pTmean;
+    R0_t = xbin0.R0mean;
+    R1_t = xbin0.R1mean;
+    R2_t = xbin0.R2mean;
+    t_x->Fill();
+    
+    xbin1.meanx();
+    infoString = "1st bin";
+    z_h_t = xbin1.z_hmean;
+    Q2_t = xbin1.Q2mean;
+    pT_t = xbin1.pTmean;
+    R0_t = xbin1.R0mean;
+    R1_t = xbin1.R1mean;
+    R2_t = xbin1.R2mean;
+    t_x->Fill();
+    
+    xbin2.meanx();
+    infoString = "2nd bin";
+    z_h_t = xbin2.z_hmean;
+    Q2_t = xbin2.Q2mean;
+    pT_t = xbin2.pTmean;
+    R0_t = xbin2.R0mean;
+    R1_t = xbin2.R1mean;
+    R2_t = xbin2.R2mean;
+    t_x->Fill();
+    
+    xbin3.meanx();
+    infoString = "3rd bin";
+    z_h_t = xbin3.z_hmean;
+    Q2_t = xbin3.Q2mean;
+    pT_t = xbin3.pTmean;
+    R0_t = xbin3.R0mean;
+    R1_t = xbin3.R1mean;
+    R2_t = xbin3.R2mean;
+    t_x->Fill();
+    
+    xbin4.meanx();
+    infoString = "4th bin";
+    z_h_t = xbin4.z_hmean;
+    Q2_t = xbin4.Q2mean;
+    pT_t = xbin4.pTmean;
+    R0_t = xbin4.R0mean;
+    R1_t = xbin4.R1mean;
+    R2_t = xbin4.R2mean;
+    t_x->Fill();
+    
+    xbin5.meanx();
+    infoString = "5th bin";
+    z_h_t = xbin5.z_hmean;
+    Q2_t = xbin5.Q2mean;
+    pT_t = xbin5.pTmean;
+    R0_t = xbin5.R0mean;
+    R1_t = xbin5.R1mean;
+    R2_t = xbin5.R2mean;
+    t_x->Fill();
+    
+    xbin6.meanx();
+    infoString = "6th bin";
+    z_h_t = xbin6.z_hmean;
+    Q2_t = xbin6.Q2mean;
+    pT_t = xbin6.pTmean;
+    R0_t = xbin6.R0mean;
+    R1_t = xbin6.R1mean;
+    R2_t = xbin6.R2mean;
+    t_x->Fill();
+    
+    //Mh bin mean filling
+    Mhbin0.meanmh();
+    infoString = "0th bin";
+    z_h_t = Mhbin0.z_hmean;
+    x_t = Mhbin0.xmean;
+    Q2_t = Mhbin0.Q2mean;
+    pT_t = Mhbin0.pTmean;
+    R0_t = Mhbin0.R0mean;
+    R1_t = Mhbin0.R1mean;
+    R2_t = Mhbin0.R2mean;
+    t_Mh->Fill();
+    
+    Mhbin1.meanmh();
+    infoString = "1st bin";
+    z_h_t = Mhbin1.z_hmean;
+    x_t = Mhbin1.xmean;
+    Q2_t = Mhbin1.Q2mean;
+    pT_t = Mhbin1.pTmean;
+    R0_t = Mhbin1.R0mean;
+    R1_t = Mhbin1.R1mean;
+    R2_t = Mhbin1.R2mean;
+    t_Mh->Fill();
+    
+    Mhbin2.meanmh();
+    infoString = "2nd bin";
+    z_h_t = Mhbin2.z_hmean;
+    x_t = Mhbin2.xmean;
+    Q2_t = Mhbin2.Q2mean;
+    pT_t = Mhbin2.pTmean;
+    R0_t = Mhbin2.R0mean;
+    R1_t = Mhbin2.R1mean;
+    R2_t = Mhbin2.R2mean;
+    t_Mh->Fill();
+    
+    Mhbin3.meanmh();
+    infoString = "3rd bin";
+    z_h_t = Mhbin3.z_hmean;
+    x_t = Mhbin3.xmean;
+    Q2_t = Mhbin3.Q2mean;
+    pT_t = Mhbin3.pTmean;
+    R0_t = Mhbin3.R0mean;
+    R1_t = Mhbin3.R1mean;
+    R2_t = Mhbin3.R2mean;
+    t_Mh->Fill();
+    
+    Mhbin4.meanmh();
+    infoString = "4th bin";
+    z_h_t = Mhbin4.z_hmean;
+    x_t = Mhbin4.xmean;
+    Q2_t = Mhbin4.Q2mean;
+    pT_t = Mhbin4.pTmean;
+    R0_t = Mhbin4.R0mean;
+    R1_t = Mhbin4.R1mean;
+    R2_t = Mhbin4.R2mean;
+    t_Mh->Fill();
+    
+    Mhbin5.meanmh();
+    infoString = "5th bin";
+    z_h_t = Mhbin5.z_hmean;
+    x_t = Mhbin5.xmean;
+    Q2_t = Mhbin5.Q2mean;
+    pT_t = Mhbin5.pTmean;
+    R0_t = Mhbin5.R0mean;
+    R1_t = Mhbin5.R1mean;
+    R2_t = Mhbin5.R2mean;
+    t_Mh->Fill();
+    
+    Mhbin6.meanmh();
+    infoString = "6th bin";
+    z_h_t = Mhbin6.z_hmean;
+    x_t = Mhbin6.xmean;
+    Q2_t = Mhbin6.Q2mean;
+    pT_t = Mhbin6.pTmean;
+    R0_t = Mhbin6.R0mean;
+    R1_t = Mhbin6.R1mean;
+    R2_t = Mhbin6.R2mean;
+    t_Mh->Fill();
+    
+    
+    
     f->Write();
     delete f;
     
