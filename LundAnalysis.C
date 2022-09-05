@@ -131,6 +131,14 @@ double LightConePlus(TLorentzVector lv)
     return (lv.E() + lv.Pz()) / (sqrt(2));
 }
 
+double meanFunc(vector<double> v)
+{
+    double sum = 0;
+    for(int i = 0; i < v.size(); i++) {
+        sum += v[i];
+    }
+    return sum / v.size();
+}
 //
 //    Class Stuff
 //
@@ -323,7 +331,7 @@ class BinVariable
     }
     //xFillVectors(z_h, Q2, pT, R0, R1, R2);
     void xFillVectors(double z_h, double Q2, double pT, double R0, double R1, double R2) {
-        v_x.push_back(z_h);
+        v_z_h.push_back(z_h);
         v_Q2.push_back(Q2);
         v_pT.push_back(pT);
         v_R0.push_back(R0);
@@ -343,54 +351,65 @@ class BinVariable
     
     //Methods for calculating mean
     void meanZ_h() {
-        xmean = accumulate(v_x.begin(), v_x.end(), 0) / v_x.size();
-        Q2mean = accumulate(v_Q2.begin(), v_Q2.end(), 0) / v_Q2.size();
-        pTmean = accumulate(v_pT.begin(), v_pT.end(), 0) / v_pT.size();
-        R0mean = accumulate(v_R0.begin(), v_R0.end(), 0) / v_R0.size();
-        R1mean = accumulate(v_R1.begin(), v_R1.end(), 0) / v_R1.size();
-        R2mean = accumulate(v_R2.begin(), v_R2.end(), 0) / v_R2.size();
+        double zbinxsum = 0;
+        for(int i = 0; i < v_x.size(); i++) {
+            zbinxsum += v_x[i];
+        }
+        xmean = zbinxsum / v_x.size();
+//        xmean = (double)accumulate(v_x.begin(), v_x.end(), 0) / (double)v_x.size();
+        Q2mean = (double)accumulate(v_Q2.begin(), v_Q2.end(), 0) / (double)v_Q2.size();
+        pTmean = (double)accumulate(v_pT.begin(), v_pT.end(), 0) / (double)v_pT.size();
+        R0mean = (double)accumulate(v_R0.begin(), v_R0.end(), 0) / (double)v_R0.size();
+        R1mean = (double)accumulate(v_R1.begin(), v_R1.end(), 0) / (double)v_R1.size();
+        R2mean = (double)accumulate(v_R2.begin(), v_R2.end(), 0) / (double)v_R2.size();
     }
     void meanx() {
-        z_hmean = accumulate(v_z_h.begin(), v_z_h.end(), 0) / v_z_h.size();
-        Q2mean = accumulate(v_Q2.begin(), v_Q2.end(), 0) / v_Q2.size();
-        pTmean = accumulate(v_pT.begin(), v_pT.end(), 0) / v_pT.size();
-        R0mean = accumulate(v_R0.begin(), v_R0.end(), 0) / v_R0.size();
-        R1mean = accumulate(v_R1.begin(), v_R1.end(), 0) / v_R1.size();
-        R2mean = accumulate(v_R2.begin(), v_R2.end(), 0) / v_R2.size();
+        z_hmean = (double)accumulate(v_z_h.begin(), v_z_h.end(), 0) / (double)v_z_h.size();
+        Q2mean = (double)accumulate(v_Q2.begin(), v_Q2.end(), 0) / (double)v_Q2.size();
+        pTmean = (double)accumulate(v_pT.begin(), v_pT.end(), 0) / (double)v_pT.size();
+        R0mean = (double)accumulate(v_R0.begin(), v_R0.end(), 0) / (double)v_R0.size();
+        R1mean = (double)accumulate(v_R1.begin(), v_R1.end(), 0) / (double)v_R1.size();
+        R2mean = (double)accumulate(v_R2.begin(), v_R2.end(), 0) / (double)v_R2.size();
     }
     void meanmh() {
-        z_hmean = accumulate(v_z_h.begin(), v_z_h.end(), 0) / v_z_h.size();
-        xmean = accumulate(v_x.begin(), v_x.end(), 0) / v_x.size();
-        Q2mean = accumulate(v_Q2.begin(), v_Q2.end(), 0) / v_Q2.size();
-        pTmean = accumulate(v_pT.begin(), v_pT.end(), 0) / v_pT.size();
-        R0mean = accumulate(v_R0.begin(), v_R0.end(), 0) / v_R0.size();
-        R1mean = accumulate(v_R1.begin(), v_R1.end(), 0) / v_R1.size();
-        R2mean = accumulate(v_R2.begin(), v_R2.end(), 0) / v_R2.size();
+        z_hmean = (double)accumulate(v_z_h.begin(), v_z_h.end(), 0) / (double)v_z_h.size();
+        xmean = (double)accumulate(v_x.begin(), v_x.end(), 0) / (double)v_x.size();
+        Q2mean = (double)accumulate(v_Q2.begin(), v_Q2.end(), 0) / (double)v_Q2.size();
+        pTmean = (double)accumulate(v_pT.begin(), v_pT.end(), 0) / (double)v_pT.size();
+        R0mean = (double)accumulate(v_R0.begin(), v_R0.end(), 0) / (double)v_R0.size();
+        R1mean = (double)accumulate(v_R1.begin(), v_R1.end(), 0) / (double)v_R1.size();
+        R2mean = (double)accumulate(v_R2.begin(), v_R2.end(), 0) / (double)v_R2.size();
     }
 };
 // 
 //    Main body of analysis function
 //
 
-int LundAnalysis()
+int LundAnalysis(
+                 const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root"
+)
 {
     gROOT->ProcessLine("#include <vector>");
+    //Below file is now disappeared...
+//    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
     
-    auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/AffinityFiles/Files_9_1/Exactfile2.root";
+// Current files: defined in main function though
+//    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo";
+//    auto rootFile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
     HipoChain chain;
     
     //Add file to HipoChain
-    chain.Add(hipofile);
+    chain.Add(hipoFile);
     auto config_c12 = chain.GetC12Reader();
     
     //Set PID cuts
     config_c12->addExactPid(11,1);    //exactly 1 electron
-    config_c12->addExactPid(211,1);    //exactly 1 pi+
-    config_c12->addExactPid(-211,1);    //exactly 1 pi-
+//    config_c12->addAtLeastPid(211,1);    //exactly 1 pi+
+//    config_c12->addAtLeastPid(-211,1);    //exactly 1 pi-
     config_c12->addExactPid(2212,1);    //exactly 1 proton
 
     //Constants 
@@ -595,6 +614,13 @@ int LundAnalysis()
     BinVariable Mhbin5;
     BinVariable Mhbin6;
     
+    vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
+    vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
+    vector<double> Mhbins;
+    for(int i = 0;i < 7; i++) {
+        Mhbins.push_back(0.3 + i / 6.);
+    }
+    
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
     
@@ -611,7 +637,7 @@ int LundAnalysis()
         event_count += 1;
         
         //Break at event 100 for testing with shorter run time
-        if(event_count >= 10000) {
+        if(event_count >= 1000) {
             cout << "Breaking at event: " << event_count << '\n';
             break;
         }
@@ -732,7 +758,7 @@ int LundAnalysis()
         if(piplus.select_id == -999) {
             continue;
         }
-        else if( piminus.select_id == -999) {
+        else if(piminus.select_id == -999) {
             continue;
         }
         if(diquark.select_id != -999) {
@@ -862,59 +888,61 @@ int LundAnalysis()
         PFkft = Ptfunc(PFkfx,PFkfy);
         
         tree_count += 1;
-        vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
-        vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
-        vector<double> Mhbins;
-        double startingMhBin = 0.3;
-        for(int i = 0;i < 7; i++) {
-            Mhbins.push_back(startingMhBin);
-            startingMhBin += 1 / 6;
-        }
+        
         //Need: x, z, Q2, pT, R0, R1, R2
         //zbins:
+        cout << "x: " << x << '\n';
+        cout << "z: " << z_h << '\n';
         if(z_h <= zbins[0]) {
             zbin0.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin0\n";
         }
         else if(z_h <= zbins[1]) {
             zbin1.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin1\n";
         }
         else if(z_h <= zbins[2]) {
             zbin2.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin2\n";
         }
         else if(z_h <= zbins[3]) {
             zbin3.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin3\n";
         }
         else if(z_h <= zbins[4]) {
             zbin4.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin4\n";
         }
         else if(z_h <= zbins[5]) {
             zbin5.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin5\n";
         }
         else if(z_h <= zbins[6]) {
             zbin6.zFillVectors(x, Q2, pt, R0, R1, R2);
+//            cout << "filled in zbin6\n";
         }
         
         //xbins
         if(x <= xbins[0]) {
-            xbin0.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin0.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         else if(x <= xbins[1]) {
-            xbin1.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin1.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         else if(x <= xbins[2]) {
-            xbin2.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin2.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         else if(x <= xbins[3]) {
-            xbin3.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin3.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         else if(x <= xbins[4]) {
-            xbin4.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin4.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         else if(x <= xbins[5]) {
-            xbin5.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin5.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         else if(x <= xbins[6]) {
-            xbin6.xFillVectors(x, Q2, pt, R0, R1, R2);
+            xbin6.xFillVectors(z_h, Q2, pt, R0, R1, R2);
         }
         
         //Mhbins
@@ -967,7 +995,7 @@ int LundAnalysis()
     t_z_h->Branch("R2", &R2_t);
     
     t_x->Branch("Name",&infoString);
-    t_x->Branch("x", &x_t);
+    t_x->Branch("z_h", &z_h_t);
     t_x->Branch("Q2", &Q2_t);
     t_x->Branch("pT", &pT_t);
     t_x->Branch("R0", &R0_t);
@@ -976,6 +1004,7 @@ int LundAnalysis()
     
     t_Mh->Branch("Name",&infoString);
     t_Mh->Branch("x", &x_t);
+    t_Mh->Branch("z_h", &z_h_t);
     t_Mh->Branch("Q2", &Q2_t);
     t_Mh->Branch("pT", &pT_t);
     t_Mh->Branch("R0", &R0_t);
@@ -986,6 +1015,15 @@ int LundAnalysis()
     zbin0.meanZ_h();
     infoString = "0th bin";
     x_t = zbin0.xmean;
+//    cout << "v_x: " << accumulate(zbin0.v_x.begin(), zbin0.v_x.end(), 0) << '\n';
+    cout << "v_x filled with:\n";
+    double zbinxsum = 0;
+    for(int i = 0; i < zbin0.v_x.size(); i++) {
+        zbinxsum += zbin0.v_x[i];
+        cout << "Position " << i << " = " << zbin0.v_x[i] << "\n";
+        cout << "Running sum:" << zbinxsum << '\n';
+    }
+    cout << "calculated mean: " << zbinxsum / zbin0.v_x.size() << '\n';
     Q2_t = zbin0.Q2mean;
     pT_t = zbin0.pTmean;
     R0_t = zbin0.R0mean;
@@ -996,6 +1034,7 @@ int LundAnalysis()
     zbin1.meanZ_h();
     infoString = "1st bin";
     x_t = zbin1.xmean;
+    cout << "bin1 x: " << x_t << '\n';
     Q2_t = zbin1.Q2mean;
     pT_t = zbin1.pTmean;
     R0_t = zbin1.R0mean;
@@ -1006,6 +1045,7 @@ int LundAnalysis()
     zbin2.meanZ_h();
     infoString = "2nd bin";
     x_t = zbin2.xmean;
+    cout << "bin2 x: " << x_t << '\n';
     Q2_t = zbin2.Q2mean;
     pT_t = zbin2.pTmean;
     R0_t = zbin2.R0mean;
@@ -1016,6 +1056,7 @@ int LundAnalysis()
     zbin3.meanZ_h();
     infoString = "3rd bin";
     x_t = zbin3.xmean;
+    cout << "bin3 x: " << x_t << '\n';
     Q2_t = zbin3.Q2mean;
     pT_t = zbin3.pTmean;
     R0_t = zbin3.R0mean;
@@ -1026,6 +1067,7 @@ int LundAnalysis()
     zbin4.meanZ_h();
     infoString = "4th bin";
     x_t = zbin4.xmean;
+    cout << "bin4 x: " << x_t << '\n';
     Q2_t = zbin4.Q2mean;
     pT_t = zbin4.pTmean;
     R0_t = zbin4.R0mean;
@@ -1036,6 +1078,7 @@ int LundAnalysis()
     zbin5.meanZ_h();
     infoString = "5th bin";
     x_t = zbin5.xmean;
+    cout << "bin5 x: " << x_t << '\n';
     Q2_t = zbin5.Q2mean;
     pT_t = zbin5.pTmean;
     R0_t = zbin5.R0mean;
@@ -1046,6 +1089,7 @@ int LundAnalysis()
     zbin6.meanZ_h();
     infoString = "6th bin";
     x_t = zbin6.xmean;
+    cout << "bin6 x: " << x_t << '\n';
     Q2_t = zbin6.Q2mean;
     pT_t = zbin6.pTmean;
     R0_t = zbin6.R0mean;
@@ -1123,7 +1167,6 @@ int LundAnalysis()
     R1_t = xbin6.R1mean;
     R2_t = xbin6.R2mean;
     t_x->Fill();
-    
     //Mh bin mean filling
     Mhbin0.meanmh();
     infoString = "0th bin";
@@ -1135,7 +1178,6 @@ int LundAnalysis()
     R1_t = Mhbin0.R1mean;
     R2_t = Mhbin0.R2mean;
     t_Mh->Fill();
-    
     Mhbin1.meanmh();
     infoString = "1st bin";
     z_h_t = Mhbin1.z_hmean;
