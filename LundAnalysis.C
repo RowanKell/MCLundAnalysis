@@ -131,7 +131,7 @@ double LightConePlus(TLorentzVector lv)
     return (lv.E() + lv.Pz()) / (sqrt(2));
 }
 
-double meanFunc(vector<double> v)
+double meanfunc(vector<double> v)
 {
     double sum = 0;
     for(int i = 0; i < v.size(); i++) {
@@ -351,34 +351,29 @@ class BinVariable
     
     //Methods for calculating mean
     void meanZ_h() {
-        double zbinxsum = 0;
-        for(int i = 0; i < v_x.size(); i++) {
-            zbinxsum += v_x[i];
-        }
-        xmean = zbinxsum / v_x.size();
-//        xmean = (double)accumulate(v_x.begin(), v_x.end(), 0) / (double)v_x.size();
-        Q2mean = (double)accumulate(v_Q2.begin(), v_Q2.end(), 0) / (double)v_Q2.size();
-        pTmean = (double)accumulate(v_pT.begin(), v_pT.end(), 0) / (double)v_pT.size();
-        R0mean = (double)accumulate(v_R0.begin(), v_R0.end(), 0) / (double)v_R0.size();
-        R1mean = (double)accumulate(v_R1.begin(), v_R1.end(), 0) / (double)v_R1.size();
-        R2mean = (double)accumulate(v_R2.begin(), v_R2.end(), 0) / (double)v_R2.size();
+        xmean = meanfunc(v_x);
+        Q2mean = meanfunc(v_Q2);
+        pTmean = meanfunc(v_pT);
+        R0mean = meanfunc(v_R0);
+        R1mean = meanfunc(v_R1);
+        R2mean = meanfunc(v_R2);
     }
     void meanx() {
-        z_hmean = (double)accumulate(v_z_h.begin(), v_z_h.end(), 0) / (double)v_z_h.size();
-        Q2mean = (double)accumulate(v_Q2.begin(), v_Q2.end(), 0) / (double)v_Q2.size();
-        pTmean = (double)accumulate(v_pT.begin(), v_pT.end(), 0) / (double)v_pT.size();
-        R0mean = (double)accumulate(v_R0.begin(), v_R0.end(), 0) / (double)v_R0.size();
-        R1mean = (double)accumulate(v_R1.begin(), v_R1.end(), 0) / (double)v_R1.size();
-        R2mean = (double)accumulate(v_R2.begin(), v_R2.end(), 0) / (double)v_R2.size();
+        z_hmean = meanfunc(v_z_h);
+        Q2mean = meanfunc(v_Q2);
+        pTmean = meanfunc(v_pT);
+        R0mean = meanfunc(v_R0);
+        R1mean = meanfunc(v_R1);
+        R2mean = meanfunc(v_R2);
     }
     void meanmh() {
-        z_hmean = (double)accumulate(v_z_h.begin(), v_z_h.end(), 0) / (double)v_z_h.size();
-        xmean = (double)accumulate(v_x.begin(), v_x.end(), 0) / (double)v_x.size();
-        Q2mean = (double)accumulate(v_Q2.begin(), v_Q2.end(), 0) / (double)v_Q2.size();
-        pTmean = (double)accumulate(v_pT.begin(), v_pT.end(), 0) / (double)v_pT.size();
-        R0mean = (double)accumulate(v_R0.begin(), v_R0.end(), 0) / (double)v_R0.size();
-        R1mean = (double)accumulate(v_R1.begin(), v_R1.end(), 0) / (double)v_R1.size();
-        R2mean = (double)accumulate(v_R2.begin(), v_R2.end(), 0) / (double)v_R2.size();
+        z_hmean = meanfunc(v_z_h);
+        xmean = meanfunc(v_x);
+        Q2mean = meanfunc(v_Q2);
+        pTmean = meanfunc(v_pT);
+        R0mean = meanfunc(v_R0);
+        R1mean = meanfunc(v_R1);
+        R2mean = meanfunc(v_R2);
     }
 };
 // 
@@ -387,7 +382,7 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile4.root"
 )
 {
     gROOT->ProcessLine("#include <vector>");
@@ -426,6 +421,15 @@ int LundAnalysis(
     //Initialization
     //
 
+    // Debugging counters
+    int zbin0count = 0;
+    int zbin1count = 0;
+    int zbin2count = 0;
+    int zbin3count = 0;
+    int zbin4count = 0;
+    int zbin5count = 0;
+    int zbin6count = 0;
+    
     //MC::Lund bank entries
     int pid;
     int id;
@@ -445,6 +449,13 @@ int LundAnalysis(
     double z_h;
     double zpiplus;
     double zpiminus;
+    
+    //Cut Kinematics
+    double W;
+    double xFpiplus;
+    double xFpiminus;
+    double nu;
+    double Mx;
     
     //Affinity ratios
     double R0;
@@ -637,9 +648,9 @@ int LundAnalysis(
         event_count += 1;
         
         //Break at event 100 for testing with shorter run time
-        if(event_count >= 1000) {
+/*        if(event_count >= 1000000) {
             cout << "Breaking at event: " << event_count << '\n';
-            break;
+            break;*/
         }
         if(c12->getDetParticles().empty())
             continue;
@@ -786,6 +797,9 @@ int LundAnalysis(
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
         q = init_electron - electron.lv; //virtual photon
+        
+        //Missing mass
+        Mx = Mxfunc(q, init_target, piplus.lv, piminus.lv);
 
         cth = cthfunc(electron.px,electron.py,electron.pz);
         Q2 = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
@@ -815,6 +829,14 @@ int LundAnalysis(
         
         lv_q_gN = q;
         lv_q_gN.Boost(gNBoostNeg);
+        
+        //Feynman x
+        xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
+        xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
+        
+        //nu and W
+        nu = nufunc(electron_beam_energy,electron.E);
+        W = Wfunc(Q2,protonMass,nu);
         
         // Breit Frame Kinematics for delta k
         Breit = q;
@@ -887,39 +909,75 @@ int LundAnalysis(
         PFkfz = PFkf.Pz();
         PFkft = Ptfunc(PFkfx,PFkfy);
         
+        //CUTS:
+        //Missing mass
+        if(Mx <= 1.5) {
+            continue;
+        }
+        
+        //Feynman x
+        if(xFpiplus <= 0 || xFpiminus <= 0) {
+            continue;
+        }
+        
+        //Vertex Position
+        if(abs(electron.vz - piplus.vz) >= 20) {
+            continue;
+        }
+        if(abs(electron.vz - piminus.vz >= 20)) {
+            continue;
+        }
+        if(electron.vz <= -8 || electron.vz >= 3) {
+            continue;
+        }
+        
+        //Channel Selection
+        
+        //Virtual photon mass / momentum transfer
+        if(Q2 <= 1 || Q2 >= 100) {
+            continue;
+        }
+        //Hadronic system mass
+        if(W <= 2 || W >= 100) {
+            continue;
+        }
+        //Energy fraction
+        if(y <= 0 || y >= 0.8) {
+            continue;
+        }
+        if(piplus.P <= 1.25 || piminus.P <= 1.25) {
+            continue;
+        }
+        
+        //Missing mass:
+        if(Mx <= 1.5) {
+            continue;
+        }
+        
         tree_count += 1;
         
         //Need: x, z, Q2, pT, R0, R1, R2
         //zbins:
-        cout << "x: " << x << '\n';
-        cout << "z: " << z_h << '\n';
         if(z_h <= zbins[0]) {
             zbin0.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin0\n";
         }
         else if(z_h <= zbins[1]) {
             zbin1.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin1\n";
         }
         else if(z_h <= zbins[2]) {
             zbin2.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin2\n";
         }
         else if(z_h <= zbins[3]) {
             zbin3.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin3\n";
         }
         else if(z_h <= zbins[4]) {
             zbin4.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin4\n";
         }
         else if(z_h <= zbins[5]) {
             zbin5.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin5\n";
         }
         else if(z_h <= zbins[6]) {
             zbin6.zFillVectors(x, Q2, pt, R0, R1, R2);
-//            cout << "filled in zbin6\n";
         }
         
         //xbins
@@ -1010,20 +1068,14 @@ int LundAnalysis(
     t_Mh->Branch("R0", &R0_t);
     t_Mh->Branch("R1", &R1_t);
     t_Mh->Branch("R2", &R2_t);
+    
+    cout << "Tree count: " << tree_count << '\n';
     //Calculating means
     //Setting zbin means
     zbin0.meanZ_h();
     infoString = "0th bin";
     x_t = zbin0.xmean;
-//    cout << "v_x: " << accumulate(zbin0.v_x.begin(), zbin0.v_x.end(), 0) << '\n';
-    cout << "v_x filled with:\n";
-    double zbinxsum = 0;
-    for(int i = 0; i < zbin0.v_x.size(); i++) {
-        zbinxsum += zbin0.v_x[i];
-        cout << "Position " << i << " = " << zbin0.v_x[i] << "\n";
-        cout << "Running sum:" << zbinxsum << '\n';
-    }
-    cout << "calculated mean: " << zbinxsum / zbin0.v_x.size() << '\n';
+    cout << "bin0 count: "<< zbin0count<< "; x: " << x_t << '\n';
     Q2_t = zbin0.Q2mean;
     pT_t = zbin0.pTmean;
     R0_t = zbin0.R0mean;
@@ -1034,7 +1086,7 @@ int LundAnalysis(
     zbin1.meanZ_h();
     infoString = "1st bin";
     x_t = zbin1.xmean;
-    cout << "bin1 x: " << x_t << '\n';
+    cout << "bin1 count: "<< zbin1count<< "; x: " << x_t << '\n';
     Q2_t = zbin1.Q2mean;
     pT_t = zbin1.pTmean;
     R0_t = zbin1.R0mean;
@@ -1045,7 +1097,7 @@ int LundAnalysis(
     zbin2.meanZ_h();
     infoString = "2nd bin";
     x_t = zbin2.xmean;
-    cout << "bin2 x: " << x_t << '\n';
+    cout << "bin2 count: "<< zbin2count<< "; x: " << x_t << '\n';
     Q2_t = zbin2.Q2mean;
     pT_t = zbin2.pTmean;
     R0_t = zbin2.R0mean;
@@ -1056,7 +1108,7 @@ int LundAnalysis(
     zbin3.meanZ_h();
     infoString = "3rd bin";
     x_t = zbin3.xmean;
-    cout << "bin3 x: " << x_t << '\n';
+    cout << "bin3 count: "<< zbin3count<< "; x: " << x_t << '\n';
     Q2_t = zbin3.Q2mean;
     pT_t = zbin3.pTmean;
     R0_t = zbin3.R0mean;
@@ -1067,7 +1119,7 @@ int LundAnalysis(
     zbin4.meanZ_h();
     infoString = "4th bin";
     x_t = zbin4.xmean;
-    cout << "bin4 x: " << x_t << '\n';
+    cout << "bin4 count: "<< zbin4count<< "; x: " << x_t << '\n';
     Q2_t = zbin4.Q2mean;
     pT_t = zbin4.pTmean;
     R0_t = zbin4.R0mean;
@@ -1078,7 +1130,7 @@ int LundAnalysis(
     zbin5.meanZ_h();
     infoString = "5th bin";
     x_t = zbin5.xmean;
-    cout << "bin5 x: " << x_t << '\n';
+    cout << "bin5 count: "<< zbin5count<< "; x: " << x_t << '\n';
     Q2_t = zbin5.Q2mean;
     pT_t = zbin5.pTmean;
     R0_t = zbin5.R0mean;
@@ -1089,7 +1141,7 @@ int LundAnalysis(
     zbin6.meanZ_h();
     infoString = "6th bin";
     x_t = zbin6.xmean;
-    cout << "bin6 x: " << x_t << '\n';
+    cout << "bin6 count: "<< zbin6count<< "; x: " << x_t << '\n';
     Q2_t = zbin6.Q2mean;
     pT_t = zbin6.pTmean;
     R0_t = zbin6.R0mean;
