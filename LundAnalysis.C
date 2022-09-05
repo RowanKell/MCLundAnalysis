@@ -382,7 +382,7 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile4.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_5/file6.root"
 )
 {
     gROOT->ProcessLine("#include <vector>");
@@ -528,24 +528,6 @@ int LundAnalysis(
     double z_N;
     TVector2 q_T;
     
-    // Checking ki for gauss fit
-    TLorentzVector PFki;
-    double PFkix;
-    double PFkiy;
-    double PFkiz;
-    double PFkit;
-    TLorentzVector PFkf;
-    double PFkfx;
-    double PFkfy;
-    double PFkfz;
-    double PFkft;
-    
-    double ki2;
-    double kf2;
-    
-    //Checking for low momentum quarks
-    double kffrac;
-    
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
     //Add a few items
@@ -567,37 +549,6 @@ int LundAnalysis(
     vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
     vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
     
-    vector<int> extra_pid;
-    
-//    std::vector<float> venergy;
-    //Making new MC tree
-    TTree *t = new TTree("tree_MC","Tree with MC data");
-
-    t->Branch("z_h",&z_h);
-    t->Branch("x",&x);
-    t->Branch("pt",&pt);
-    t->Branch("Q2",&Q2);
-    t->Branch("Ph",&Pdihadron);
-    t->Branch("Mdihadron",&Mdihadron); //dihadron mass
-    t->Branch("R0",&R0); //initial parton momentum
-    t->Branch("R1",&R1); //final parton momentum
-    t->Branch("R2",&R2);
-    t->Branch("PFkix",&PFkix); //Photon frame partonic momentum for checking ki values
-//    t->Branch("PFkiy",&PFkiy);
-//    t->Branch("PFkiz",&PFkiz);
-//    t->Branch("PFkit",&PFkit);
-//    t->Branch("PFkfx",&PFkfx);
-//    t->Branch("PFkfy",&PFkfy);
-//    t->Branch("PFkfz",&PFkfz);
-//    t->Branch("PFkft",&PFkft);
-    t->Branch("deltakx",&deltakx);
-    t->Branch("deltaky",&deltaky);
-    t->Branch("deltak2",&deltak2);
-    t->Branch("ki2",&ki2);
-    t->Branch("kf2",&kf2);
-    t->Branch("extra",&extra_pid);
-    t->Branch("kffrac", &kffrac);
-    t->Branch("DihadronPFMinus", &dihadronPFMinus);
     
     // Bin objects for collecting kinematic variables
     
@@ -634,26 +585,24 @@ int LundAnalysis(
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
-    
-    int event_count = 0;
     int tree_count = 0;
     //now get reference to (unique)ptr for accessing data in loop
     //this will point to the correct place when file changes
     //
     //This line comes from AnalysisWithExtraBanks.C
     auto& c12=chain.C12ref();
-    
+    //int event_count = 0;
     //Loop over all events in the file
     while(chain.Next()==true){
-        event_count += 1;
         
         //Break at event 100 for testing with shorter run time
-/*        if(event_count >= 1000000) {
+/*        if(event_count >= 1000) {
             cout << "Breaking at event: " << event_count << '\n';
-            break;*/
-        }
+            break;
+        }*/
         if(c12->getDetParticles().empty())
             continue;
+        //event_count += 1;
         //Intializing MCParticles
         MCParticle electron;
         MCParticle proton;
@@ -736,7 +685,6 @@ int LundAnalysis(
                 Hadron.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
             }
-            else{extra_pid.push_back(pid);}
         }
         
         //Selecting pions that come from Lund particle
@@ -880,34 +828,12 @@ int LundAnalysis(
         q_T = -1 * dihadronBreitTran / z_N;
         //ki, k, and delta k
         deltak = kfBreitTran - (-1 * z_N * q_T); 
-        deltakx = deltak.Px();
-        deltaky = deltak.Py();
-        deltak2 = deltak * deltak;
-        
-        kffrac = kf.Pz() / q.Pz();
-        
-        ki2 = abs(ki.Vect() * ki.Vect());
-        kf2 = abs(kf.Vect() * kf.Vect());
         
         k = kf - q;
         
         R0 = R0func(ki, kf, deltak, Q2);
         R1 = R1func(dihadron, ki, kf);
         R2 = R2func(k, Q2);
-        
-        PFki = ki;
-        PFki.Rotate(PFAngle,PFAxis);
-        PFkf = kf;
-        PFkf.Rotate(PFAngle,PFAxis);
-        PFkix = PFki.Px();
-        PFkiy = PFki.Py();
-        PFkiz = PFki.Pz();
-        PFkit = Ptfunc(PFkix,PFkiy);
-        
-        PFkfx = PFkf.Px();
-        PFkfy = PFkf.Py();
-        PFkfz = PFkf.Pz();
-        PFkft = Ptfunc(PFkfx,PFkfy);
         
         //CUTS:
         //Missing mass
@@ -1028,7 +954,6 @@ int LundAnalysis(
         if(tree_count % 1000 == 0) {
             cout << "Tree_count: " << tree_count << '\n';
         }
-        t->Fill();
     }
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
