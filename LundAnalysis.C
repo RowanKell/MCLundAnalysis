@@ -35,6 +35,11 @@ double Ptfunc(double Px, double Py)
 {
     return sqrt(Px*Px + Py*Py);
 }
+double Ptfunc(TLorentzVector lv) {
+    double x = lv.Px();
+    double y = lv.Py();
+    return sqrt(x * x + y * y);
+}
 
 TVector2 PtVectfunc(TLorentzVector lv)
 {
@@ -382,7 +387,9 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_5/file6.root"
+//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/file1.root"
+//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/TMD1.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
 {
     gROOT->ProcessLine("#include <vector>");
@@ -445,7 +452,7 @@ int LundAnalysis(
     double cth;
     double Q2;
     double x;
-    double pt;
+    double pt_lab;
     double z_h;
     double zpiplus;
     double zpiminus;
@@ -490,9 +497,21 @@ int LundAnalysis(
     double deltaky;
     double deltak2;
     
+    //gNframe
     TLorentzVector lv_p1_gN;
     TLorentzVector lv_p2_gN;
+    TLorentzVector dihadron_gN;
+    
     TLorentzVector lv_q_gN;
+    
+    TLorentzVector target_gN;
+    
+    TLorentzVector ki_gN;
+    TLorentzVector kf_gN;
+    TLorentzVector k_gN;
+    
+    double pt_gN;
+    
     TLorentzVector gN;
     TVector3 gNBoost;
     TVector3 gNBoostNeg;
@@ -757,13 +776,11 @@ int LundAnalysis(
         s = sfunc(protonMass, electronMass, electron_beam_energy);
         y = yfunc(electron_beam_energy,electron.E);
         x = Q2/s/y; // Bjorken x
-        pt = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
+        pt_lab = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
         
         kf = quark.lv;
         ki = kf - q;
         //Cut Kinematics
-        
-        dihadronpt = Ptfunc(dihadron.Px(),dihadron.Py());
         
         gN = q;
         gN += init_target;
@@ -777,6 +794,22 @@ int LundAnalysis(
         
         lv_q_gN = q;
         lv_q_gN.Boost(gNBoostNeg);
+        
+        //Need dihadron in gN frame for pT
+        dihadron_gN = dihadron;
+        dihadron_gN.Boost(gNBoostNeg);
+        pt_gN = Ptfunc(dihadron_gN);
+        
+        //Need target in gN
+        target_gN = init_target;
+        target_gN.Boost(gNBoostNeg);
+        
+        //Need partonic in gN
+        ki_gN = ki;
+        ki_gN.Boost(gNBoostNeg);
+        
+        kf_gN = kf;
+        kf_gN.Boost(gNBoostNeg);
         
         //Feynman x
         xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
@@ -830,12 +863,36 @@ int LundAnalysis(
         deltak = kfBreitTran - (-1 * z_N * q_T); 
         
         k = kf - q;
+        k_gN = k;
+        k_gN.Boost(gNBoostNeg);
+        //These ratios are calculated in lab frame
+//        R0 = R0func(ki, kf, deltak, Q2);
+//        R1 = R1func(dihadron, ki, kf);
+//        R2 = R2func(k, Q2);
         
-        R0 = R0func(ki, kf, deltak, Q2);
-        R1 = R1func(dihadron, ki, kf);
-        R2 = R2func(k, Q2);
+        //Ratios in gN frame
+        R0 = R0func(ki_gN, kf_gN, deltak, Q2);
+        R1 = R1func(dihadron_gN, ki_gN, kf_gN);
+        R2 = R2func(k_gN, Q2);
         
         //CUTS:
+        
+        //Region cuts:
+        
+        //TMD and Collinear region selection:
+        if(R0 > 0.3 || R1 > 0.3) {
+            continue;
+        }
+        //TMD:
+//        if(R2 > 0.3) {
+//            continue;
+//        }
+        //Collinear
+        if(R2 < 0.9) {
+            continue;
+        }
+         
+        
         //Missing mass
         if(Mx <= 1.5) {
             continue;
@@ -875,86 +932,82 @@ int LundAnalysis(
             continue;
         }
         
-        //Missing mass:
-        if(Mx <= 1.5) {
-            continue;
-        }
-        
         tree_count += 1;
         
         //Need: x, z, Q2, pT, R0, R1, R2
         //zbins:
         if(z_h <= zbins[0]) {
-            zbin0.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin0.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         else if(z_h <= zbins[1]) {
-            zbin1.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin1.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         else if(z_h <= zbins[2]) {
-            zbin2.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin2.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         else if(z_h <= zbins[3]) {
-            zbin3.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin3.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         else if(z_h <= zbins[4]) {
-            zbin4.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin4.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         else if(z_h <= zbins[5]) {
-            zbin5.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin5.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         else if(z_h <= zbins[6]) {
-            zbin6.zFillVectors(x, Q2, pt, R0, R1, R2);
+            zbin6.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
         }
         
         //xbins
         if(x <= xbins[0]) {
-            xbin0.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin0.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(x <= xbins[1]) {
-            xbin1.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin1.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(x <= xbins[2]) {
-            xbin2.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin2.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(x <= xbins[3]) {
-            xbin3.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin3.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(x <= xbins[4]) {
-            xbin4.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin4.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(x <= xbins[5]) {
-            xbin5.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin5.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(x <= xbins[6]) {
-            xbin6.xFillVectors(z_h, Q2, pt, R0, R1, R2);
+            xbin6.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
         }
         
         //Mhbins
         if(Mdihadron <= Mhbins[0]) {
-            Mhbin0.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin0.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(Mdihadron <= Mhbins[1]) {
-            Mhbin1.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin1.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(Mdihadron <= Mhbins[2]) {
-            Mhbin2.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin2.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(Mdihadron <= Mhbins[3]) {
-            Mhbin3.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin3.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(Mdihadron <= Mhbins[4]) {
-            Mhbin4.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin4.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(Mdihadron <= Mhbins[5]) {
-            Mhbin5.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin5.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         else if(Mdihadron <= Mhbins[6]) {
-            Mhbin6.mhFillVectors(x, z_h, Q2, pt, R0, R1, R2);
+            Mhbin6.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
         }
         if(tree_count % 1000 == 0) {
             cout << "Tree_count: " << tree_count << '\n';
         }
     }
+    cout << "Final tree_count: " << tree_count;
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
@@ -994,13 +1047,11 @@ int LundAnalysis(
     t_Mh->Branch("R1", &R1_t);
     t_Mh->Branch("R2", &R2_t);
     
-    cout << "Tree count: " << tree_count << '\n';
     //Calculating means
     //Setting zbin means
     zbin0.meanZ_h();
     infoString = "0th bin";
     x_t = zbin0.xmean;
-    cout << "bin0 count: "<< zbin0count<< "; x: " << x_t << '\n';
     Q2_t = zbin0.Q2mean;
     pT_t = zbin0.pTmean;
     R0_t = zbin0.R0mean;
@@ -1011,7 +1062,6 @@ int LundAnalysis(
     zbin1.meanZ_h();
     infoString = "1st bin";
     x_t = zbin1.xmean;
-    cout << "bin1 count: "<< zbin1count<< "; x: " << x_t << '\n';
     Q2_t = zbin1.Q2mean;
     pT_t = zbin1.pTmean;
     R0_t = zbin1.R0mean;
@@ -1022,7 +1072,6 @@ int LundAnalysis(
     zbin2.meanZ_h();
     infoString = "2nd bin";
     x_t = zbin2.xmean;
-    cout << "bin2 count: "<< zbin2count<< "; x: " << x_t << '\n';
     Q2_t = zbin2.Q2mean;
     pT_t = zbin2.pTmean;
     R0_t = zbin2.R0mean;
@@ -1033,7 +1082,6 @@ int LundAnalysis(
     zbin3.meanZ_h();
     infoString = "3rd bin";
     x_t = zbin3.xmean;
-    cout << "bin3 count: "<< zbin3count<< "; x: " << x_t << '\n';
     Q2_t = zbin3.Q2mean;
     pT_t = zbin3.pTmean;
     R0_t = zbin3.R0mean;
@@ -1044,7 +1092,6 @@ int LundAnalysis(
     zbin4.meanZ_h();
     infoString = "4th bin";
     x_t = zbin4.xmean;
-    cout << "bin4 count: "<< zbin4count<< "; x: " << x_t << '\n';
     Q2_t = zbin4.Q2mean;
     pT_t = zbin4.pTmean;
     R0_t = zbin4.R0mean;
@@ -1055,7 +1102,6 @@ int LundAnalysis(
     zbin5.meanZ_h();
     infoString = "5th bin";
     x_t = zbin5.xmean;
-    cout << "bin5 count: "<< zbin5count<< "; x: " << x_t << '\n';
     Q2_t = zbin5.Q2mean;
     pT_t = zbin5.pTmean;
     R0_t = zbin5.R0mean;
@@ -1066,7 +1112,6 @@ int LundAnalysis(
     zbin6.meanZ_h();
     infoString = "6th bin";
     x_t = zbin6.xmean;
-    cout << "bin6 count: "<< zbin6count<< "; x: " << x_t << '\n';
     Q2_t = zbin6.Q2mean;
     pT_t = zbin6.pTmean;
     R0_t = zbin6.R0mean;
