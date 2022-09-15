@@ -388,8 +388,8 @@ class BinVariable
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/file1.root"
-//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/TMD1.root"
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/TMD3.root"
+//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
 {
     gROOT->ProcessLine("#include <vector>");
@@ -547,28 +547,6 @@ int LundAnalysis(
     double z_N;
     TVector2 q_T;
     
-    //Add MC::Lund bank for taking Lund data
-    auto idx_MCLund= config_c12->addBank("MC::Lund");
-    //Add a few items
-    auto iPid=config_c12->getBankOrder(idx_MCLund,"pid");
-    auto ipx=config_c12->getBankOrder(idx_MCLund,"px"); 
-    auto ipy=config_c12->getBankOrder(idx_MCLund,"py");
-    auto ipz=config_c12->getBankOrder(idx_MCLund,"pz");
-    auto idaughter=config_c12->getBankOrder(idx_MCLund,"daughter");
-    auto iparent=config_c12->getBankOrder(idx_MCLund,"parent");
-    auto imass=config_c12->getBankOrder(idx_MCLund,"mass");
-    auto ivz = config_c12->getBankOrder(idx_MCLund,"vz");
-    
-    //Creating vectors to fill using push_back in loop
-    
-    vector<int> vdiquarklist;
-    vector<int> vhadronlist;
-    vector<int> vquarklist;
-    vquarklist = {-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8};
-    vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
-    vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
-    
-    
     // Bin objects for collecting kinematic variables
     
     BinVariable zbin0;
@@ -601,6 +579,35 @@ int LundAnalysis(
     for(int i = 0;i < 7; i++) {
         Mhbins.push_back(0.3 + i / 6.);
     }
+    //Vectors for calculating means
+    vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
+    vector<BinVariable> xbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};       
+    vector<BinVariable> Mhbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
+    vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};
+    
+    //Add MC::Lund bank for taking Lund data
+    auto idx_MCLund= config_c12->addBank("MC::Lund");
+    //Add a few items
+    auto iPid=config_c12->getBankOrder(idx_MCLund,"pid");
+    auto ipx=config_c12->getBankOrder(idx_MCLund,"px"); 
+    auto ipy=config_c12->getBankOrder(idx_MCLund,"py");
+    auto ipz=config_c12->getBankOrder(idx_MCLund,"pz");
+    auto idaughter=config_c12->getBankOrder(idx_MCLund,"daughter");
+    auto iparent=config_c12->getBankOrder(idx_MCLund,"parent");
+    auto imass=config_c12->getBankOrder(idx_MCLund,"mass");
+    auto ivz = config_c12->getBankOrder(idx_MCLund,"vz");
+    
+    //Creating vectors to fill using push_back in loop
+    
+    vector<int> vdiquarklist;
+    vector<int> vhadronlist;
+    vector<int> vquarklist;
+    vquarklist = {-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8};
+    vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303, 4101, 4103, 4201, 4203, 4301, 4303, 4403, 5101, 5103, 5201, 5203, 5301, 5303, 5401, 5403, 5503};
+    vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
+    
+    int hash_count = 0;
+
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -610,10 +617,44 @@ int LundAnalysis(
     //
     //This line comes from AnalysisWithExtraBanks.C
     auto& c12=chain.C12ref();
-    //int event_count = 0;
+    int event_count = 0;
+    
     //Loop over all events in the file
     while(chain.Next()==true){
         
+        event_count += 1;
+        if(event_count == 1) {
+            cout << '\n';
+            cout << "\033[96m";
+            cout << "\t\t\t\t\t\t\t\t" << " ~~~~~~~~~~~~" << '\n';
+            cout << "\t\t\t\t\t\t\t\t" << "|Progress Bar|" << '\n';
+            cout << "\t\t\t\t\t\t\t\t" << " ~~~~~~~~~~~~" << '\n';
+            cout << "\t\t[";
+        }
+        if(event_count % 16388 == 0) {
+            //cout << '\r' << '\r';
+/*            if(!event_count == 1) {
+                for(int i = 0; i < 50; i++) {
+                    cout << '\b';
+                }
+            }*/
+            
+            hash_count += 1;
+            //cout << '\n';
+            cout << '\r' << "\t\t[";
+            for (int i = 1; i < hash_count + 1;i++) {
+                cout << '#';
+            }
+            for (int i = 0; i < 100 - hash_count; i++) {
+                cout << ' ';
+            }
+            cout << ']' << ' ';
+            cout << event_count / 16388. << '%';
+            if(event_count / 16388. == 100) {
+                cout << endl;
+            }
+            cout << flush;
+        }
         //Break at event 100 for testing with shorter run time
 /*        if(event_count >= 1000) {
             cout << "Breaking at event: " << event_count << '\n';
@@ -621,7 +662,7 @@ int LundAnalysis(
         }*/
         if(c12->getDetParticles().empty())
             continue;
-        //event_count += 1;
+        
         //Intializing MCParticles
         MCParticle electron;
         MCParticle proton;
@@ -876,7 +917,6 @@ int LundAnalysis(
         R2 = R2func(k_gN, Q2);
         
         //CUTS:
-        
         //Region cuts:
         
         //TMD and Collinear region selection:
@@ -884,13 +924,13 @@ int LundAnalysis(
             continue;
         }
         //TMD:
-//        if(R2 > 0.3) {
-//            continue;
-//        }
-        //Collinear
-        if(R2 < 0.9) {
+        if(R2 > 0.3) {
             continue;
         }
+        //Collinear
+//        if(R2 < 0.9) {
+//            continue;
+//        }
          
         
         //Missing mass
@@ -936,77 +976,32 @@ int LundAnalysis(
         
         //Need: x, z, Q2, pT, R0, R1, R2
         //zbins:
-        if(z_h <= zbins[0]) {
-            zbin0.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+        for(int i = 0; i < zbins.size(); i++) {
+            if(z_h <= zbins[i]) {
+                zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
         }
-        else if(z_h <= zbins[1]) {
-            zbin1.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+        //Mh bins
+        for(int i = 0; i < Mhbins.size(); i++) {
+            if(Mdihadron <= Mhbins[i]) {
+                Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
         }
-        else if(z_h <= zbins[2]) {
-            zbin2.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+        //x bins
+        for(int i = 0; i < xbins.size(); i++) {
+            if(x <= xbins[i]) {
+                xbinv[i].zFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
         }
-        else if(z_h <= zbins[3]) {
-            zbin3.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(z_h <= zbins[4]) {
-            zbin4.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(z_h <= zbins[5]) {
-            zbin5.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(z_h <= zbins[6]) {
-            zbin6.zFillVectors(x, Q2, pt_gN, R0, R1, R2);
-        }
-        
-        //xbins
-        if(x <= xbins[0]) {
-            xbin0.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(x <= xbins[1]) {
-            xbin1.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(x <= xbins[2]) {
-            xbin2.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(x <= xbins[3]) {
-            xbin3.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(x <= xbins[4]) {
-            xbin4.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(x <= xbins[5]) {
-            xbin5.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(x <= xbins[6]) {
-            xbin6.xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        
-        //Mhbins
-        if(Mdihadron <= Mhbins[0]) {
-            Mhbin0.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(Mdihadron <= Mhbins[1]) {
-            Mhbin1.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(Mdihadron <= Mhbins[2]) {
-            Mhbin2.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(Mdihadron <= Mhbins[3]) {
-            Mhbin3.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(Mdihadron <= Mhbins[4]) {
-            Mhbin4.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(Mdihadron <= Mhbins[5]) {
-            Mhbin5.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        else if(Mdihadron <= Mhbins[6]) {
-            Mhbin6.mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-        }
-        if(tree_count % 1000 == 0) {
-            cout << "Tree_count: " << tree_count << '\n';
+        //print out tree count every 100 to give update to user
+        if(tree_count % 100 == 0) {
+//            cout << "Tree_count: " << tree_count << '\n';
         }
     }
+    cout << "\033[0m" << "\033[49m";
     cout << "Final tree_count: " << tree_count;
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
@@ -1049,225 +1044,40 @@ int LundAnalysis(
     
     //Calculating means
     //Setting zbin means
-    zbin0.meanZ_h();
-    infoString = "0th bin";
-    x_t = zbin0.xmean;
-    Q2_t = zbin0.Q2mean;
-    pT_t = zbin0.pTmean;
-    R0_t = zbin0.R0mean;
-    R1_t = zbin0.R1mean;
-    R2_t = zbin0.R2mean;
-    t_z_h->Fill();
-    
-    zbin1.meanZ_h();
-    infoString = "1st bin";
-    x_t = zbin1.xmean;
-    Q2_t = zbin1.Q2mean;
-    pT_t = zbin1.pTmean;
-    R0_t = zbin1.R0mean;
-    R1_t = zbin1.R1mean;
-    R2_t = zbin1.R2mean;
-    t_z_h->Fill();
-    
-    zbin2.meanZ_h();
-    infoString = "2nd bin";
-    x_t = zbin2.xmean;
-    Q2_t = zbin2.Q2mean;
-    pT_t = zbin2.pTmean;
-    R0_t = zbin2.R0mean;
-    R1_t = zbin2.R1mean;
-    R2_t = zbin2.R2mean;
-    t_z_h->Fill();
-    
-    zbin3.meanZ_h();
-    infoString = "3rd bin";
-    x_t = zbin3.xmean;
-    Q2_t = zbin3.Q2mean;
-    pT_t = zbin3.pTmean;
-    R0_t = zbin3.R0mean;
-    R1_t = zbin3.R1mean;
-    R2_t = zbin3.R2mean;
-    t_z_h->Fill();
-    
-    zbin4.meanZ_h();
-    infoString = "4th bin";
-    x_t = zbin4.xmean;
-    Q2_t = zbin4.Q2mean;
-    pT_t = zbin4.pTmean;
-    R0_t = zbin4.R0mean;
-    R1_t = zbin4.R1mean;
-    R2_t = zbin4.R2mean;
-    t_z_h->Fill();
-    
-    zbin5.meanZ_h();
-    infoString = "5th bin";
-    x_t = zbin5.xmean;
-    Q2_t = zbin5.Q2mean;
-    pT_t = zbin5.pTmean;
-    R0_t = zbin5.R0mean;
-    R1_t = zbin5.R1mean;
-    R2_t = zbin5.R2mean;
-    t_z_h->Fill();
-    
-    zbin6.meanZ_h();
-    infoString = "6th bin";
-    x_t = zbin6.xmean;
-    Q2_t = zbin6.Q2mean;
-    pT_t = zbin6.pTmean;
-    R0_t = zbin6.R0mean;
-    R1_t = zbin6.R1mean;
-    R2_t = zbin6.R2mean;
-    t_z_h->Fill();
-    
-    //Setting means for xbins
-    xbin0.meanx();
-    infoString = "0th bin";
-    z_h_t = xbin0.z_hmean;
-    Q2_t = xbin0.Q2mean;
-    pT_t = xbin0.pTmean;
-    R0_t = xbin0.R0mean;
-    R1_t = xbin0.R1mean;
-    R2_t = xbin0.R2mean;
-    t_x->Fill();
-    
-    xbin1.meanx();
-    infoString = "1st bin";
-    z_h_t = xbin1.z_hmean;
-    Q2_t = xbin1.Q2mean;
-    pT_t = xbin1.pTmean;
-    R0_t = xbin1.R0mean;
-    R1_t = xbin1.R1mean;
-    R2_t = xbin1.R2mean;
-    t_x->Fill();
-    
-    xbin2.meanx();
-    infoString = "2nd bin";
-    z_h_t = xbin2.z_hmean;
-    Q2_t = xbin2.Q2mean;
-    pT_t = xbin2.pTmean;
-    R0_t = xbin2.R0mean;
-    R1_t = xbin2.R1mean;
-    R2_t = xbin2.R2mean;
-    t_x->Fill();
-    
-    xbin3.meanx();
-    infoString = "3rd bin";
-    z_h_t = xbin3.z_hmean;
-    Q2_t = xbin3.Q2mean;
-    pT_t = xbin3.pTmean;
-    R0_t = xbin3.R0mean;
-    R1_t = xbin3.R1mean;
-    R2_t = xbin3.R2mean;
-    t_x->Fill();
-    
-    xbin4.meanx();
-    infoString = "4th bin";
-    z_h_t = xbin4.z_hmean;
-    Q2_t = xbin4.Q2mean;
-    pT_t = xbin4.pTmean;
-    R0_t = xbin4.R0mean;
-    R1_t = xbin4.R1mean;
-    R2_t = xbin4.R2mean;
-    t_x->Fill();
-    
-    xbin5.meanx();
-    infoString = "5th bin";
-    z_h_t = xbin5.z_hmean;
-    Q2_t = xbin5.Q2mean;
-    pT_t = xbin5.pTmean;
-    R0_t = xbin5.R0mean;
-    R1_t = xbin5.R1mean;
-    R2_t = xbin5.R2mean;
-    t_x->Fill();
-    
-    xbin6.meanx();
-    infoString = "6th bin";
-    z_h_t = xbin6.z_hmean;
-    Q2_t = xbin6.Q2mean;
-    pT_t = xbin6.pTmean;
-    R0_t = xbin6.R0mean;
-    R1_t = xbin6.R1mean;
-    R2_t = xbin6.R2mean;
-    t_x->Fill();
-    //Mh bin mean filling
-    Mhbin0.meanmh();
-    infoString = "0th bin";
-    z_h_t = Mhbin0.z_hmean;
-    x_t = Mhbin0.xmean;
-    Q2_t = Mhbin0.Q2mean;
-    pT_t = Mhbin0.pTmean;
-    R0_t = Mhbin0.R0mean;
-    R1_t = Mhbin0.R1mean;
-    R2_t = Mhbin0.R2mean;
-    t_Mh->Fill();
-    Mhbin1.meanmh();
-    infoString = "1st bin";
-    z_h_t = Mhbin1.z_hmean;
-    x_t = Mhbin1.xmean;
-    Q2_t = Mhbin1.Q2mean;
-    pT_t = Mhbin1.pTmean;
-    R0_t = Mhbin1.R0mean;
-    R1_t = Mhbin1.R1mean;
-    R2_t = Mhbin1.R2mean;
-    t_Mh->Fill();
-    
-    Mhbin2.meanmh();
-    infoString = "2nd bin";
-    z_h_t = Mhbin2.z_hmean;
-    x_t = Mhbin2.xmean;
-    Q2_t = Mhbin2.Q2mean;
-    pT_t = Mhbin2.pTmean;
-    R0_t = Mhbin2.R0mean;
-    R1_t = Mhbin2.R1mean;
-    R2_t = Mhbin2.R2mean;
-    t_Mh->Fill();
-    
-    Mhbin3.meanmh();
-    infoString = "3rd bin";
-    z_h_t = Mhbin3.z_hmean;
-    x_t = Mhbin3.xmean;
-    Q2_t = Mhbin3.Q2mean;
-    pT_t = Mhbin3.pTmean;
-    R0_t = Mhbin3.R0mean;
-    R1_t = Mhbin3.R1mean;
-    R2_t = Mhbin3.R2mean;
-    t_Mh->Fill();
-    
-    Mhbin4.meanmh();
-    infoString = "4th bin";
-    z_h_t = Mhbin4.z_hmean;
-    x_t = Mhbin4.xmean;
-    Q2_t = Mhbin4.Q2mean;
-    pT_t = Mhbin4.pTmean;
-    R0_t = Mhbin4.R0mean;
-    R1_t = Mhbin4.R1mean;
-    R2_t = Mhbin4.R2mean;
-    t_Mh->Fill();
-    
-    Mhbin5.meanmh();
-    infoString = "5th bin";
-    z_h_t = Mhbin5.z_hmean;
-    x_t = Mhbin5.xmean;
-    Q2_t = Mhbin5.Q2mean;
-    pT_t = Mhbin5.pTmean;
-    R0_t = Mhbin5.R0mean;
-    R1_t = Mhbin5.R1mean;
-    R2_t = Mhbin5.R2mean;
-    t_Mh->Fill();
-    
-    Mhbin6.meanmh();
-    infoString = "6th bin";
-    z_h_t = Mhbin6.z_hmean;
-    x_t = Mhbin6.xmean;
-    Q2_t = Mhbin6.Q2mean;
-    pT_t = Mhbin6.pTmean;
-    R0_t = Mhbin6.R0mean;
-    R1_t = Mhbin6.R1mean;
-    R2_t = Mhbin6.R2mean;
-    t_Mh->Fill();
-    
-    
-    
+    for(int i = 0; i < vinfoString.size(); i++) {
+        zbinv[i].meanZ_h();
+        infoString = vinfoString[i];
+        x_t = zbinv[i].xmean;
+        Q2_t = zbinv[i].Q2mean;
+        pT_t = zbinv[i].pTmean;
+        R0_t = zbinv[i].R0mean;
+        R1_t = zbinv[i].R1mean;
+        R2_t = zbinv[i].R2mean;
+        t_z_h->Fill();
+        }
+    for(int i = 0; i < vinfoString.size(); i++) {
+        xbinv[i].meanx();
+        infoString = vinfoString[i];
+        z_h_t = xbinv[i].z_hmean;
+        Q2_t = xbinv[i].Q2mean;
+        pT_t = xbinv[i].pTmean;
+        R0_t = xbinv[i].R0mean;
+        R1_t = xbinv[i].R1mean;
+        R2_t = xbinv[i].R2mean;
+        t_x->Fill();
+        }
+    for(int i = 0; i < vinfoString.size(); i++) {
+        Mhbinv[i].meanmh();
+        infoString = vinfoString[i];
+        x_t = Mhbinv[i].xmean;
+        z_h_t = Mhbinv[i].z_hmean;
+        Q2_t = Mhbinv[i].Q2mean;
+        pT_t = Mhbinv[i].pTmean;
+        R0_t = Mhbinv[i].R0mean;
+        R1_t = Mhbinv[i].R1mean;
+        R2_t = Mhbinv[i].R2mean;
+        t_Mh->Fill();
+        }
     f->Write();
     delete f;
     
