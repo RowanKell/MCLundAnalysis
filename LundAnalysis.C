@@ -387,8 +387,8 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/file1.root"
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/TMD3.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/file1.root"
+//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
 {
@@ -632,15 +632,9 @@ int LundAnalysis(
             cout << "\t\t[";
         }
         if(event_count % 16388 == 0) {
-            //cout << '\r' << '\r';
-/*            if(!event_count == 1) {
-                for(int i = 0; i < 50; i++) {
-                    cout << '\b';
-                }
-            }*/
             
             hash_count += 1;
-            //cout << '\n';
+//            cout << "\033[A" << "\033[A";
             cout << '\r' << "\t\t[";
             for (int i = 1; i < hash_count + 1;i++) {
                 cout << '#';
@@ -920,13 +914,13 @@ int LundAnalysis(
         //Region cuts:
         
         //TMD and Collinear region selection:
-        if(R0 > 0.3 || R1 > 0.3) {
-            continue;
-        }
+//        if(R0 > 0.3 || R1 > 0.3) {
+//            continue;
+//        }
         //TMD:
-        if(R2 > 0.3) {
-            continue;
-        }
+//        if(R2 > 0.3) {
+//            continue;
+//        }
         //Collinear
 //        if(R2 < 0.9) {
 //            continue;
