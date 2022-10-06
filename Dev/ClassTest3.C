@@ -140,27 +140,23 @@ class MCParticle
     public:
     
     //Lund bank variables
-    void init()
-    {
-        int pid = 0;
-        int id = 0;
-        double px = 0;
-        double py = 0;
-        double pz = 0;
-        int daughter = 0;
-        int parent = 0;
-        double mass = 0;
-        double P = 0;
-        double E = 0;
-        double vz = 0;
-        //TLorentzVector
-        TLorentzVector lv;
-
-        //Calculations
-        double Pt = 0;
-        TVector2 PtVect;
-    }
+    int pid = 0;
+    int id = 0;
+    double px = 0;
+    double py = 0;
+    double pz = 0;
+    int daughter = 0;
+    int parent = 0;
+    double mass = 0;
+    double P = 0;
+    double E = 0;
+    double vz = 0;
+    //TLorentzVector
+    TLorentzVector lv;
     
+    //Calculations
+    double Pt = 0;
+    TVector2 PtVect;
     
     void inputPxPyPzM(double _px, double _py, double _pz, double _m);
     
@@ -227,42 +223,20 @@ class MultiParticle : public MCParticle
 {
     public:
     
-    void multiParticleInit()
-    {
-        int pid = 0;
-        int id = 0;
-        double px = 0;
-        double py = 0;
-        double pz = 0;
-        int daughter = 0;
-        int parent = 0;
-        double mass = 0;
-        double P = 0;
-        double E = 0;
-        double vz = 0;
-        //TLorentzVector
-        TLorentzVector lv;
-
-        //Calculations
-        double Pt = 0;
-        TVector2 PtVect;
-    
-        vector<int> v_id;
-        vector<int> v_pid;
-        vector<double> v_px;
-        vector<double> v_py;
-        vector<double> v_pz;
-        vector<int> v_daughter;
-        vector<int> v_parent;
-        vector<double> v_mass;
-        vector<double> v_P;
-        vector<double> v_E;
-        vector<double> v_vz;
-        vector<TLorentzVector> v_lv;
-        vector<double> v_Pt;
-        vector<TVector2> v_PtVect;
-    }
-    
+    vector<int> v_id;
+    vector<int> v_pid;
+    vector<double> v_px;
+    vector<double> v_py;
+    vector<double> v_pz;
+    vector<int> v_daughter;
+    vector<int> v_parent;
+    vector<double> v_mass;
+    vector<double> v_P;
+    vector<double> v_E;
+    vector<double> v_vz;
+    vector<TLorentzVector> v_lv;
+    vector<double> v_Pt;
+    vector<TVector2> v_PtVect;
     
     void update(int _id, int _pid, double _px, double _py, double _pz, int _daughter, int _parent, double _mass, double _vz, double _momentum, double _energy, TLorentzVector _lv, double _pt, TVector2 _ptvect)
     {
@@ -285,24 +259,6 @@ class MultiParticle : public MCParticle
         v_PtVect.push_back(_ptvect);
     }
     
-    void multiParticleReset()
-    {
-        v_id.clear();
-        v_pid.clear();
-        v_px.clear();
-        v_py.clear();
-        v_pz.clear();
-        v_daughterclear();
-        v_parent.clear();
-        v_mass.clear();
-        v_vz.clear();
-        v_P.clear();
-        v_E.clear();
-        v_lv.clear();
-        v_Pt.clear();
-        v_PtVect.clear();
-    }
-    
 };
 
 class Pion : public MultiParticle
@@ -311,26 +267,6 @@ class Pion : public MultiParticle
     
     int select_id = -999;
     
-    void pionReset()
-    {
-        select_id = -999;
-        
-        v_id.clear();
-        v_pid.clear();
-        v_px.clear();
-        v_py.clear();
-        v_pz.clear();
-        v_daughterclear();
-        v_parent.clear();
-        v_mass.clear();
-        v_vz.clear();
-        v_P.clear();
-        v_E.clear();
-        v_lv.clear();
-        v_Pt.clear();
-        v_PtVect.clear();
-    }
-    
 };
 class Quark : public MultiParticle
 {
@@ -338,40 +274,19 @@ class Quark : public MultiParticle
     
     int initial_id = -999;
     int final_id = -999;
-    
-    void quarkReset()
-    {
-        initial_id = -999;
-        final_id = -999;
-        
-        v_id.clear();
-        v_pid.clear();
-        v_px.clear();
-        v_py.clear();
-        v_pz.clear();
-        v_daughterclear();
-        v_parent.clear();
-        v_mass.clear();
-        v_vz.clear();
-        v_P.clear();
-        v_E.clear();
-        v_lv.clear();
-        v_Pt.clear();
-        v_PtVect.clear();
-    }
 };
 
 // 
 //    Main body of analysis function
 //
 
-int LundAnalysis()
+int ClassTest3()
 {
     cout << "Entering LundAnalysis()";
     gROOT->ProcessLine("#include <vector>");
     
     auto hipofile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    auto rootfile = "OutputFiles/Lund_8_15/file1.root";
+    auto rootfile = "/../OutputFiles/Lund_8_15/file1.root";
     
     TFile *f = TFile::Open(rootfile,"RECREATE");
     
@@ -417,9 +332,9 @@ int LundAnalysis()
     double Q2;
     double x;
     double pt;
-    double z_h;
-    double zpiplus;
-    double zpiminus;
+    double z_h = -999;
+    double zpiplus = -999;
+    double zpiminus = -999;
     
     //Affinity ratios
     double R0;
@@ -507,7 +422,7 @@ int LundAnalysis()
     
     // Checking ki for gauss fit
     TLorentzVector PFki;
-    double PFkix;
+    double PFkix = -999;
     double PFkiy;
     double PFkiz;
     double PFkit;
@@ -579,6 +494,7 @@ int LundAnalysis()
     cout << "Start Event Loop" << endl;
     
     int event_count = 0;
+    int pi_event_count = 0;
         
     //now get reference to (unique)ptr for accessing data in loop
     //this will point to the correct place when file changes
@@ -589,12 +505,15 @@ int LundAnalysis()
     //Loop over all events in the file
     while(chain.Next()==true){
         event_count += 1;
-        cout << "Starting event #" << event_count << '\n';
-        if(c12->getDetParticles().empty())
+        if(c12->getDetParticles().empty()) {
+            cout << "continuing past event #" << event_count << '\n';
             continue;
-        if(event_count >= 100) {
+    }
+        if(pi_event_count > 10) {
+            cout << "Breaking at event #" << event_count << '\n';
             break;
         }
+
         //Loop over MC::Lund entries in this event using its ID = idx_MCLund
         //Get PID from its id = iPid
         for(auto imc=0;imc<c12->getBank(idx_MCLund)->getRows();imc++){
@@ -619,66 +538,50 @@ int LundAnalysis()
 
             //Setting scattered electron
             if(pid==11 && parent==1){
-                electron.init();
                 electron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
             //pi+
             else if(pid==pipluspid){
-                piplus.multiParticleInit();
-                piplus.pionReset();
                 piplus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 piplus.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //pi-
             else if(pid==piminuspid){
-                piminus.multiParticleInit();
-                piminus.pionReset();
                 piminus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 piminus.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //all quarks
             else if(std::count(vquarklist.begin(), vquarklist.end(), pid)){
-                quark.multiParticleInit();
-                quark.quarkReset();
                 quark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 quark.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz, quark.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             //MCParticle
             else if(pid==92 || pid == 91){
-                cout << "Filled lund" << '\n';
-                Lund.init();
                 Lund.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
             else if(std::count(vhadronlist.begin(), vhadronlist.end(), pid)) {
-                Hadron.multiParticleInit();
-                Hadron.multiParticleReset();
                 Hadron.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 Hadron.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             else if(std::count(vdiquarklist.begin(), vdiquarklist.end(), pid)){
-                diquark.multiParticleInit();
-                diquark.multiParticleReset();
                 diquark.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 diquark.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz, piplus.P, piplus.E, piplus.lv, piplus.Pt, piplus.PtVect);
             }
             else if(pid == 22){
-                photon.init();
                 photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
             else if(id == 2){
-                proton.init();
                 proton.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
             }
             else{extra_pid.push_back(pid);}
         }
         
         if(quark.v_id.size() > 2) {
-            cout << "Continuing past event #" << event_count << " due to quark count: " << quark.v_id.size() << '\n';
             continue;
         }
         
@@ -695,10 +598,9 @@ int LundAnalysis()
         }
         //Skip non-dipion events
         if((piplus.select_id || piminus.select_id) == -999) {
-            cout << "Skipping due to selec_id: " << piplus.select_id << ", " << piminus.select_id << '\n';
             continue;
         }
-        
+        pi_event_count += 1;
         //Setting inital beam and target particles
         init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
         init_target.SetPxPyPzE(0, 0, 0, proton.E);
@@ -815,7 +717,11 @@ int LundAnalysis()
         PFkfy = PFkf.Py();
         PFkfz = PFkf.Pz();
         PFkft = Ptfunc(PFkfx,PFkfy);
-        t->Fill();
+        
+        cout << "z_h: " << z_h << '\n';
+        cout << "PFkix: " << PFkix << '\n';
+        cout << "deltakx: " << deltakx << '\n';
+        cout << "Pdihadron: " << Pdihadron << '\n';
     }
     f->Write();
     delete f;

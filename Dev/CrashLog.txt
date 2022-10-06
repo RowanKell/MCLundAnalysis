@@ -1,0 +1,96 @@
+ *** Break *** segmentation violation
+
+
+
+===========================================================
+There was a crash.
+This is the entire stack trace of all threads:
+===========================================================
+#0  0x00007f8e0211460c in waitpid () from /lib64/libc.so.6
+#1  0x00007f8e02091f62 in do_system () from /lib64/libc.so.6
+#2  0x00007f8e06f69f55 in TUnixSystem::StackTrace() () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libCore.so.6.24
+#3  0x00007f8e06f67125 in TUnixSystem::DispatchSignals(ESignals) () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libCore.so.6.24
+#4  <signal handler called>
+#5  0x00007f8df83ca313 in ?? ()
+#6  0x00007ffc5c36cea8 in ?? ()
+#7  0x00007ffc5c36cea8 in ?? ()
+#8  0x00007ffc5c36cea0 in ?? ()
+#9  0x00007f8dfc437478 in clang::ASTContext::UnwrapSimilarTypes(clang::QualType&, clang::QualType&) () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libCling.so
+#10 0x0000000002273070 in ?? ()
+#11 0x3fe216900d8fb90a in ?? ()
+#12 0x4018dd67111b3053 in ?? ()
+#13 0x3fd36f5fe2b993c8 in ?? ()
+#14 0x3fde8326da72a297 in ?? ()
+#15 0x3fe216900d8fb8f0 in ?? ()
+#16 0xbf8fd7b6a8ff0f34 in ?? ()
+#17 0x3fd36f5fe2b9938c in ?? ()
+#18 0x3fde8326da72a27f in ?? ()
+#19 0x3fca7e389d04eb06 in ?? ()
+#20 0x00007f8e03e48cb0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#21 0x3fe5968de128dce3 in ?? ()
+#22 0x00007f8e03e48cb0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#23 0x3fe7523da66327d0 in ?? ()
+#24 0x00007f8e03e62b40 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#25 0x40437afc3a707970 in ?? ()
+#26 0x40437afc3a707970 in ?? ()
+#27 0x00007f8e03e62b40 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#28 0x3fd476d9e3badf76 in ?? ()
+#29 0x3fd476d9e3badf76 in ?? ()
+#30 0x4018ba92a592cb8a in ?? ()
+#31 0x401871f8a0000000 in ?? ()
+#32 0x3ff1148c0ccf2cf3 in ?? ()
+#33 0xbfe42680408ae350 in ?? ()
+#34 0x3fea366a6af2d237 in ?? ()
+#35 0x00007f8e03e605a0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#36 0x00007f8e03e605a0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#37 0xbfd59ddf48a649e6 in ?? ()
+#38 0x3fda5d113da56a44 in ?? ()
+#39 0x3fc0276d81e2ddae in ?? ()
+#40 0x0000000000000000 in ?? ()
+===========================================================
+
+
+The lines below might hint at the cause of the crash.
+You may get help by asking at the ROOT forum https://root.cern.ch/forum
+Only if you are really convinced it is a bug in ROOT then please submit a
+report at https://root.cern.ch/bugs Please post the ENTIRE stack trace
+from above as an attachment in addition to anything else
+that might help us fixing this issue.
+===========================================================
+#5  0x00007f8df83ca313 in ?? ()
+#6  0x00007ffc5c36cea8 in ?? ()
+#7  0x00007ffc5c36cea8 in ?? ()
+#8  0x00007ffc5c36cea0 in ?? ()
+#9  0x00007f8dfc437478 in clang::ASTContext::UnwrapSimilarTypes(clang::QualType&, clang::QualType&) () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libCling.so
+#10 0x0000000002273070 in ?? ()
+#11 0x3fe216900d8fb90a in ?? ()
+#12 0x4018dd67111b3053 in ?? ()
+#13 0x3fd36f5fe2b993c8 in ?? ()
+#14 0x3fde8326da72a297 in ?? ()
+#15 0x3fe216900d8fb8f0 in ?? ()
+#16 0xbf8fd7b6a8ff0f34 in ?? ()
+#17 0x3fd36f5fe2b9938c in ?? ()
+#18 0x3fde8326da72a27f in ?? ()
+#19 0x3fca7e389d04eb06 in ?? ()
+#20 0x00007f8e03e48cb0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#21 0x3fe5968de128dce3 in ?? ()
+#22 0x00007f8e03e48cb0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#23 0x3fe7523da66327d0 in ?? ()
+#24 0x00007f8e03e62b40 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#25 0x40437afc3a707970 in ?? ()
+#26 0x40437afc3a707970 in ?? ()
+#27 0x00007f8e03e62b40 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#28 0x3fd476d9e3badf76 in ?? ()
+#29 0x3fd476d9e3badf76 in ?? ()
+#30 0x4018ba92a592cb8a in ?? ()
+#31 0x401871f8a0000000 in ?? ()
+#32 0x3ff1148c0ccf2cf3 in ?? ()
+#33 0xbfe42680408ae350 in ?? ()
+#34 0x3fea366a6af2d237 in ?? ()
+#35 0x00007f8e03e605a0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#36 0x00007f8e03e605a0 in ?? () from /site/12gev_phys/2.5/Linux_CentOS7.7.1908-gcc9.2.0/root/6.24.06/lib/libPhysics.so.6.24
+#37 0xbfd59ddf48a649e6 in ?? ()
+#38 0x3fda5d113da56a44 in ?? ()
+#39 0x3fc0276d81e2ddae in ?? ()
+#40 0x0000000000000000 in ?? ()
+===========================================================
