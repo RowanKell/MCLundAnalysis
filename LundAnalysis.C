@@ -387,7 +387,9 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/file1.root"
+//                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/file1.root"
+                 const char * rootfile = "OutputFiles/Oct6Dev/oct6devregcutsonly1.root"
+    
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -581,8 +583,8 @@ int LundAnalysis(
     }
     //Vectors for calculating means
     vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
-    vector<BinVariable> xbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};       
-    vector<BinVariable> Mhbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
+    vector<BinVariable> xbinv = {xbin0, xbin1, xbin2, xbin3, xbin4, xbin5, xbin6};       
+    vector<BinVariable> Mhbinv = {Mhbin0, Mhbin1, Mhbin2, Mhbin3, Mhbin4, Mhbin5, Mhbin6};
     vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};
     
     //Add MC::Lund bank for taking Lund data
@@ -914,13 +916,13 @@ int LundAnalysis(
         //Region cuts:
         
         //TMD and Collinear region selection:
-        if(R0 > 0.3 || R1 > 0.3) {
+/*        if(R0 > 0.3 || R1 > 0.3) {
             continue;
         }
         //TMD:
         if(R2 > 0.3) {
             continue;
-        }
+        }*/
         //Collinear
 //        if(R2 < 0.9) {
 //            continue;
