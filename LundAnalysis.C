@@ -387,7 +387,7 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_13/file1.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts2.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -953,7 +953,7 @@ int LundAnalysis(
 //            continue;
 //        }
          
-*/
+
         //Missing mass
         if(Mx <= 1.5) {
             continue;
@@ -992,7 +992,7 @@ int LundAnalysis(
         if(piplus.P <= 1.25 || piminus.P <= 1.25) {
             continue;
         }
-        
+*/
         tree_count += 1;
 //        t->Fill();
         //Need: x, z, Q2, pT, R0, R1, R2
