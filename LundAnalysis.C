@@ -387,7 +387,7 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts2.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -582,8 +582,8 @@ int LundAnalysis(
     }
     //Vectors for calculating means
     vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
-    vector<BinVariable> xbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};       
-    vector<BinVariable> Mhbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
+    vector<BinVariable> xbinv = {xbin0, xbin1, xbin2, xbin3, xbin4, xbin5, xbin6};       
+    vector<BinVariable> Mhbinv = {Mhbin0, Mhbin1, Mhbin2, Mhbin3, Mhbin4, Mhbin5, Mhbin6};
     vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};
     
     //Add MC::Lund bank for taking Lund data
@@ -1014,7 +1014,7 @@ int LundAnalysis(
         //x bins
         for(int i = 0; i < xbins.size(); i++) {
             if(x <= xbins[i]) {
-                xbinv[i].zFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
+                xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
                 break;
             }
         }
@@ -1025,7 +1025,7 @@ int LundAnalysis(
 
     }
     cout << "\033[0m" << "\033[49m";
-    cout << "Final tree_count: " << tree_count;
+    cout << "Final tree_count: " << tree_count << '\n';
 
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
