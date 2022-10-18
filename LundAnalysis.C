@@ -400,8 +400,22 @@ int LundAnalysis(
 // Current files: defined in main function though
 //    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo";
 //    auto rootFile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root";
+    string rootbase = "OutputFiles/Separate_Test_10_18/file1";
+    TFile *plusz = TFile::Open(rootbase + "pz.root","RECREATE");
+    TFile *plusx = TFile::Open(rootbase + "px.root","RECREATE");
+    TFile *plusMh = TFile::Open(rootbase + "pMh.root","RECREATE");
     
-    TFile *f = TFile::Open(rootfile,"RECREATE");
+    TFile *minusz = TFile::Open(rootbase + "mz.root","RECREATE");
+    TFile *minusx = TFile::Open(rootbase + "mx.root","RECREATE");
+    TFile *minusMh = TFile::Open(rootbase + "mMh.root","RECREATE");
+    
+    plusz->Close();
+    plusx->Close();
+    plusMh->Close();
+    
+    minusz->Close();
+    minusx->Close();
+    minusMh->Close();
     
     HipoChain chain;
     
@@ -1095,9 +1109,7 @@ int LundAnalysis(
     //Making new Affinity trees
     //
     //Pi+
-    TTree *t_plus_z_h = new TTree("tree_plus_z_h_bins","Tree with mean values binned by z_h for pi+ affinity calculations");
-    TTree *t_plus_x = new TTree("tree_plus_x_bins","Tree with mean values binned by x for pi+ affinity calculations");
-    TTree *t_plus_Mh = new TTree("tree_plus_Mh_bins","Tree with mean values binned by Mh for pi+ affinity calculations");
+    plusz->Open();
     
     string infoString;
     Double_t z_h_t;
@@ -1108,6 +1120,7 @@ int LundAnalysis(
     Double_t R1_t;
     Double_t R2_t;
     
+    TTree *t_plus_z_h = new TTree("tree_plus_z_h_bins","Tree with mean values binned by z_h for pi+ affinity calculations");
     t_plus_z_h->Branch("Name",&infoString);
     t_plus_z_h->Branch("x", &x_t);
     t_plus_z_h->Branch("Q2", &Q2_t);
@@ -1116,24 +1129,6 @@ int LundAnalysis(
     t_plus_z_h->Branch("R1", &R1_t);
     t_plus_z_h->Branch("R2", &R2_t);
     
-    t_plus_x->Branch("Name",&infoString);
-    t_plus_x->Branch("z_h", &z_h_t);
-    t_plus_x->Branch("Q2", &Q2_t);
-    t_plus_x->Branch("pT", &pT_t);
-    t_plus_x->Branch("R0", &R0_t);
-    t_plus_x->Branch("R1", &R1_t);
-    t_plus_x->Branch("R2", &R2_t);
-    
-    t_plus_Mh->Branch("Name",&infoString);
-    t_plus_Mh->Branch("x", &x_t);
-    t_plus_Mh->Branch("z_h", &z_h_t);
-    t_plus_Mh->Branch("Q2", &Q2_t);
-    t_plus_Mh->Branch("pT", &pT_t);
-    t_plus_Mh->Branch("R0", &R0_t);
-    t_plus_Mh->Branch("R1", &R1_t);
-    t_plus_Mh->Branch("R2", &R2_t);
-    
-    //Calculating means for piplus
     //Setting piplus zbin means
     for(int i = 0; i < vinfoString.size(); i++) {
         zbinvplus[i].meanZ_h();
@@ -1146,6 +1141,19 @@ int LundAnalysis(
         R2_t = zbinvplus[i].R2mean;
         t_plus_z_h->Fill();
         }
+    plusz->Write();
+    plusz->Close();
+    
+    plusx->Open();
+    TTree *t_plus_x = new TTree("tree_plus_x_bins","Tree with mean values binned by x for pi+ affinity calculations");
+    t_plus_x->Branch("Name",&infoString);
+    t_plus_x->Branch("z_h", &z_h_t);
+    t_plus_x->Branch("Q2", &Q2_t);
+    t_plus_x->Branch("pT", &pT_t);
+    t_plus_x->Branch("R0", &R0_t);
+    t_plus_x->Branch("R1", &R1_t);
+    t_plus_x->Branch("R2", &R2_t);
+    
     //Setting piplus xbin means
     for(int i = 0; i < vinfoString.size(); i++) {
         xbinvplus[i].meanx();
@@ -1158,6 +1166,20 @@ int LundAnalysis(
         R2_t = xbinvplus[i].R2mean;
         t_plus_x->Fill();
         }
+    plusx->Write();
+    plusx->Close();
+    //pi+Mh
+    plusMh->Open();
+    TTree *t_plus_Mh = new TTree("tree_plus_Mh_bins","Tree with mean values binned by Mh for pi+ affinity calculations");
+    t_plus_Mh->Branch("Name",&infoString);
+    t_plus_Mh->Branch("x", &x_t);
+    t_plus_Mh->Branch("z_h", &z_h_t);
+    t_plus_Mh->Branch("Q2", &Q2_t);
+    t_plus_Mh->Branch("pT", &pT_t);
+    t_plus_Mh->Branch("R0", &R0_t);
+    t_plus_Mh->Branch("R1", &R1_t);
+    t_plus_Mh->Branch("R2", &R2_t);
+    
     //Setting piplus Mhbin means
     for(int i = 0; i < vinfoString.size(); i++) {
         Mhbinvplus[i].meanmh();
@@ -1171,12 +1193,22 @@ int LundAnalysis(
         R2_t = Mhbinvplus[i].R2mean;
         t_plus_Mh->Fill();
         }
+    plusMh->Write();
+    plusMh->Close();
+    
+    
+    
+    
+   
+    
+    //Calculating means for piplus
+    
+    
+    
     
     //Pi-
+    minusz->Open();
     TTree *t_minus_z_h = new TTree("tree_minus_z_h_bins","Tree with mean values binned by z_h for pi- affinity calculations");
-    TTree *t_minus_x = new TTree("tree_minus_x_bins","Tree with mean values binned by x for pi- affinity calculations");
-    TTree *t_minus_Mh = new TTree("tree_minus_Mh_bins","Tree with mean values binned by Mh for pi- affinity calculations");
-    
     t_minus_z_h->Branch("Name",&infoString);
     t_minus_z_h->Branch("x", &x_t);
     t_minus_z_h->Branch("Q2", &Q2_t);
@@ -1184,25 +1216,6 @@ int LundAnalysis(
     t_minus_z_h->Branch("R0", &R0_t);
     t_minus_z_h->Branch("R1", &R1_t);
     t_minus_z_h->Branch("R2", &R2_t);
-    
-    t_minus_x->Branch("Name",&infoString);
-    t_minus_x->Branch("z_h", &z_h_t);
-    t_minus_x->Branch("Q2", &Q2_t);
-    t_minus_x->Branch("pT", &pT_t);
-    t_minus_x->Branch("R0", &R0_t);
-    t_minus_x->Branch("R1", &R1_t);
-    t_minus_x->Branch("R2", &R2_t);
-    
-    t_minus_Mh->Branch("Name",&infoString);
-    t_minus_Mh->Branch("x", &x_t);
-    t_minus_Mh->Branch("z_h", &z_h_t);
-    t_minus_Mh->Branch("Q2", &Q2_t);
-    t_minus_Mh->Branch("pT", &pT_t);
-    t_minus_Mh->Branch("R0", &R0_t);
-    t_minus_Mh->Branch("R1", &R1_t);
-    t_minus_Mh->Branch("R2", &R2_t);
-    
-    //Calculating piminusmeans
     //Setting piminus zbin means
     for(int i = 0; i < vinfoString.size(); i++) {
         zbinvminus[i].meanZ_h();
@@ -1215,6 +1228,17 @@ int LundAnalysis(
         R2_t = zbinvminus[i].R2mean;
         t_minus_z_h->Fill();
         }
+    minusz->Write();
+    minusz->Close();
+    minusx->Open();
+    TTree *t_minus_x = new TTree("tree_minus_x_bins","Tree with mean values binned by x for pi- affinity calculations");
+    t_minus_x->Branch("Name",&infoString);
+    t_minus_x->Branch("z_h", &z_h_t);
+    t_minus_x->Branch("Q2", &Q2_t);
+    t_minus_x->Branch("pT", &pT_t);
+    t_minus_x->Branch("R0", &R0_t);
+    t_minus_x->Branch("R1", &R1_t);
+    t_minus_x->Branch("R2", &R2_t);
     //Setting piminus xbins
     for(int i = 0; i < vinfoString.size(); i++) {
         xbinvminus[i].meanx();
@@ -1227,6 +1251,19 @@ int LundAnalysis(
         R2_t = xbinvminus[i].R2mean;
         t_minus_x->Fill();
         }
+    minusx->Write();
+    minusx->Close();
+    
+    minusMh->Open();
+    TTree *t_minus_Mh = new TTree("tree_minus_Mh_bins","Tree with mean values binned by Mh for pi- affinity calculations");
+    t_minus_Mh->Branch("Name",&infoString);
+    t_minus_Mh->Branch("x", &x_t);
+    t_minus_Mh->Branch("z_h", &z_h_t);
+    t_minus_Mh->Branch("Q2", &Q2_t);
+    t_minus_Mh->Branch("pT", &pT_t);
+    t_minus_Mh->Branch("R0", &R0_t);
+    t_minus_Mh->Branch("R1", &R1_t);
+    t_minus_Mh->Branch("R2", &R2_t);
     //Setting piminus Mhbins
     for(int i = 0; i < vinfoString.size(); i++) {
         Mhbinvminus[i].meanmh();
@@ -1240,6 +1277,18 @@ int LundAnalysis(
         R2_t = Mhbinvminus[i].R2mean;
         t_minus_Mh->Fill();
         }
+    minusMh->Write();
+    minusMh->Close();
+    
+    
+    
+    
+    
+    
+    //Calculating piminusmeans
+    
+    
+    
 
     f->Write();
     delete f;
