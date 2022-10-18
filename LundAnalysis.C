@@ -387,7 +387,7 @@ class BinVariable
 
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
-                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
+                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/testKin.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -610,7 +610,7 @@ int LundAnalysis(
     int hash_count = 0;
 
     //Making new MC tree
-/*    TTree *t = new TTree("tree_MC","Tree with MC data");
+    TTree *t = new TTree("tree_MC","Tree with MC data");
 
     t->Branch("z_h",&z_h);
     t->Branch("x",&x);
@@ -624,7 +624,7 @@ int LundAnalysis(
     t->Branch("W",&W);
     t->Branch("xF",&xF);
     t->Branch("y",&y);
-    t->Branch("Mx",&Mx);*/
+    t->Branch("Mx",&Mx);
 //    t->Branch("PFkix",&PFkix); //Photon frame partonic momentum for checking ki values
 //    t->Branch("PFkiy",&PFkiy);
 //    t->Branch("PFkiz",&PFkiz);
@@ -953,7 +953,7 @@ int LundAnalysis(
 //            continue;
 //        }
          
-
+*/
         //Missing mass
         if(Mx <= 1.5) {
             continue;
@@ -992,12 +992,12 @@ int LundAnalysis(
         if(piplus.P <= 1.25 || piminus.P <= 1.25) {
             continue;
         }
-*/
+
         tree_count += 1;
-//        t->Fill();
+        t->Fill();
         //Need: x, z, Q2, pT, R0, R1, R2
         //zbins:
-
+/*
         for(int i = 0; i < zbins.size(); i++) {
             if(z_h <= zbins[i]) {
                 zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
@@ -1022,11 +1022,11 @@ int LundAnalysis(
         if(tree_count % 100 == 0) {
 //            cout << "Tree_count: " << tree_count << '\n';
         }
-
+*/
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final tree_count: " << tree_count << '\n';
-
+/*
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
@@ -1102,7 +1102,7 @@ int LundAnalysis(
         R2_t = Mhbinv[i].R2mean;
         t_Mh->Fill();
         }
-
+*/
     f->Write();
     delete f;
     
