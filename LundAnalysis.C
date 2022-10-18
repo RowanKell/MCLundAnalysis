@@ -400,22 +400,30 @@ int LundAnalysis(
 // Current files: defined in main function though
 //    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo";
 //    auto rootFile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root";
-    string rootbase = "OutputFiles/Separate_Test_10_18/file1";
-    TFile *plusz = TFile::Open(rootbase + "pz.root","RECREATE");
-    TFile *plusx = TFile::Open(rootbase + "px.root","RECREATE");
-    TFile *plusMh = TFile::Open(rootbase + "pMh.root","RECREATE");
+    string base = "OutputFiles/Separate_Test_10_18/file1";
+    const char * pzname = (base + "pz.root").c_str();
+    const char * pxname = (base + "px.root").c_str();
+    const char * pMhname = (base + "pMh.root").c_str();
     
-    TFile *minusz = TFile::Open(rootbase + "mz.root","RECREATE");
-    TFile *minusx = TFile::Open(rootbase + "mx.root","RECREATE");
-    TFile *minusMh = TFile::Open(rootbase + "mMh.root","RECREATE");
+    const char * mzname = (base + "mz.root").c_str();
+    const char * mxname = (base + "mx.root").c_str();
+    const char * mMhname = (base + "mMh.root").c_str();
     
-    plusz->Close();
-    plusx->Close();
-    plusMh->Close();
+//     TFile *plusz = TFile::Open(pzname,"RECREATE");
+//     TFile *plusx = TFile::Open(pxname,"RECREATE");
+//     TFile *plusMh = TFile::Open(pMhname,"RECREATE");
     
-    minusz->Close();
-    minusx->Close();
-    minusMh->Close();
+//     TFile *minusz = TFile::Open(mzname,"RECREATE");
+//     TFile *minusx = TFile::Open(mxname,"RECREATE");
+//     TFile *minusMh = TFile::Open(mMhname,"RECREATE");
+    
+//     plusz->Close();
+//     plusx->Close();
+//     plusMh->Close();
+    
+//     minusz->Close();
+//     minusx->Close();
+//     minusMh->Close();
     
     HipoChain chain;
     
@@ -1108,8 +1116,9 @@ int LundAnalysis(
 
     //Making new Affinity trees
     //
+    
     //Pi+
-    plusz->Open();
+    TFile *plusz = TFile::Open(pzname,"RECREATE");
     
     string infoString;
     Double_t z_h_t;
@@ -1144,7 +1153,7 @@ int LundAnalysis(
     plusz->Write();
     plusz->Close();
     
-    plusx->Open();
+    TFile *plusx = TFile::Open(pxname,"RECREATE");
     TTree *t_plus_x = new TTree("tree_plus_x_bins","Tree with mean values binned by x for pi+ affinity calculations");
     t_plus_x->Branch("Name",&infoString);
     t_plus_x->Branch("z_h", &z_h_t);
@@ -1169,7 +1178,7 @@ int LundAnalysis(
     plusx->Write();
     plusx->Close();
     //pi+Mh
-    plusMh->Open();
+    TFile *plusMh = TFile::Open(pMhname,"RECREATE");
     TTree *t_plus_Mh = new TTree("tree_plus_Mh_bins","Tree with mean values binned by Mh for pi+ affinity calculations");
     t_plus_Mh->Branch("Name",&infoString);
     t_plus_Mh->Branch("x", &x_t);
@@ -1207,7 +1216,7 @@ int LundAnalysis(
     
     
     //Pi-
-    minusz->Open();
+    TFile *minusz = TFile::Open(mzname,"RECREATE");
     TTree *t_minus_z_h = new TTree("tree_minus_z_h_bins","Tree with mean values binned by z_h for pi- affinity calculations");
     t_minus_z_h->Branch("Name",&infoString);
     t_minus_z_h->Branch("x", &x_t);
@@ -1230,7 +1239,7 @@ int LundAnalysis(
         }
     minusz->Write();
     minusz->Close();
-    minusx->Open();
+    TFile *minusx = TFile::Open(mxname,"RECREATE");
     TTree *t_minus_x = new TTree("tree_minus_x_bins","Tree with mean values binned by x for pi- affinity calculations");
     t_minus_x->Branch("Name",&infoString);
     t_minus_x->Branch("z_h", &z_h_t);
@@ -1254,7 +1263,7 @@ int LundAnalysis(
     minusx->Write();
     minusx->Close();
     
-    minusMh->Open();
+    TFile *minusMh = TFile::Open(mMhname,"RECREATE");
     TTree *t_minus_Mh = new TTree("tree_minus_Mh_bins","Tree with mean values binned by Mh for pi- affinity calculations");
     t_minus_Mh->Branch("Name",&infoString);
     t_minus_Mh->Branch("x", &x_t);
@@ -1279,19 +1288,6 @@ int LundAnalysis(
         }
     minusMh->Write();
     minusMh->Close();
-    
-    
-    
-    
-    
-    
-    //Calculating piminusmeans
-    
-    
-    
-
-    f->Write();
-    delete f;
     
     return 0;
 }
