@@ -386,7 +386,7 @@ class BinVariable
 //
 
 int LundAnalysis(
-                 const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+                 const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_1.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
                    const char * rootfile = "OutputFiles/Separate_Test_10_18/file2.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
@@ -401,13 +401,21 @@ int LundAnalysis(
 //    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo";
 //    auto rootFile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root";
     string base = "OutputFiles/Separate_Test_10_18/file1";
-    const char * pzname = (base + "pz.root").c_str();
-    const char * pxname = (base + "px.root").c_str();
-    const char * pMhname = (base + "pMh.root").c_str();
+//     const char * pzname = (base + "pz.root").c_str();
+//     const char * pxname = (base + "px.root").c_str();
+//     const char * pMhname = (base + "pMh.root").c_str();
     
-    const char * mzname = (base + "mz.root").c_str();
-    const char * mxname = (base + "mx.root").c_str();
-    const char * mMhname = (base + "mMh.root").c_str();
+//     const char * mzname = (base + "mz.root").c_str();
+//     const char * mxname = (base + "mx.root").c_str();
+//     const char * mMhname = (base + "mMh.root").c_str();
+    
+    const char * pzname = "OutputFiles/Separate_Test_10_18/file2pz.root";
+    const char * pxname = "OutputFiles/Separate_Test_10_18/file2px.root";
+    const char * pMhname = "OutputFiles/Separate_Test_10_18/file2pMh.root";
+    
+    const char * mzname = "OutputFiles/Separate_Test_10_18/file2mz.root";
+    const char * mxname = "OutputFiles/Separate_Test_10_18/file2mx.root";
+    const char * mMhname = "OutputFiles/Separate_Test_10_18/file2mMh.root";
     
 //     TFile *plusz = TFile::Open(pzname,"RECREATE");
 //     TFile *plusx = TFile::Open(pxname,"RECREATE");
