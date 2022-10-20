@@ -388,7 +388,7 @@ class BinVariable
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
-                   const char * rootfile = "OutputFiles/Separate_Test_10_18/file2.root"
+                   const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -455,9 +455,12 @@ int LundAnalysis(
     double x;
     double pt_lab;
     double z_h;
-    double zpiplus;
-    double zpiminus;
+    double z_h_plus;
+    double z_h_minus;
     double xF;
+    
+    double m_plus;
+    double m_minus;
     
     //Cut Kinematics
     double W;
@@ -469,8 +472,8 @@ int LundAnalysis(
     //Affinity ratios
     double R0;
     double R1;
-    double R1plus;
-    double R1minus;
+    double R1_plus;
+    double R1_minus;
     double R2;
     int qparent;
     int diparent;
@@ -516,8 +519,8 @@ int LundAnalysis(
     
     double pt_gN;
     
-    double pt_gNplus;
-    double pt_gNminus;
+    double pt_gN_plus;
+    double pt_gN_minus;
     
     TLorentzVector gN;
     TVector3 gNBoost;
@@ -554,57 +557,6 @@ int LundAnalysis(
     double z_N;
     TVector2 q_T;
     
-    // Bin objects for collecting kinematic variables
-    
-    //piplus bins
-    BinVariable zbin0plus;
-    BinVariable zbin1plus;
-    BinVariable zbin2plus;
-    BinVariable zbin3plus;
-    BinVariable zbin4plus;
-    BinVariable zbin5plus;
-    BinVariable zbin6plus;
-    
-    BinVariable xbin0plus;
-    BinVariable xbin1plus;
-    BinVariable xbin2plus;
-    BinVariable xbin3plus;
-    BinVariable xbin4plus;
-    BinVariable xbin5plus;
-    BinVariable xbin6plus;
-    
-    BinVariable Mhbin0plus;
-    BinVariable Mhbin1plus;
-    BinVariable Mhbin2plus;
-    BinVariable Mhbin3plus;
-    BinVariable Mhbin4plus;
-    BinVariable Mhbin5plus;
-    BinVariable Mhbin6plus;
-    
-    //piminus bins
-    BinVariable zbin0minus;
-    BinVariable zbin1minus;
-    BinVariable zbin2minus;
-    BinVariable zbin3minus;
-    BinVariable zbin4minus;
-    BinVariable zbin5minus;
-    BinVariable zbin6minus;
-    
-    BinVariable xbin0minus;
-    BinVariable xbin1minus;
-    BinVariable xbin2minus;
-    BinVariable xbin3minus;
-    BinVariable xbin4minus;
-    BinVariable xbin5minus;
-    BinVariable xbin6minus;
-    
-    BinVariable Mhbin0minus;
-    BinVariable Mhbin1minus;
-    BinVariable Mhbin2minus;
-    BinVariable Mhbin3minus;
-    BinVariable Mhbin4minus;
-    BinVariable Mhbin5minus;
-    BinVariable Mhbin6minus;
     
     vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
     vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
@@ -612,17 +564,7 @@ int LundAnalysis(
     for(int i = 0;i < 7; i++) {
         Mhbins.push_back(0.3 + i / 6.);
     }
-    //Vectors for calculating means
-    //piplus
-    vector<BinVariable> zbinvplus = {zbin0plus, zbin1plus, zbin2plus, zbin3plus, zbin4plus, zbin5plus, zbin6plus};
-    vector<BinVariable> xbinvplus = {xbin0plus, xbin1plus, xbin2plus, xbin3plus, xbin4plus, xbin5plus, xbin6plus};       
-    vector<BinVariable> Mhbinvplus = {Mhbin0plus, Mhbin1plus, Mhbin2plus, Mhbin3plus, Mhbin4plus, Mhbin5plus, Mhbin6plus};
-    vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};
-    
-    //piminus
-    vector<BinVariable> zbinvminus = {zbin0minus, zbin1minus, zbin2minus, zbin3minus, zbin4minus, zbin5minus, zbin6minus};
-    vector<BinVariable> xbinvminus = {xbin0minus, xbin1minus, xbin2minus, xbin3minus, xbin4minus, xbin5minus, xbin6minus};       
-    vector<BinVariable> Mhbinvminus = {Mhbin0minus, Mhbin1minus, Mhbin2minus, Mhbin3minus, Mhbin4minus, Mhbin5minus, Mhbin6minus};
+
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
     //Add a few items
@@ -646,30 +588,31 @@ int LundAnalysis(
     
     int hash_count = 0;
 
-    //Making new MC tree
-/*    TTree *t = new TTree("tree_MC","Tree with MC data");
+    //Making new MC tree for piplus
+    TTree *t_plus = new TTree("tree_MC_plus","Tree with MC data from pi+ hadron");
 
-    t->Branch("z_h",&z_h);
-    t->Branch("x",&x);
-    t->Branch("pt",&pt_gN);
-    t->Branch("Q2",&Q2);
-    t->Branch("Ph",&Pdihadron);
-    t->Branch("Mdihadron",&Mdihadron); //dihadron mass
-    t->Branch("R0",&R0); //initial parton momentum
-    t->Branch("R1",&R1); //final parton momentum
-    t->Branch("R2",&R2);
-    t->Branch("W",&W);
-    t->Branch("xF",&xF);
-    t->Branch("y",&y);
-    t->Branch("Mx",&Mx);*/
-//    t->Branch("PFkix",&PFkix); //Photon frame partonic momentum for checking ki values
-//    t->Branch("PFkiy",&PFkiy);
-//    t->Branch("PFkiz",&PFkiz);
-//    t->Branch("PFkit",&PFkit);
-//    t->Branch("PFkfx",&PFkfx);
-//    t->Branch("PFkfy",&PFkfy);
-//    t->Branch("PFkfz",&PFkfz);
-//    t->Branch("PFkft",&PFkft);
+    t_plus->Branch("z_h",&z_h_plus);
+    t_plus->Branch("x",&x);
+    t_plus->Branch("pt",&pt_gN_plus);
+    t_plus->Branch("Q2",&Q2);
+    t_plus->Branch("R0",&R0); //initial parton momentum
+    t_plus->Branch("R1",&R1_plus); //final parton momentum
+    t_plus->Branch("R2",&R2);
+    t_plus->Branch("Mh",&m_plus);
+    
+    
+    //Making new MC tree for piminus
+    TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
+
+    t_minus->Branch("z_h",&z_h_minus);
+    t_minus->Branch("x",&x);
+    t_minus->Branch("pt",&pt_gN_minus);
+    t_minus->Branch("Q2",&Q2);
+    t_minus->Branch("R0",&R0); //initial parton momentum
+    t_minus->Branch("R1",&R1_minus); //final parton momentum
+    t_minus->Branch("R2",&R2);
+    t_minus->Branch("Mh",&m_minus);
+    
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -858,6 +801,8 @@ int LundAnalysis(
         
         
         dihadron = piplus.lv + piminus.lv;
+        m_plus = piplus.lv.M();
+        m_minus = piminus.lv.M();
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
         q = init_electron - electron.lv; //virtual photon
@@ -867,9 +812,9 @@ int LundAnalysis(
 
         cth = cthfunc(electron.px,electron.py,electron.pz);
         Q2 = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
-        zpiplus = (init_target * piplus.lv) / (init_target * q);
-        zpiminus = (init_target * piminus.lv) / (init_target * q);
-        z_h = zpiplus + zpiminus;
+        z_h_plus = (init_target * piplus.lv) / (init_target * q);
+        z_h_minus = (init_target * piminus.lv) / (init_target * q);
+        z_h = z_h_plus + z_h_minus;
         s = sfunc(protonMass, electronMass, electron_beam_energy);
         y = yfunc(electron_beam_energy,electron.E);
         x = Q2/s/y; // Bjorken x
@@ -896,8 +841,8 @@ int LundAnalysis(
         dihadron_gN = dihadron;
         dihadron_gN.Boost(gNBoostNeg);
         pt_gN = Ptfunc(dihadron_gN);
-        pt_gNplus = Ptfunc(lv_p1_gN);
-        pt_gNminus = Ptfunc(lv_p2_gN);
+        pt_gN_plus = Ptfunc(lv_p1_gN);
+        pt_gN_minus = Ptfunc(lv_p2_gN);
         
         //Need target in gN
         target_gN = init_target;
@@ -972,8 +917,8 @@ int LundAnalysis(
         //Ratios in gN frame
         R0 = R0func(ki_gN, kf_gN, deltak, Q2);
         R1 = R1func(dihadron_gN, ki_gN, kf_gN);
-        R1plus = R1func(lv_p1_gN,ki_gN,kf_gN);
-        R1minus = R1func(lv_p2_gN,ki_gN,kf_gN);
+        R1_plus = R1func(lv_p1_gN,ki_gN,kf_gN);
+        R1_minus = R1func(lv_p2_gN,ki_gN,kf_gN);
         R2 = R2func(k_gN, Q2);
         xF = xFpiplus + xFpiminus;
         
@@ -1035,211 +980,11 @@ int LundAnalysis(
         }
 */
         tree_count += 1;
-//        t->Fill();
-        //Setting means
-        //
-        //piplus
-        //zbins:
-        for(int i = 0; i < zbins.size(); i++) {
-            if(z_h <= zbins[i]) {
-                zbinvplus[i].zFillVectors(x, Q2, pt_gNplus, R0, R1plus, R2);
-                break;
-            }
-        }
-        //Mh bins
-        for(int i = 0; i < Mhbins.size(); i++) {
-            if(Mdihadron <= Mhbins[i]) {
-                Mhbinvplus[i].mhFillVectors(x, zpiplus, Q2, pt_gNplus, R0, R1plus, R2);
-                break;
-            }
-        }
-        //x bins
-        for(int i = 0; i < xbins.size(); i++) {
-            if(x <= xbins[i]) {
-                xbinvplus[i].xFillVectors(zpiplus, Q2, pt_gNplus, R0, R1plus, R2);
-                break;
-            }
-        }
-        //
-        //piminus
-        //zbins:
-        for(int i = 0; i < zbins.size(); i++) {
-            if(z_h <= zbins[i]) {
-                zbinvminus[i].zFillVectors(x, Q2, pt_gNminus, R0, R1minus, R2);
-                break;
-            }
-        }
-        //Mh bins
-        for(int i = 0; i < Mhbins.size(); i++) {
-            if(Mdihadron <= Mhbins[i]) {
-                Mhbinvminus[i].mhFillVectors(x, zpiminus, Q2, pt_gNminus, R0, R1minus, R2);
-                break;
-            }
-        }
-        //x bins
-        for(int i = 0; i < xbins.size(); i++) {
-            if(x <= xbins[i]) {
-                xbinvminus[i].xFillVectors(zpiminus, Q2, pt_gNminus, R0, R1minus, R2);
-                break;
-            }
-        }
-        //print out tree count every 100 to give update to user
-        if(tree_count % 100 == 0) {
-//            cout << "Tree_count: " << tree_count << '\n';
-        }
-
+        t_plus->Fill();
+        t_minus->Fill();
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final tree_count: " << tree_count << '\n';
-
-    //Making new Affinity trees
-    //
-    //Pi+
-    TTree *t_plus_z_h = new TTree("tree_plus_z_h_bins","Tree with mean values binned by z_h for pi+ affinity calculations");
-    TTree *t_plus_x = new TTree("tree_plus_x_bins","Tree with mean values binned by x for pi+ affinity calculations");
-    TTree *t_plus_Mh = new TTree("tree_plus_Mh_bins","Tree with mean values binned by Mh for pi+ affinity calculations");
-    
-    string infoString;
-    Double_t z_h_t;
-    Double_t x_t;
-    Double_t Q2_t;
-    Double_t pT_t;
-    Double_t R0_t;
-    Double_t R1_t;
-    Double_t R2_t;
-    
-    t_plus_z_h->Branch("Name",&infoString);
-    t_plus_z_h->Branch("x", &x_t);
-    t_plus_z_h->Branch("Q2", &Q2_t);
-    t_plus_z_h->Branch("pT", &pT_t);
-    t_plus_z_h->Branch("R0", &R0_t);
-    t_plus_z_h->Branch("R1", &R1_t);
-    t_plus_z_h->Branch("R2", &R2_t);
-    
-    t_plus_x->Branch("Name",&infoString);
-    t_plus_x->Branch("z_h", &z_h_t);
-    t_plus_x->Branch("Q2", &Q2_t);
-    t_plus_x->Branch("pT", &pT_t);
-    t_plus_x->Branch("R0", &R0_t);
-    t_plus_x->Branch("R1", &R1_t);
-    t_plus_x->Branch("R2", &R2_t);
-    
-    t_plus_Mh->Branch("Name",&infoString);
-    t_plus_Mh->Branch("x", &x_t);
-    t_plus_Mh->Branch("z_h", &z_h_t);
-    t_plus_Mh->Branch("Q2", &Q2_t);
-    t_plus_Mh->Branch("pT", &pT_t);
-    t_plus_Mh->Branch("R0", &R0_t);
-    t_plus_Mh->Branch("R1", &R1_t);
-    t_plus_Mh->Branch("R2", &R2_t);
-    
-    //Calculating means for piplus
-    //Setting piplus zbin means
-    for(int i = 0; i < vinfoString.size(); i++) {
-        zbinvplus[i].meanZ_h();
-        infoString = vinfoString[i];
-        x_t = zbinvplus[i].xmean;
-        Q2_t = zbinvplus[i].Q2mean;
-        pT_t = zbinvplus[i].pTmean;
-        R0_t = zbinvplus[i].R0mean;
-        R1_t = zbinvplus[i].R1mean;
-        R2_t = zbinvplus[i].R2mean;
-        t_plus_z_h->Fill();
-        }
-    //Setting piplus xbin means
-    for(int i = 0; i < vinfoString.size(); i++) {
-        xbinvplus[i].meanx();
-        infoString = vinfoString[i];
-        z_h_t = xbinvplus[i].z_hmean;
-        Q2_t = xbinvplus[i].Q2mean;
-        pT_t = xbinvplus[i].pTmean;
-        R0_t = xbinvplus[i].R0mean;
-        R1_t = xbinvplus[i].R1mean;
-        R2_t = xbinvplus[i].R2mean;
-        t_plus_x->Fill();
-        }
-    //Setting piplus Mhbin means
-    for(int i = 0; i < vinfoString.size(); i++) {
-        Mhbinvplus[i].meanmh();
-        infoString = vinfoString[i];
-        x_t = Mhbinvplus[i].xmean;
-        z_h_t = Mhbinvplus[i].z_hmean;
-        Q2_t = Mhbinvplus[i].Q2mean;
-        pT_t = Mhbinvplus[i].pTmean;
-        R0_t = Mhbinvplus[i].R0mean;
-        R1_t = Mhbinvplus[i].R1mean;
-        R2_t = Mhbinvplus[i].R2mean;
-        t_plus_Mh->Fill();
-        }
-    
-    //Pi-
-    TTree *t_minus_z_h = new TTree("tree_minus_z_h_bins","Tree with mean values binned by z_h for pi- affinity calculations");
-    TTree *t_minus_x = new TTree("tree_minus_x_bins","Tree with mean values binned by x for pi- affinity calculations");
-    TTree *t_minus_Mh = new TTree("tree_minus_Mh_bins","Tree with mean values binned by Mh for pi- affinity calculations");
-    
-    t_minus_z_h->Branch("Name",&infoString);
-    t_minus_z_h->Branch("x", &x_t);
-    t_minus_z_h->Branch("Q2", &Q2_t);
-    t_minus_z_h->Branch("pT", &pT_t);
-    t_minus_z_h->Branch("R0", &R0_t);
-    t_minus_z_h->Branch("R1", &R1_t);
-    t_minus_z_h->Branch("R2", &R2_t);
-    
-    t_minus_x->Branch("Name",&infoString);
-    t_minus_x->Branch("z_h", &z_h_t);
-    t_minus_x->Branch("Q2", &Q2_t);
-    t_minus_x->Branch("pT", &pT_t);
-    t_minus_x->Branch("R0", &R0_t);
-    t_minus_x->Branch("R1", &R1_t);
-    t_minus_x->Branch("R2", &R2_t);
-    
-    t_minus_Mh->Branch("Name",&infoString);
-    t_minus_Mh->Branch("x", &x_t);
-    t_minus_Mh->Branch("z_h", &z_h_t);
-    t_minus_Mh->Branch("Q2", &Q2_t);
-    t_minus_Mh->Branch("pT", &pT_t);
-    t_minus_Mh->Branch("R0", &R0_t);
-    t_minus_Mh->Branch("R1", &R1_t);
-    t_minus_Mh->Branch("R2", &R2_t);
-    
-    //Calculating piminusmeans
-    //Setting piminus zbin means
-    for(int i = 0; i < vinfoString.size(); i++) {
-        zbinvminus[i].meanZ_h();
-        infoString = vinfoString[i];
-        x_t = zbinvminus[i].xmean;
-        Q2_t = zbinvminus[i].Q2mean;
-        pT_t = zbinvminus[i].pTmean;
-        R0_t = zbinvminus[i].R0mean;
-        R1_t = zbinvminus[i].R1mean;
-        R2_t = zbinvminus[i].R2mean;
-        t_minus_z_h->Fill();
-        }
-    //Setting piminus xbins
-    for(int i = 0; i < vinfoString.size(); i++) {
-        xbinvminus[i].meanx();
-        infoString = vinfoString[i];
-        z_h_t = xbinvminus[i].z_hmean;
-        Q2_t = xbinvminus[i].Q2mean;
-        pT_t = xbinvminus[i].pTmean;
-        R0_t = xbinvminus[i].R0mean;
-        R1_t = xbinvminus[i].R1mean;
-        R2_t = xbinvminus[i].R2mean;
-        t_minus_x->Fill();
-        }
-    //Setting piminus Mhbins
-    for(int i = 0; i < vinfoString.size(); i++) {
-        Mhbinvminus[i].meanmh();
-        infoString = vinfoString[i];
-        x_t = Mhbinvminus[i].xmean;
-        z_h_t = Mhbinvminus[i].z_hmean;
-        Q2_t = Mhbinvminus[i].Q2mean;
-        pT_t = Mhbinvminus[i].pTmean;
-        R0_t = Mhbinvminus[i].R0mean;
-        R1_t = Mhbinvminus[i].R1mean;
-        R2_t = Mhbinvminus[i].R2mean;
-        t_minus_Mh->Fill();
-        }
 
     f->Write();
     delete f;
