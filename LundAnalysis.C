@@ -461,6 +461,8 @@ int LundAnalysis(
     
     double m_plus;
     double m_minus;
+
+    double q_TdivQ;
     
     //Cut Kinematics
     double W;
@@ -903,6 +905,10 @@ int LundAnalysis(
         //z_N and q_T
         z_N = dihadronPFMinus / qPFMinus;
         q_T = -1 * dihadronBreitTran / z_N;
+
+	//q_T / Q for plotting
+	q_TdivQ = q_T / sqrt(Q2);
+	
         //ki, k, and delta k
         deltak = kfBreitTran - (-1 * z_N * q_T); 
         
