@@ -40,6 +40,11 @@ double Ptfunc(TLorentzVector lv) {
     double y = lv.Py();
     return sqrt(x * x + y * y);
 }
+double Ptfunc(TVector2 v) {
+    double x = v.X();
+    double y = v.Y();
+    return sqrt(x * x + y * y);
+}
 
 TVector2 PtVectfunc(TLorentzVector lv)
 {
@@ -388,7 +393,8 @@ class BinVariable
 int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
-                   const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
+//                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
+                   const char * rootfile = "OutputFiles/Separate_Test_10_24/file3.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -593,27 +599,29 @@ int LundAnalysis(
     //Making new MC tree for piplus
     TTree *t_plus = new TTree("tree_MC_plus","Tree with MC data from pi+ hadron");
 
-    t_plus->Branch("z_h",&z_h_plus);
+    t_plus->Branch("z",&z_h_plus);
     t_plus->Branch("x",&x);
-    t_plus->Branch("pt",&pt_gN_plus);
+    t_plus->Branch("pT",&pt_gN_plus);
     t_plus->Branch("Q2",&Q2);
-    t_plus->Branch("R0",&R0); //initial parton momentum
-    t_plus->Branch("R1",&R1_plus); //final parton momentum
-    t_plus->Branch("R2",&R2);
+    t_plus->Branch("R0max",&R0); //initial parton momentum
+    t_plus->Branch("R1max",&R1_plus); //final parton momentum
+    t_plus->Branch("R2max",&R2);
     t_plus->Branch("Mh",&m_plus);
+    t_plus->Branch("q_TdivQ",&q_TdivQ);
     
     
     //Making new MC tree for piminus
     TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
 
-    t_minus->Branch("z_h",&z_h_minus);
+    t_minus->Branch("z",&z_h_minus);
     t_minus->Branch("x",&x);
-    t_minus->Branch("pt",&pt_gN_minus);
+    t_minus->Branch("pT",&pt_gN_minus);
     t_minus->Branch("Q2",&Q2);
-    t_minus->Branch("R0",&R0); //initial parton momentum
-    t_minus->Branch("R1",&R1_minus); //final parton momentum
-    t_minus->Branch("R2",&R2);
+    t_minus->Branch("R0max",&R0); //initial parton momentum
+    t_minus->Branch("R1max",&R1_minus); //final parton momentum
+    t_minus->Branch("R2max",&R2);
     t_minus->Branch("Mh",&m_minus);
+    t_minus->Branch("q_TdivQ",&q_TdivQ);
     
     
     //Tell the user that the loop is starting
@@ -906,9 +914,9 @@ int LundAnalysis(
         z_N = dihadronPFMinus / qPFMinus;
         q_T = -1 * dihadronBreitTran / z_N;
 
-	//q_T / Q for plotting
-	q_TdivQ = q_T / sqrt(Q2);
-	
+        //q_T / Q for plotting
+        q_TdivQ = Ptfunc(q_T) / sqrt(Q2);
+
         //ki, k, and delta k
         deltak = kfBreitTran - (-1 * z_N * q_T); 
         
