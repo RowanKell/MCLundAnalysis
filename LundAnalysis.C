@@ -394,7 +394,7 @@ int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/Separate_Test_10_24/file4.root"
+                   const char * rootfile = "OutputFiles/Test_10_27/file3.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -469,6 +469,8 @@ int LundAnalysis(
     double m_minus;
 
     double q_TdivQ;
+    double q_TdivQplus;
+    double q_TdivQminus;
     
     //Cut Kinematics
     double W;
@@ -546,7 +548,11 @@ int LundAnalysis(
     TLorentzVector kfBreit;
     TVector2 kfBreitTran;
     TLorentzVector dihadronBreit;
+    TLorentzVector plusBreit;
+    TLorentzVector minusBreit;
     TVector2 dihadronBreitTran;
+    TVector2 plusBreitTran;
+    TVector2 minusBreitTran;
     
     //Photon Frame variables
     TLorentzVector PFFrame;
@@ -560,10 +566,18 @@ int LundAnalysis(
     
     double qPFMinus;
     TLorentzVector dihadronPF;
+    TLorentzVector plusPF;
+    TLorentzVector minusPF;
     double dihadronPFMinus;
+    double plusPFMinus;
+    double minusPFMinus;
     
     double z_N;
+    double z_Nplus;
+    double z_Nminus;
     TVector2 q_T;
+    TVector2 q_Tplus;
+    TVector2 q_Tminus;
     
     
     vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
@@ -606,13 +620,12 @@ int LundAnalysis(
     t_plus->Branch("R0max",&R0); //initial parton momentum
     t_plus->Branch("R1max",&R1_plus); //final parton momentum
     t_plus->Branch("R2max",&R2);
-    t_plus->Branch("Mh",&m_plus);
+    t_plus->Branch("Mh",&Mdihadron);
     t_plus->Branch("q_TdivQ",&q_TdivQ);
     
     
     //Making new MC tree for piminus
     TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
-
     t_minus->Branch("z",&z_h_minus);
     t_minus->Branch("x",&x);
     t_minus->Branch("pT",&pt_gN_minus);
@@ -620,7 +633,7 @@ int LundAnalysis(
     t_minus->Branch("R0max",&R0); //initial parton momentum
     t_minus->Branch("R1max",&R1_minus); //final parton momentum
     t_minus->Branch("R2max",&R2);
-    t_minus->Branch("Mh",&m_minus);
+    t_minus->Branch("Mh",&Mdihadron);
     t_minus->Branch("q_TdivQ",&q_TdivQ);
     
     
@@ -641,9 +654,9 @@ int LundAnalysis(
         if(event_count == 1) {
             cout << '\n';
             cout << "\033[96m";
-            cout << "\t\t\t\t\t\t\t\t" << " ~~~~~~~~~~~~" << '\n';
-            cout << "\t\t\t\t\t\t\t\t" << "|Progress Bar|" << '\n';
-            cout << "\t\t\t\t\t\t\t\t" << " ~~~~~~~~~~~~" << '\n';
+            cout << "\t\t\t\t" << " ~~~~~~~~~~~~" << '\n';
+            cout << "\t\t\t\t" << "|Progress Bar|" << '\n';
+            cout << "\t\t\t\t" << " ~~~~~~~~~~~~" << '\n';
             cout << "\t\t[";
         }
         if(event_count % 16388 == 0) {
@@ -811,8 +824,8 @@ int LundAnalysis(
         
         
         dihadron = piplus.lv + piminus.lv;
-        m_plus = piplus.lv.M();
-        m_minus = piminus.lv.M();
+        m_plus = piplus.mass;
+        m_minus = piminus.mass;
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
         q = init_electron - electron.lv; //virtual photon
@@ -887,6 +900,13 @@ int LundAnalysis(
         dihadronBreit.Boost(BreitBoost);
         dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
         
+        plusBreit = piplus.lv;
+        plusBreit.Boost(BreitBoost);
+        plusBreitTran = PtVectfunc(plusBreit);
+        minusBreit = piminus.lv;
+        minusBreit.Boost(BreitBoost);
+        minusBreitTran = PtVectfunc(minusBreit);
+        
         PFFrame = q + init_target;
         PFBoost = PFFrame.BoostVector();
         PFBoost = -1 * PFBoost;
@@ -907,15 +927,32 @@ int LundAnalysis(
         dihadronPF.Boost(PFBoost);
         dihadronPF.Rotate(PFAngle,PFAxis);
         dihadronPFMinus = LightConeMinus(dihadronPF);
+        
+        plusPF = piplus.lv;
+        plusPF.Boost(PFBoost);
+        plusPF.Rotate(PFAngle,PFAxis);
+        plusPFMinus = LightConeMinus(plusPF);
+        minusPF = piminus.lv;
+        minusPF.Boost(PFBoost);
+        minusPF.Rotate(PFAngle,PFAxis);
+        minusPFMinus = LightConeMinus(minusPF);
         //Virtual Photon
         qPF.Rotate(PFAngle,PFAxis);
         qPFMinus = LightConeMinus(qPF);
         //z_N and q_T
         z_N = dihadronPFMinus / qPFMinus;
+        z_Nplus = plusPFMinus / qPFMinus;
+        z_Nminus = minusPFMinus / qPFMinus;
         q_T = -1 * dihadronBreitTran / z_N;
+        q_Tplus = -1 * plusBreitTran / z_Nplus;
+        q_Tminus = -1 * minusBreitTran / z_Nminus;
+        
 
         //q_T / Q for plotting
         q_TdivQ = Ptfunc(q_T) / sqrt(Q2);
+        q_TdivQplus = Ptfunc(q_Tplus) / sqrt(Q2);
+        q_TdivQminus = Ptfunc(q_Tminus) / sqrt(Q2);
+        
 
         //ki, k, and delta k
         deltak = kfBreitTran - (-1 * z_N * q_T); 
