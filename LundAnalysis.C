@@ -1005,7 +1005,7 @@ int LundAnalysis(
         if(abs(electron.vz - piplus.vz) >= 20) {
             continue;
         }
-        if(abs(electron.vz - piminus.vz >= 20)) {
+        if(abs(electron.vz - piminus.vz) >= 20) {
             continue;
         }
         if(electron.vz <= -8 || electron.vz >= 3) {
