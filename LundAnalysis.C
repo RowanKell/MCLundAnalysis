@@ -28,9 +28,16 @@ double Pfunc(double Px, double Py, double Pz)
 
 double Efunc(double M, double P)
 {
-    return sqrt(M * M + P * P);
+    double M2 = 0;
+    if(M < 0) {M2 = M * (-M);}
+    else {M2 = M * M;}
+    return sqrt(M2 + P * P);
 }
 
+double EVirtualfun(double M, double P)
+{
+    return sqrt(M * (-M) + P * P);
+}
 double Ptfunc(double Px, double Py)
 {
     return sqrt(Px*Px + Py*Py);
@@ -82,7 +89,7 @@ double R0func(TLorentzVector ki, TLorentzVector kf, TVector2 deltak, double Q2)
     double final;
     double delta;
     
-    double mag;
+    double mag = -999;
     
     init = abs((ki * ki) / (Q2));
     final = abs((kf * kf) / (Q2));
@@ -209,7 +216,7 @@ void MCParticle::SetParentDaughter(double _parent,double _daughter)
 void MCParticle::Calculate()
 {
     P = Pfunc(px, py, pz);
-    E = Efunc(mass, P);
+    E = Efunc(mass, P);  
     
     lv.SetPxPyPzE(px,py,pz,E);
     
@@ -394,7 +401,7 @@ int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/Test_10_27/file3.root"
+                   const char * rootfile = "OutputFiles/March_2/file1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -402,7 +409,6 @@ int LundAnalysis(
     gROOT->ProcessLine("#include <vector>");
     //Below file is now disappeared...
 //    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3301_3.hipo";
-    
 // Current files: defined in main function though
 //    auto hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo";
 //    auto rootFile = "OutputFiles/AffinityFiles/Files_9_5/Exactfile2.root";
@@ -458,6 +464,7 @@ int LundAnalysis(
     //Calculated SIDIS kinematics
     double cth;
     double Q2;
+    double Q2_calc;
     double x;
     double pt_lab;
     double z_h;
@@ -502,6 +509,22 @@ int LundAnalysis(
     
     //Initializing particle vectors
     TLorentzVector q;
+    TLorentzVector q_calc;
+    double qx;
+    double qy;
+    double qz;
+    double qE;
+    
+    double q_gNx;
+    double q_gNy;
+    double q_gNz;
+    double q_gNE;
+    
+    double photonx;
+    double photony;
+    double photonz;
+    double photonE;
+    
     TLorentzVector init_electron;
     TLorentzVector init_target;
     TLorentzVector dihadron;
@@ -510,9 +533,27 @@ int LundAnalysis(
     TLorentzVector kf;
     TLorentzVector ki;
     TVector2 deltak; // Transverse light cone vector - (V_x,V_y)
-    double deltakx;
-    double deltaky;
+    TVector2 deltak_gN;
+    
+    double ki2;
+    double kf2;
     double deltak2;
+    int R0check;
+    
+    double kTx;
+    double kTy;
+    double kTz;
+    double kTE;
+    
+    double kix;
+    double kiy;
+    double kiz;
+    double kiE;
+
+    double kfx;
+    double kfy;
+    double kfz;
+    double kfE;
     
     //gNframe
     TLorentzVector lv_p1_gN;
@@ -579,6 +620,8 @@ int LundAnalysis(
     TVector2 q_Tplus;
     TVector2 q_Tminus;
     
+    double Qdiff;
+    
     
     vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
     vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
@@ -610,31 +653,80 @@ int LundAnalysis(
     
     int hash_count = 0;
 
-    //Making new MC tree for piplus
-    TTree *t_plus = new TTree("tree_MC_plus","Tree with MC data from pi+ hadron");
+//     //Making new MC tree for piplus
+//     TTree *t_plus = new TTree("tree_MC_plus","Tree with MC data from pi+ hadron");
 
-    t_plus->Branch("z",&z_h_plus);
-    t_plus->Branch("x",&x);
-    t_plus->Branch("pT",&pt_gN_plus);
-    t_plus->Branch("Q2",&Q2);
-    t_plus->Branch("R0max",&R0); //initial parton momentum
-    t_plus->Branch("R1max",&R1_plus); //final parton momentum
-    t_plus->Branch("R2max",&R2);
-    t_plus->Branch("Mh",&Mdihadron);
-    t_plus->Branch("q_TdivQ",&q_TdivQ);
+//     t_plus->Branch("z",&z_h_plus);
+//     t_plus->Branch("x",&x);
+//     t_plus->Branch("pT",&pt_gN_plus);
+//     t_plus->Branch("Q2",&Q2);
+//     t_plus->Branch("R0max",&R0); //initial parton momentum
+//     t_plus->Branch("R1max",&R1_plus); //final parton momentum
+//     t_plus->Branch("R2max",&R2);
+//     t_plus->Branch("Mh",&Mdihadron);
+//     t_plus->Branch("q_TdivQ",&q_TdivQ);
     
     
-    //Making new MC tree for piminus
-    TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
-    t_minus->Branch("z",&z_h_minus);
-    t_minus->Branch("x",&x);
-    t_minus->Branch("pT",&pt_gN_minus);
-    t_minus->Branch("Q2",&Q2);
-    t_minus->Branch("R0max",&R0); //initial parton momentum
-    t_minus->Branch("R1max",&R1_minus); //final parton momentum
-    t_minus->Branch("R2max",&R2);
-    t_minus->Branch("Mh",&Mdihadron);
-    t_minus->Branch("q_TdivQ",&q_TdivQ);
+//     //Making new MC tree for piminus
+//     TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
+//     t_minus->Branch("z",&z_h_minus);
+//     t_minus->Branch("x",&x);
+//     t_minus->Branch("pT",&pt_gN_minus);
+//     t_minus->Branch("Q2",&Q2);
+//     t_minus->Branch("R0max",&R0); //initial parton momentum
+//     t_minus->Branch("R1max",&R1_minus); //final parton momentum
+//     t_minus->Branch("R2max",&R2);
+//     t_minus->Branch("Mh",&Mdihadron);
+//     t_minus->Branch("q_TdivQ",&q_TdivQ);
+    
+        
+    //Making new MC tree for dihadron
+    TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
+    tree_MC->Branch("z",&z_h);
+    tree_MC->Branch("x",&x);
+    tree_MC->Branch("pT",&pt_gN);
+    tree_MC->Branch("Q2",&Q2);
+    tree_MC->Branch("Q2calc",&Q2_calc);
+    tree_MC->Branch("R0max",&R0); //initial parton momentum
+    tree_MC->Branch("R1max",&R1); //final parton momentum
+    tree_MC->Branch("R1maxplus",&R1_plus);
+    tree_MC->Branch("R2max",&R2);
+    tree_MC->Branch("Mh",&Mdihadron);
+    tree_MC->Branch("q_TdivQ",&q_TdivQ);
+    tree_MC->Branch("R0check", &R0check);
+    
+//     tree_MC->Branch("ki2",&ki2);
+//     tree_MC->Branch("kf2",&kf2);
+//     tree_MC->Branch("deltak2",&deltak2);
+    
+//     tree_MC->Branch("qx",&qx);
+//     tree_MC->Branch("qy",&qy);
+//     tree_MC->Branch("qz",&qz);
+//     tree_MC->Branch("qE",&qE);
+    
+//     tree_MC->Branch("q_gNx",&q_gNx);
+//     tree_MC->Branch("q_gNy",&q_gNy);
+//     tree_MC->Branch("q_gNz",&q_gNz);
+//     tree_MC->Branch("q_gNE",&q_gNE);
+    
+//     tree_MC->Branch("photonx",&photonx);
+//     tree_MC->Branch("photony",&photony);
+//     tree_MC->Branch("photonz",&photonz);
+//     tree_MC->Branch("photonE",&photonE);
+    
+//     tree_MC->Branch("kix",&kix);
+//     tree_MC->Branch("kiy",&kiy);
+//     tree_MC->Branch("kiz",&kiz);
+//     tree_MC->Branch("kiE",&kiE);
+    
+//     tree_MC->Branch("kfx",&kfx);
+//     tree_MC->Branch("kfy",&kfy);
+//     tree_MC->Branch("kfz",&kfz);
+//     tree_MC->Branch("kfE",&kfE);
+    
+//     tree_MC->Branch("kTx",&kTx);
+//     tree_MC->Branch("kTy",&kTy);
+    
     
     
     //Tell the user that the loop is starting
@@ -663,7 +755,7 @@ int LundAnalysis(
             
             hash_count += 1;
 //            cout << "\033[A" << "\033[A";
-            cout << '\r' << "\t\t[";
+            cout << '\r' << "\t[";
             for (int i = 1; i < hash_count + 1;i++) {
                 cout << '#';
             }
@@ -828,13 +920,27 @@ int LundAnalysis(
         m_minus = piminus.mass;
         Mdihadron = dihadron.M();
         Pdihadron = dihadron.P();
-        q = init_electron - electron.lv; //virtual photon
+//         q = init_electron - electron.lv; //virtual photon
+        q = photon.lv;
+        q_calc = init_electron - electron.lv;
+        qx = q_calc.Px();
+        qy = q_calc.Py();
+        qz = q_calc.Pz();
+        qE = q_calc.E();
+        
+        photonx = photon.lv.Px();
+        photony = photon.lv.Py();
+        photonz = photon.lv.Pz();
+        photonE = photon.lv.E();
+        
         
         //Missing mass
         Mx = Mxfunc(q, init_target, piplus.lv, piminus.lv);
 
         cth = cthfunc(electron.px,electron.py,electron.pz);
-        Q2 = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
+        Q2 = -(q * q);
+        Q2_calc = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
+
         z_h_plus = (init_target * piplus.lv) / (init_target * q);
         z_h_minus = (init_target * piminus.lv) / (init_target * q);
         z_h = z_h_plus + z_h_minus;
@@ -859,6 +965,11 @@ int LundAnalysis(
         
         lv_q_gN = q;
         lv_q_gN.Boost(gNBoostNeg);
+        
+        q_gNx = lv_q_gN.Px();
+        q_gNy = lv_q_gN.Py();
+        q_gNz = lv_q_gN.Pz();
+        q_gNE = lv_q_gN.E();
         
         //Need dihadron in gN frame for pT
         dihadron_gN = dihadron;
@@ -960,16 +1071,42 @@ int LundAnalysis(
         k = kf - q;
         k_gN = k;
         k_gN.Boost(gNBoostNeg);
-        //These ratios are calculated in lab frame
+//         These ratios are calculated in lab frame
 //        R0 = R0func(ki, kf, deltak, Q2);
 //        R1 = R1func(dihadron, ki, kf);
 //        R2 = R2func(k, Q2);
         
         //Ratios in gN frame
         R0 = R0func(ki_gN, kf_gN, deltak, Q2);
+        kix = ki_gN.Px();
+        kiy = ki_gN.Py();
+        kiz = ki_gN.Pz();
+        kiE = ki_gN.E();
+        
+        kfx = kf_gN.Px();
+        kfy = kf_gN.Py();
+        kfz = kf_gN.Pz();
+        kfE = kf_gN.E();
+        
+        kTx = deltak_gN.Px();
+        kTy = deltak_gN.Py();
+        double ki2 = abs(ki_gN * ki_gN);
+        double kf2 = abs(kf_gN * kf_gN);
+        double deltak2 = abs(deltak * deltak);
+        if(deltak2 > ki2 && deltak2 > kf2) {
+            R0check = 0;//DeltaK is biggest
+        }
+        else if(ki2 > kf2) {
+            R0check = 1;//ki is biggest
+        }
+        else {
+            R0check = 2;//kf is biggest
+        }
+        
         R1 = R1func(dihadron_gN, ki_gN, kf_gN);
         R1_plus = R1func(lv_p1_gN,ki_gN,kf_gN);
         R1_minus = R1func(lv_p2_gN,ki_gN,kf_gN);
+        
         R2 = R2func(k_gN, Q2);
         xF = xFpiplus + xFpiminus;
         
@@ -1031,8 +1168,9 @@ int LundAnalysis(
         }
 
         tree_count += 1;
-        t_plus->Fill();
-        t_minus->Fill();
+        tree_MC->Fill();
+//         t_plus->Fill();
+//         t_minus->Fill();
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final tree_count: " << tree_count << '\n';
