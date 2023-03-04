@@ -3,11 +3,10 @@
 workdir="/work/clas12/users/rojokell/MCLundAnalysis"
 hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
 #hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v0/nobkg_10604MeV/" #THERE ARE FILES HERE, NOWHERE ELSE IN torus-1, nothing in torus+1 either
-outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/Oct_13_kin/"
+outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/March_2/run_1/"
 rootname="file_"
 processdir="/work/clas12/users/rojokell/MCLundAnalysis/"
 processcodename="LundAnalysis.C"
-
 runJobs="${workdir}/Slurm/runJobs.sh"
 touch $runJobs
 chmod +x $runJobs
