@@ -38,7 +38,7 @@ current_model = tf.keras.models.load_model(current_model_name)
 soft_model_name = './models_copy/final_%s' % soft_region_name
 soft_model = tf.keras.models.load_model(soft_model_name)
 
-d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/March_2/run_1/file_*.root")
+d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/March_4/run_1/file_*.root")
 
 #Bins (each has 8 including 0)
 Mhbins = np.linspace(0,1.3,8)
@@ -129,7 +129,7 @@ def calculator(array, i, region, binType, binnedVariable = 0):
 #         Q2 = array[2]
 #         pT = array[3]
         
-        if binType == "x":
+    if binType == "x":
         z = array["x"][i]
         Q2 = array["Q2"][i]
         pT = array["x"][i]
