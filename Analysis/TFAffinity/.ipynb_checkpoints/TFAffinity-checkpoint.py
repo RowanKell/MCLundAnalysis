@@ -38,7 +38,7 @@ current_model = tf.keras.models.load_model(current_model_name)
 soft_model_name = './models_copy/final_%s' % soft_region_name
 soft_model = tf.keras.models.load_model(soft_model_name)
 
-d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/March_2/run_1/file_*.root")
+d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/March_4/run_1/file_*.root")
 
 #Bins (each has 8 including 0)
 Mhbins = np.linspace(0,1.3,8)
@@ -109,26 +109,41 @@ for i in range(7):
 Mhbins = np.linspace(0.3,1.3,7)
 xbins = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
 zbins = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
-def calculator(array, region, binType, binnedVariable = 0):
+def calculator(array, i, region, binType, binnedVariable = 0):
     R0max = 0.3
     R1max = 0.3
     R2max = 0.3
+#     if binType == "x":
+#         z = array[1]
+#         Q2 = array[2]
+#         pT = array[3]
+#         x = binnedVariable
+#     elif binType == "z":
+#         x = array[0]
+#         Q2 = array[1]
+#         pT = array[2]
+#         z = binnedVariable
+#     elif binType == "Mh":
+#         x = array[0]
+#         z = array[1]
+#         Q2 = array[2]
+#         pT = array[3]
+        
     if binType == "x":
-        z = array[1]
-        Q2 = array[2]
-        pT = array[3]
+        z = array["x"][i]
+        Q2 = array["Q2"][i]
+        pT = array["x"][i]
         x = binnedVariable
     elif binType == "z":
-        x = array[0]
-        Q2 = array[1]
-        pT = array[2]
+        x = array["x"][i]
+        Q2 = array["Q2"][i]
+        pT = array["pT"][i]
         z = binnedVariable
     elif binType == "Mh":
-        x = array[0]
-        z = array[1]
-        Q2 = array[2]
-        pT = array[3]
-        
+        x = array["x"][i]
+        z = array["z"][i]
+        Q2 = array["Q2"][i]
+        pT = array["pT"][i]
     test_features = pd.DataFrame({'pT':pT,'Q2':Q2,'x':x,'z':z,'R0max':R0max,'R1max':R1max,'R2max':R2max},index=[0])
 
     if region == 'tmd':
