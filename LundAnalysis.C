@@ -401,7 +401,7 @@ int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/March_2/file1.root"
+                   const char * rootfile = "OutputFiles/March_4/file1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -621,7 +621,31 @@ int LundAnalysis(
     TVector2 q_Tminus;
     
     double Qdiff;
+        // Bin objects for collecting kinematic variables
     
+    BinVariable zbin0;
+    BinVariable zbin1;
+    BinVariable zbin2;
+    BinVariable zbin3;
+    BinVariable zbin4;
+    BinVariable zbin5;
+    BinVariable zbin6;
+    
+    BinVariable xbin0;
+    BinVariable xbin1;
+    BinVariable xbin2;
+    BinVariable xbin3;
+    BinVariable xbin4;
+    BinVariable xbin5;
+    BinVariable xbin6;
+    
+    BinVariable Mhbin0;
+    BinVariable Mhbin1;
+    BinVariable Mhbin2;
+    BinVariable Mhbin3;
+    BinVariable Mhbin4;
+    BinVariable Mhbin5;
+    BinVariable Mhbin6;
     
     vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
     vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
@@ -629,7 +653,12 @@ int LundAnalysis(
     for(int i = 0;i < 7; i++) {
         Mhbins.push_back(0.3 + i / 6.);
     }
-
+    //Vectors for calculating means
+    vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
+    vector<BinVariable> xbinv = {xbin0, xbin1, xbin2, xbin3, xbin4, xbin5, xbin6};       
+    vector<BinVariable> Mhbinv = {Mhbin0, Mhbin1, Mhbin2, Mhbin3, Mhbin4, Mhbin5, Mhbin6};
+    vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};
+    
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
     //Add a few items
@@ -743,6 +772,9 @@ int LundAnalysis(
     while(chain.Next()==true){
         
         event_count += 1;
+        if(event_count > 100000) {
+            break;
+        }
         if(event_count == 1) {
             cout << '\n';
             cout << "\033[96m";
@@ -1171,10 +1203,114 @@ int LundAnalysis(
         tree_MC->Fill();
 //         t_plus->Fill();
 //         t_minus->Fill();
+        //Need: x, z, Q2, pT, R0, R1, R2
+        //zbins:
+	
+        for(int i = 0; i < zbins.size(); i++) {
+            if(z_h <= zbins[i]) {
+                zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
+        }
+        //Mh bins
+        for(int i = 0; i < Mhbins.size(); i++) {
+            if(Mdihadron <= Mhbins[i]) {
+                Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
+        }
+        //x bins
+        for(int i = 0; i < xbins.size(); i++) {
+            if(x <= xbins[i]) {
+                xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
+        }
+        //print out tree count every 100 to give update to user
+        if(tree_count % 100 == 0) {
+	//            cout << "Tree_count: " << tree_count << '\n';
+        }
+	
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final tree_count: " << tree_count << '\n';
-
+    
+    //Making new Affinity trees
+    TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
+    TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
+    TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
+    
+    string infoString;
+    Double_t z_h_t;
+    Double_t x_t;
+    Double_t Q2_t;
+    Double_t pT_t;
+    Double_t R0_t;
+    Double_t R1_t;
+    Double_t R2_t;
+    
+    t_z_h->Branch("Name",&infoString);
+    t_z_h->Branch("x", &x_t);
+    t_z_h->Branch("Q2", &Q2_t);
+    t_z_h->Branch("pT", &pT_t);
+    t_z_h->Branch("R0", &R0_t);
+    t_z_h->Branch("R1", &R1_t);
+    t_z_h->Branch("R2", &R2_t);
+    
+    t_x->Branch("Name",&infoString);
+    t_x->Branch("z_h", &z_h_t);
+    t_x->Branch("Q2", &Q2_t);
+    t_x->Branch("pT", &pT_t);
+    t_x->Branch("R0", &R0_t);
+    t_x->Branch("R1", &R1_t);
+    t_x->Branch("R2", &R2_t);
+    
+    t_Mh->Branch("Name",&infoString);
+    t_Mh->Branch("x", &x_t);
+    t_Mh->Branch("z_h", &z_h_t);
+    t_Mh->Branch("Q2", &Q2_t);
+    t_Mh->Branch("pT", &pT_t);
+    t_Mh->Branch("R0", &R0_t);
+    t_Mh->Branch("R1", &R1_t);
+    t_Mh->Branch("R2", &R2_t);
+    
+    //Calculating means
+    //Setting zbin means
+    for(int i = 0; i < vinfoString.size(); i++) {
+        zbinv[i].meanZ_h();
+        infoString = vinfoString[i];
+        x_t = zbinv[i].xmean;
+        Q2_t = zbinv[i].Q2mean;
+        pT_t = zbinv[i].pTmean;
+        R0_t = zbinv[i].R0mean;
+        R1_t = zbinv[i].R1mean;
+        R2_t = zbinv[i].R2mean;
+        t_z_h->Fill();
+        }
+    for(int i = 0; i < vinfoString.size(); i++) {
+        xbinv[i].meanx();
+        infoString = vinfoString[i];
+        z_h_t = xbinv[i].z_hmean;
+        Q2_t = xbinv[i].Q2mean;
+        pT_t = xbinv[i].pTmean;
+        R0_t = xbinv[i].R0mean;
+        R1_t = xbinv[i].R1mean;
+        R2_t = xbinv[i].R2mean;
+        t_x->Fill();
+        }
+    for(int i = 0; i < vinfoString.size(); i++) {
+        Mhbinv[i].meanmh();
+        infoString = vinfoString[i];
+        x_t = Mhbinv[i].xmean;
+        z_h_t = Mhbinv[i].z_hmean;
+        Q2_t = Mhbinv[i].Q2mean;
+        pT_t = Mhbinv[i].pTmean;
+        R0_t = Mhbinv[i].R0mean;
+        R1_t = Mhbinv[i].R1mean;
+        R2_t = Mhbinv[i].R2mean;
+        t_Mh->Fill();
+        }
+    
     f->Write();
     delete f;
     
