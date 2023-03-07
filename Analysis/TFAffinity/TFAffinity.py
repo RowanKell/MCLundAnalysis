@@ -38,112 +38,86 @@ current_model = tf.keras.models.load_model(current_model_name)
 soft_model_name = './models_copy/final_%s' % soft_region_name
 soft_model = tf.keras.models.load_model(soft_model_name)
 
-d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/March_4/run_1/file_*.root")
+fileDirectory = "../../OutputFiles/Slurm/March_6/run_1/"
+fileCount = 0
+#counting number of files in target directory
+for path in os.listdir(fileDirectory):
+    # check if current path is a file
+    if os.path.isfile(os.path.join(fileDirectory, path)):
+        fileCount += 1
+count = 0
+#0 is z, 1 is x, 2 is mh
+zarray = [[0 for i in range(3)] for j in range(7)]
+xarray = [[0 for i in range(3)] for j in range(7)]
+Mharray = [[0 for i in range(4)] for j in range(7)]
+
+xkinematics = np.array(["z_h", "Q2", "pT"])
+zkinematics = np.array(["x", "Q2", "pT"])
+Mhkinematics = np.array(["x", "z_h", "Q2", "pT"])
+for path in os.listdir(fileDirectory):
+    if os.path.isfile(os.path.join(fileDirectory, path)):
+        count += 1;
+        inFileName = os.path.join(fileDirectory, path)
+        inFile = ROOT.TFile.Open(inFileName,"READ")
+        tree_z_h_bins = inFile.Get("tree_z_h_bins")
+        tree_x_bins = inFile.Get("tree_x_bins")
+        tree_Mh_bins = inFile.Get("tree_Mh_bins")
+#         print("On file #%d" % (count))
+        try:
+            for binnum in range(0, tree_z_h_bins.GetEntries()):
+                tree_z_h_bins.GetEntry(binnum)
+                for varnum in range(0, len(zkinematics)):
+                    zarray[binnum][varnum] += getattr(tree_z_h_bins, zkinematics[varnum])
+
+            for binnum in range(0, tree_x_bins.GetEntries()):
+                tree_x_bins.GetEntry(binnum)
+                for varnum in range(0, len(xkinematics)):
+                    xarray[binnum][varnum] += getattr(tree_x_bins, xkinematics[varnum])
+
+            for binnum in range(0, tree_Mh_bins.GetEntries()):
+                tree_Mh_bins.GetEntry(binnum)
+                for varnum in range(0, len(Mhkinematics)):
+                    Mharray[binnum][varnum] += getattr(tree_Mh_bins, Mhkinematics[varnum])
+        except AttributeError:
+            print("Skipping file #%d - Encountered Attribute Error" % count)
+            continue
+            
+for binnum in range(0, len(zarray)):
+    for varnum in range(0, len(zkinematics)):
+        zarray[binnum][varnum] = zarray[binnum][varnum] / fileCount
+for binnum in range(0, len(xarray)):
+    for varnum in range(0, len(xkinematics)):
+        xarray[binnum][varnum] = xarray[binnum][varnum] / fileCount
+for binnum in range(0, len(Mharray)):
+    for varnum in range(0, len(Mhkinematics)):
+        Mharray[binnum][varnum] = Mharray[binnum][varnum] / fileCount
 
 #Bins (each has 8 including 0)
-Mhbins = np.linspace(0,1.3,8)
-pTbins = np.linspace(0.1,0.8,8)
-xbins = np.array([0,0.1,0.13,0.16,0.19,0.235,0.3,0.5])
-zbins = np.array([0,0.35,0.43,0.49,0.55,0.62,0.7,0.83])
-Q2bins = np.array([0,1.2,1.8,2.3,3.1,4.3,7,11.1])
-qTbins = np.linspace(0,0.7,8)
-
-varName = np.array(["x", "z", "Q2", "pT", "R0max", "R1max", "R2max"])
-
-px = [0 for i in range(7)]
-pz = [0 for i in range(7)]
-pMh=[0 for i in range(7)]
-ppT=[0 for i in range(7)]
-pxQ2 = [0 for i in range(7)]
-pq = [0 for i in range(7)]
-
-pxcut = [0 for i in range(7)]
-pzcut = [0 for i in range(7)]
-pMhcut=[0 for i in range(7)]
-ppTcut=[0 for i in range(7)]
-pqcut=[0 for i in range(7)]
-
-# start_time = time.time()
-xformat = "x <= {} && x > {}"
-zformat = "z <= {} && z > {}"
-Mhformat = "Mh <= {} && Mh > {}"
-pTformat = "pT <= {} && pT > {}"
-R0format = "R0max <= {} && R0max > {}"
-R1format = "R1max <= {} && R1max > {}"
-R2format = "R2max <= {} && R2max > {}"
-qdivformat = "q_TdivQ <= {} && q_TdivQ > {}"
-
-#Piplus
-#x bins
-#i is the kinematic variable
-#j is the bin num
-d_plus_x = [0 for i in range(7)]
-d_plus_Mh = [0 for i in range(7)]
-d_plus_z =[0 for i in range(7)]
-d_plus_z = [0 for i in range(7)]
-d_plus_pT = [0 for i in range(7)]
-d_plus_qT = [0 for i in range(7)]
-
-pxcut = [0 for i in range(7)]
-pzcut = [0 for i in range(7)]
-pMhcut=[0 for i in range(7)]
-ppTcut=[0 for i in range(7)]
-pqcut=[0 for i in range(7)]
-for i in range(7):
-    d_plus_x[i] = d_plus.Filter(xformat.format(xbins[i + 1],xbins[i]))
-    d_plus_Mh[i] = d_plus.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i]))
-    d_plus_z[i] = d_plus.Filter(zformat.format(zbins[i + 1],zbins[i]))
-    d_plus_pT[i] = d_plus.Filter(pTformat.format(pTbins[i + 1],pTbins[i]))
-    d_plus_qT[i] = d_plus.Filter(qdivformat.format(qTbins[i + 1],qTbins[i]))
-xarr =[0 for i in range(7)]
-Mharr =[0 for i in range(7)]
-zarr =[0 for i in range(7)]
-pTarr =[0 for i in range(7)]
-qTarr =[0 for i in range(7)]
-for i in range(7):
-    xarr[i] = (d_plus_x[i].AsNumpy(columns=["x", "z", "Q2", "pT"]))
-    Mharr[i] = (d_plus_Mh[i].AsNumpy(columns=["x", "z", "Q2", "pT"]))
-    zarr[i] = (d_plus_z[i].AsNumpy(columns=["x", "z", "Q2", "pT"]))
-    pTarr[i] = (d_plus_pT[i].AsNumpy(columns=["x", "z", "Q2", "pT"]))
-    qTarr[i] = (d_plus_qT[i].AsNumpy(columns=["x", "z", "Q2", "pT"]))
 Mhbins = np.linspace(0.3,1.3,7)
 xbins = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
 zbins = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
-def calculator(array, i, region, binType, binnedVariable = 0):
+
+varName = np.array(["x", "z", "Q2", "pT"])
+
+def calculator(array, region, binType, binnedVariable = 0):
     R0max = 0.3
     R1max = 0.3
     R2max = 0.3
-#     if binType == "x":
-#         z = array[1]
-#         Q2 = array[2]
-#         pT = array[3]
-#         x = binnedVariable
-#     elif binType == "z":
-#         x = array[0]
-#         Q2 = array[1]
-#         pT = array[2]
-#         z = binnedVariable
-#     elif binType == "Mh":
-#         x = array[0]
-#         z = array[1]
-#         Q2 = array[2]
-#         pT = array[3]
-        
     if binType == "x":
-        z = array["x"][i]
-        Q2 = array["Q2"][i]
-        pT = array["x"][i]
+        z = array[0]
+        Q2 = array[1]
+        pT = array[2]
         x = binnedVariable
     elif binType == "z":
-        x = array["x"][i]
-        Q2 = array["Q2"][i]
-        pT = array["pT"][i]
+        x = array[0]
+        Q2 = array[1]
+        pT = array[2]
         z = binnedVariable
     elif binType == "Mh":
-        x = array["x"][i]
-        z = array["z"][i]
-        Q2 = array["Q2"][i]
-        pT = array["pT"][i]
+        x = array[0]
+        z = array[1]
+        Q2 = array[2]
+        pT = array[3]
     test_features = pd.DataFrame({'pT':pT,'Q2':Q2,'x':x,'z':z,'R0max':R0max,'R1max':R1max,'R2max':R2max},index=[0])
 
     if region == 'tmd':
@@ -173,27 +147,33 @@ Currentxaffinityplus = np.zeros(7)
 Currentzaffinityplus = np.zeros(7)
 CurrentMhaffinityplus = np.zeros(7)
 
-colxaffinityminus = np.zeros(7)
-colzaffinityminus = np.zeros(7)
-colMhaffinityminus = np.zeros(7)
-TMDxaffinityminus = np.zeros(7)
-TMDzaffinityminus = np.zeros(7)
-TMDMhaffinityminus = np.zeros(7)
-Currentxaffinityminus = np.zeros(7)
-Currentzaffinityminus = np.zeros(7)
-CurrentMhaffinityminus = np.zeros(7)
-
 region = "collinear"
 region2 = "tmd"
 region3 = "current"
 for i in range(7):
-    colzaffinityplus[i] = calculator(zarr[i], region, "z", zbins[i])
-    colxaffinityplus[i] = calculator(xarr[i], region, "x", xbins[i])
-    colMhaffinityplus[i] = calculator(Mharr[i], region, "Mh")
-    TMDzaffinityplus[i] = calculator(zarr[i], region2, "z", zbins[i])
-    TMDxaffinityplus[i] = calculator(xarr[i], region2, "x", xbins[i])
-    TMDMhaffinityplus[i] = calculator(Mharr[i], region2, "Mh")
-    Currentzaffinityplus[i] = calculator(zarr[i], region3, "z", zbins[i])
-    Currentxaffinityplus[i] = calculator(xarr[i], region3, "x", xbins[i])
-    CurrentMhaffinityplus[i] = calculator(Mharr[i], region3, "Mh")
-print("done")
+    colzaffinityplus[i] = calculator(zarray[i], region, "z", zbins[i])
+    colxaffinityplus[i] = calculator(xarray[i], region, "x", xbins[i])
+    colMhaffinityplus[i] = calculator(Mharray[i], region, "Mh")
+    TMDzaffinityplus[i] = calculator(zarray[i], region2, "z", zbins[i])
+    TMDxaffinityplus[i] = calculator(xarray[i], region2, "x", xbins[i])
+    TMDMhaffinityplus[i] = calculator(Mharray[i], region2, "Mh")
+    Currentzaffinityplus[i] = calculator(zarray[i], region3, "z", zbins[i])
+    Currentxaffinityplus[i] = calculator(xarray[i], region3, "x", xbins[i])
+    CurrentMhaffinityplus[i] = calculator(Mharray[i], region3, "Mh")
+
+fig2, (ax12, ax22, ax32) = plot.subplots(1, 3, figsize = (15, 4), dpi=60)
+fig2.suptitle("Pi+ Affinity in the TMD region")
+ax12.set(ylabel = "Affinity")
+ax12.scatter(Mhbins, TMDMhaffinityplus)
+ax12.axhline(y=0, color="gray", lw = 1)
+ax12.set_title("Mh binning")
+ax12.set(xlabel = "Mh (GeV)")
+ax22.scatter(xbins, TMDxaffinityplus)
+ax22.axhline(y=0, color="gray", lw = 1)
+ax22.set_title("x binning")
+ax22.set(xlabel = "x")
+ax32.scatter(zbins, TMDzaffinityplus)
+ax32.axhline(y=0, color="gray", lw = 1)
+ax32.set_title("z_h binning")
+ax32.set(xlabel = "z_h")
+plot.savefig("Plots/tmdMarch_6.jpeg")

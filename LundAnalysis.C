@@ -326,44 +326,29 @@ class BinVariable
     vector<double> v_z_h;
     vector<double> v_Q2;
     vector<double> v_pT;
-    vector<double> v_R0;
-    vector<double> v_R1;
-    vector<double> v_R2;
     
     double xmean;
     double z_hmean;
     double Q2mean;
     double pTmean;
-    double R0mean;
-    double R1mean;
-    double R2mean;
     //zFillVectors(z_h, Q2, pT, R0, R1, R2)
-    void zFillVectors(double x, double Q2, double pT, double R0, double R1, double R2) {
+    void zFillVectors(double x, double Q2, double pT) {
         v_x.push_back(x);
         v_Q2.push_back(Q2);
         v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R2.push_back(R2);
     }
     //xFillVectors(z_h, Q2, pT, R0, R1, R2);
-    void xFillVectors(double z_h, double Q2, double pT, double R0, double R1, double R2) {
+    void xFillVectors(double z_h, double Q2, double pT) {
         v_z_h.push_back(z_h);
         v_Q2.push_back(Q2);
         v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R2.push_back(R2);
     }
     //mhFillVectors(x, z_h, Q2, pT, R0, R1, R2);
-    void mhFillVectors(double x, double z_h, double Q2, double pT, double R0, double R1, double R2) {
+    void mhFillVectors(double x, double z_h, double Q2, double pT) {
         v_x.push_back(x);
         v_z_h.push_back(z_h);
         v_Q2.push_back(Q2);
         v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R2.push_back(R2);
     }
     
     //Methods for calculating mean
@@ -371,26 +356,17 @@ class BinVariable
         xmean = meanfunc(v_x);
         Q2mean = meanfunc(v_Q2);
         pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        R2mean = meanfunc(v_R2);
     }
     void meanx() {
         z_hmean = meanfunc(v_z_h);
         Q2mean = meanfunc(v_Q2);
         pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        R2mean = meanfunc(v_R2);
     }
     void meanmh() {
         z_hmean = meanfunc(v_z_h);
         xmean = meanfunc(v_x);
         Q2mean = meanfunc(v_Q2);
         pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        R2mean = meanfunc(v_R2);
     }
 };
 // 
@@ -622,7 +598,36 @@ int LundAnalysis(
     
     double Qdiff;
     
+    BinVariable zbin0;
+    BinVariable zbin1;
+    BinVariable zbin2;
+    BinVariable zbin3;
+    BinVariable zbin4;
+    BinVariable zbin5;
+    BinVariable zbin6;
     
+    BinVariable xbin0;
+    BinVariable xbin1;
+    BinVariable xbin2;
+    BinVariable xbin3;
+    BinVariable xbin4;
+    BinVariable xbin5;
+    BinVariable xbin6;
+    
+    BinVariable Mhbin0;
+    BinVariable Mhbin1;
+    BinVariable Mhbin2;
+    BinVariable Mhbin3;
+    BinVariable Mhbin4;
+    BinVariable Mhbin5;
+    BinVariable Mhbin6;
+    
+    //Vectors for calculating means
+    vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
+    vector<BinVariable> xbinv = {xbin0, xbin1, xbin2, xbin3, xbin4, xbin5, xbin6};       
+    vector<BinVariable> Mhbinv = {Mhbin0, Mhbin1, Mhbin2, Mhbin3, Mhbin4, Mhbin5, Mhbin6};
+    vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};    
+
     vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
     vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
     vector<double> Mhbins;
@@ -652,82 +657,6 @@ int LundAnalysis(
     vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
     
     int hash_count = 0;
-
-//     //Making new MC tree for piplus
-//     TTree *t_plus = new TTree("tree_MC_plus","Tree with MC data from pi+ hadron");
-
-//     t_plus->Branch("z",&z_h_plus);
-//     t_plus->Branch("x",&x);
-//     t_plus->Branch("pT",&pt_gN_plus);
-//     t_plus->Branch("Q2",&Q2);
-//     t_plus->Branch("R0max",&R0); //initial parton momentum
-//     t_plus->Branch("R1max",&R1_plus); //final parton momentum
-//     t_plus->Branch("R2max",&R2);
-//     t_plus->Branch("Mh",&Mdihadron);
-//     t_plus->Branch("q_TdivQ",&q_TdivQ);
-    
-    
-//     //Making new MC tree for piminus
-//     TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
-//     t_minus->Branch("z",&z_h_minus);
-//     t_minus->Branch("x",&x);
-//     t_minus->Branch("pT",&pt_gN_minus);
-//     t_minus->Branch("Q2",&Q2);
-//     t_minus->Branch("R0max",&R0); //initial parton momentum
-//     t_minus->Branch("R1max",&R1_minus); //final parton momentum
-//     t_minus->Branch("R2max",&R2);
-//     t_minus->Branch("Mh",&Mdihadron);
-//     t_minus->Branch("q_TdivQ",&q_TdivQ);
-    
-        
-    //Making new MC tree for dihadron
-    TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
-    tree_MC->Branch("z",&z_h);
-    tree_MC->Branch("x",&x);
-    tree_MC->Branch("pT",&pt_gN);
-    tree_MC->Branch("Q2",&Q2);
-    tree_MC->Branch("Q2calc",&Q2_calc);
-    tree_MC->Branch("R0max",&R0); //initial parton momentum
-    tree_MC->Branch("R1max",&R1); //final parton momentum
-    tree_MC->Branch("R1maxplus",&R1_plus);
-    tree_MC->Branch("R2max",&R2);
-    tree_MC->Branch("Mh",&Mdihadron);
-    tree_MC->Branch("q_TdivQ",&q_TdivQ);
-    tree_MC->Branch("R0check", &R0check);
-    
-//     tree_MC->Branch("ki2",&ki2);
-//     tree_MC->Branch("kf2",&kf2);
-//     tree_MC->Branch("deltak2",&deltak2);
-    
-//     tree_MC->Branch("qx",&qx);
-//     tree_MC->Branch("qy",&qy);
-//     tree_MC->Branch("qz",&qz);
-//     tree_MC->Branch("qE",&qE);
-    
-//     tree_MC->Branch("q_gNx",&q_gNx);
-//     tree_MC->Branch("q_gNy",&q_gNy);
-//     tree_MC->Branch("q_gNz",&q_gNz);
-//     tree_MC->Branch("q_gNE",&q_gNE);
-    
-//     tree_MC->Branch("photonx",&photonx);
-//     tree_MC->Branch("photony",&photony);
-//     tree_MC->Branch("photonz",&photonz);
-//     tree_MC->Branch("photonE",&photonE);
-    
-//     tree_MC->Branch("kix",&kix);
-//     tree_MC->Branch("kiy",&kiy);
-//     tree_MC->Branch("kiz",&kiz);
-//     tree_MC->Branch("kiE",&kiE);
-    
-//     tree_MC->Branch("kfx",&kfx);
-//     tree_MC->Branch("kfy",&kfy);
-//     tree_MC->Branch("kfz",&kfz);
-//     tree_MC->Branch("kfE",&kfE);
-    
-//     tree_MC->Branch("kTx",&kTx);
-//     tree_MC->Branch("kTy",&kTy);
-    
-    
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -922,27 +851,13 @@ int LundAnalysis(
         Pdihadron = dihadron.P();
 //         q = init_electron - electron.lv; //virtual photon
         q = photon.lv;
-        q_calc = init_electron - electron.lv;
-        qx = q_calc.Px();
-        qy = q_calc.Py();
-        qz = q_calc.Pz();
-        qE = q_calc.E();
-        
-        photonx = photon.lv.Px();
-        photony = photon.lv.Py();
-        photonz = photon.lv.Pz();
-        photonE = photon.lv.E();
-        
         
         //Missing mass
         Mx = Mxfunc(q, init_target, piplus.lv, piminus.lv);
 
         cth = cthfunc(electron.px,electron.py,electron.pz);
         Q2 = -(q * q);
-        Q2_calc = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
-
-        z_h_plus = (init_target * piplus.lv) / (init_target * q);
-        z_h_minus = (init_target * piminus.lv) / (init_target * q);
+        
         z_h = z_h_plus + z_h_minus;
         s = sfunc(protonMass, electronMass, electron_beam_energy);
         y = yfunc(electron_beam_energy,electron.E);
@@ -965,11 +880,6 @@ int LundAnalysis(
         
         lv_q_gN = q;
         lv_q_gN.Boost(gNBoostNeg);
-        
-        q_gNx = lv_q_gN.Px();
-        q_gNy = lv_q_gN.Py();
-        q_gNz = lv_q_gN.Pz();
-        q_gNE = lv_q_gN.E();
         
         //Need dihadron in gN frame for pT
         dihadron_gN = dihadron;
@@ -1071,63 +981,13 @@ int LundAnalysis(
         k = kf - q;
         k_gN = k;
         k_gN.Boost(gNBoostNeg);
-//         These ratios are calculated in lab frame
-//        R0 = R0func(ki, kf, deltak, Q2);
-//        R1 = R1func(dihadron, ki, kf);
-//        R2 = R2func(k, Q2);
         
         //Ratios in gN frame
         R0 = R0func(ki_gN, kf_gN, deltak, Q2);
-        kix = ki_gN.Px();
-        kiy = ki_gN.Py();
-        kiz = ki_gN.Pz();
-        kiE = ki_gN.E();
-        
-        kfx = kf_gN.Px();
-        kfy = kf_gN.Py();
-        kfz = kf_gN.Pz();
-        kfE = kf_gN.E();
-        
-        kTx = deltak_gN.Px();
-        kTy = deltak_gN.Py();
-        double ki2 = abs(ki_gN * ki_gN);
-        double kf2 = abs(kf_gN * kf_gN);
-        double deltak2 = abs(deltak * deltak);
-        if(deltak2 > ki2 && deltak2 > kf2) {
-            R0check = 0;//DeltaK is biggest
-        }
-        else if(ki2 > kf2) {
-            R0check = 1;//ki is biggest
-        }
-        else {
-            R0check = 2;//kf is biggest
-        }
-        
         R1 = R1func(dihadron_gN, ki_gN, kf_gN);
-        R1_plus = R1func(lv_p1_gN,ki_gN,kf_gN);
-        R1_minus = R1func(lv_p2_gN,ki_gN,kf_gN);
-        
         R2 = R2func(k_gN, Q2);
         xF = xFpiplus + xFpiminus;
         
-        //CUTS:
-        //Region cuts:
-        
-/*
-        //TMD and Collinear region selection:
-        if(R0 > 0.3 || R1 > 0.3) {
-            continue;
-        }
-        //TMD:
-        if(R2 > 0.3) {
-            continue;
-        }
-        //Collinear
-//        if(R2 < 0.9) {
-//            continue;
-//        }
-         
-*/
         //Missing mass
         if(Mx <= 1.5) {
             continue;
@@ -1168,13 +1028,83 @@ int LundAnalysis(
         }
 
         tree_count += 1;
-        tree_MC->Fill();
-//         t_plus->Fill();
-//         t_minus->Fill();
+        for(int i = 0; i < zbins.size(); i++) {
+            if(z_h <= zbins[i]) {
+                zbinv[i].zFillVectors(x, Q2, pt_gN);
+                break;
+            }
+        }
+        //Mh bins
+        for(int i = 0; i < Mhbins.size(); i++) {
+            if(Mdihadron <= Mhbins[i]) {
+                Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN);
+                break;
+            }
+        }
+        //x bins
+        for(int i = 0; i < xbins.size(); i++) {
+            if(x <= xbins[i]) {
+                xbinv[i].xFillVectors(z_h, Q2, pt_gN);
+                break;
+            }
+        }
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final tree_count: " << tree_count << '\n';
-
+    //Making new Affinity trees
+    TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
+    TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
+    TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
+    
+    string infoString;
+    Double_t z_h_t;
+    Double_t x_t;
+    Double_t Q2_t;
+    Double_t pT_t;
+    
+    t_z_h->Branch("Name",&infoString);
+    t_z_h->Branch("x", &x_t);
+    t_z_h->Branch("Q2", &Q2_t);
+    t_z_h->Branch("pT", &pT_t);
+    
+    t_x->Branch("Name",&infoString);
+    t_x->Branch("z_h", &z_h_t);
+    t_x->Branch("Q2", &Q2_t);
+    t_x->Branch("pT", &pT_t);
+    
+    t_Mh->Branch("Name",&infoString);
+    t_Mh->Branch("x", &x_t);
+    t_Mh->Branch("z_h", &z_h_t);
+    t_Mh->Branch("Q2", &Q2_t);
+    t_Mh->Branch("pT", &pT_t);
+    
+    //Calculating means
+    //Setting zbin means
+    for(int i = 0; i < vinfoString.size(); i++) {
+        zbinv[i].meanZ_h();
+        infoString = vinfoString[i];
+        x_t = zbinv[i].xmean;
+        Q2_t = zbinv[i].Q2mean;
+        pT_t = zbinv[i].pTmean;
+        t_z_h->Fill();
+        }
+    for(int i = 0; i < vinfoString.size(); i++) {
+        xbinv[i].meanx();
+        infoString = vinfoString[i];
+        z_h_t = xbinv[i].z_hmean;
+        Q2_t = xbinv[i].Q2mean;
+        pT_t = xbinv[i].pTmean;
+        t_x->Fill();
+        }
+    for(int i = 0; i < vinfoString.size(); i++) {
+        Mhbinv[i].meanmh();
+        infoString = vinfoString[i];
+        x_t = Mhbinv[i].xmean;
+        z_h_t = Mhbinv[i].z_hmean;
+        Q2_t = Mhbinv[i].Q2mean;
+        pT_t = Mhbinv[i].pTmean;
+        t_Mh->Fill();
+        }
     f->Write();
     delete f;
     
