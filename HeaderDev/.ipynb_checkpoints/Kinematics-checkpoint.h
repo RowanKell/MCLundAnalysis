@@ -1,6 +1,6 @@
 #ifndef Kinematics_h
 #define Kinematics_h
-class Kinematics {
+extern class Kinematics {
         public:
         double Pfunc(double Px, double Py, double Pz);
 
