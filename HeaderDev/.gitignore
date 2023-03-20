@@ -1,0 +1,4 @@
+#ignore slurm shells
+Slurm/shells
+#ignore output (error logs and what is printed)
+Slurm/output
