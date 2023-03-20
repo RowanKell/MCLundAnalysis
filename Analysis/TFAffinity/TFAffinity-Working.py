@@ -1,3 +1,8 @@
+#As of March 20th, 2023 this program works -Rowan
+#This works for calculating affinity using the tensor flow model
+#However, the root files must have 3 ttrees, one for each bin variable
+#Additionally, although the trees don't need to contain the ratios for use here, for some reason everything
+#breaks a bit when LundAnalysis.C is run and the bin variables don't save the ratios...
 from ROOT import TFile,TTree,TCanvas,TH1F,gStyle,TLatex,gPad,TLegend,TLorentzVector,TH2F,TLine,TF1,TBox,RDataFrame,TPad,TF2
 import ROOT
 import numpy as np
@@ -38,7 +43,7 @@ current_model = tf.keras.models.load_model(current_model_name)
 soft_model_name = './models_copy/final_%s' % soft_region_name
 soft_model = tf.keras.models.load_model(soft_model_name)
 
-fileDirectory = "../../OutputFiles/Slurm/March_4/run_1/"
+fileDirectory = "../../OutputFiles/Slurm/March_20/run_1/"
 fileCount = 0
 #counting number of files in target directory
 for path in os.listdir(fileDirectory):
@@ -47,13 +52,13 @@ for path in os.listdir(fileDirectory):
         fileCount += 1
 count = 0
 #0 is z, 1 is x, 2 is mh
-zarray = [[0 for i in range(6)] for j in range(7)]
-xarray = [[0 for i in range(6)] for j in range(7)]
-Mharray = [[0 for i in range(7)] for j in range(7)]
+zarray = [[0 for i in range(3)] for j in range(7)]
+xarray = [[0 for i in range(3)] for j in range(7)]
+Mharray = [[0 for i in range(4)] for j in range(7)]
 
-xkinematics = np.array(["z_h", "Q2", "pT", "R0", "R1", "R2"])
-zkinematics = np.array(["x", "Q2", "pT", "R0", "R1", "R2"])
-Mhkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
+xkinematics = np.array(["z_h", "Q2", "pT"])
+zkinematics = np.array(["x", "Q2", "pT"])
+Mhkinematics = np.array(["x", "z_h", "Q2", "pT"])
 for path in os.listdir(fileDirectory):
     if os.path.isfile(os.path.join(fileDirectory, path)):
         count += 1;
@@ -62,7 +67,7 @@ for path in os.listdir(fileDirectory):
         tree_z_h_bins = inFile.Get("tree_z_h_bins")
         tree_x_bins = inFile.Get("tree_x_bins")
         tree_Mh_bins = inFile.Get("tree_Mh_bins")
-        print("On file #%d" % (count))
+#         print("On file #%d" % (count))
         try:
             for binnum in range(0, tree_z_h_bins.GetEntries()):
                 tree_z_h_bins.GetEntry(binnum)
@@ -78,8 +83,9 @@ for path in os.listdir(fileDirectory):
                 tree_Mh_bins.GetEntry(binnum)
                 for varnum in range(0, len(Mhkinematics)):
                     Mharray[binnum][varnum] += getattr(tree_Mh_bins, Mhkinematics[varnum])
-        except AttributeError:
+        except AttributeError as e:
             print("Skipping file #%d - Encountered Attribute Error" % count)
+            print(e)
             continue
             
 for binnum in range(0, len(zarray)):
@@ -160,15 +166,15 @@ for i in range(7):
     Currentzaffinityplus[i] = calculator(zarray[i], region3, "z", zbins[i])
     Currentxaffinityplus[i] = calculator(xarray[i], region3, "x", xbins[i])
     CurrentMhaffinityplus[i] = calculator(Mharray[i], region3, "Mh")
-    print(colzaffinityplus[i])
-    print(colxaffinityplus[i])
-    print(colMhaffinityplus[i])
-    print(TMDzaffinityplus[i])
-    print(TMDxaffinityplus[i])
-    print(TMDMhaffinityplus[i])
-    print(Currentzaffinityplus[i]) 
-    print(Currentxaffinityplus[i]) 
-    print(CurrentMhaffinityplus[i])
+#     print(colzaffinityplus[i])
+#     print(colxaffinityplus[i])
+#     print(colMhaffinityplus[i])
+#     print(TMDzaffinityplus[i])
+#     print(TMDxaffinityplus[i])
+#     print(TMDMhaffinityplus[i])
+#     print(Currentzaffinityplus[i]) 
+#     print(Currentxaffinityplus[i]) 
+#     print(CurrentMhaffinityplus[i])
 
 fig2, (ax12, ax22, ax32) = plot.subplots(1, 3, figsize = (15, 4), dpi=60)
 fig2.suptitle("Pi+ Affinity in the TMD region")
@@ -185,4 +191,4 @@ ax32.scatter(zbins, TMDzaffinityplus)
 ax32.axhline(y=0, color="gray", lw = 1)
 ax32.set_title("z_h binning")
 ax32.set(xlabel = "z_h")
-plot.savefig("Plots/tmd.jpeg")
+plot.savefig("Plots/tmdnoRs.jpeg")
