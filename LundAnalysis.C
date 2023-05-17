@@ -438,7 +438,7 @@ int LundAnalysis(
                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/May_12/file1.root"
+                   const char * rootfile = "OutputFiles/May_17/file1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -778,24 +778,10 @@ int LundAnalysis(
     tree_MC->Branch("Q2calc",&Q2_calc);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
-    tree_MC->Branch("R1lab",&R1lab); //final parton momentum
-    tree_MC->Branch("R1breit",&R1breit); //final parton momentum
-    tree_MC->Branch("R1plus",&R1_plus);
     tree_MC->Branch("R2",&R2);
     tree_MC->Branch("Mh",&Mdihadron);
     tree_MC->Branch("q_TdivQ",&qTQ);
     tree_MC->Branch("xF",&xF);
-    tree_MC->Branch("R0check", &R0check);
-    tree_MC->Branch("R1num",&R1num);
-    tree_MC->Branch("R1denom",&R1denom);
-    tree_MC->Branch("R1num_Breit",&R1num_Breit);
-    tree_MC->Branch("R1denom_Breit",&R1denom_Breit);    
-    tree_MC->Branch("R1num_lab",&R1num_lab);
-    tree_MC->Branch("R1denom_lab",&R1denom_lab);
-    tree_MC->Branch("R1num_lab",&R1num_lab);
-    tree_MC->Branch("R1denom_lab",&R1denom_lab);
-    tree_MC->Branch("R1num_lab",&R1num_lab);
-    tree_MC->Branch("R1denom_lab",&R1denom_lab);
     tree_MC->Branch("qTQ_lab",&qTQ_lab);
     tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
     
@@ -1204,31 +1190,12 @@ int LundAnalysis(
         }
         
         R1 = R1func(dihadron_gN, ki_gN, kf_gN);
-        R1lab = R1func(dihadron, ki, kf);
         ki_Breit = ki;
         ki_Breit.Boost(BreitBoost);
-//         Printf("ki_Breit: ");
-//         ki_Breit.Print(); cout << "\n";
         kf_Breit = kf;
-//         Printf("kf_Breit: ");
         kf_Breit.Boost(BreitBoost);
-//         kf_Breit.Print(); cout << "\n";
         k_Breit = k;
-//         Printf("k_Breit: ");
         k_Breit.Boost(BreitBoost);
-//         k_Breit.Print(); cout << "\n";
-        R1breit = R1func(dihadronBreit, ki_Breit, kf_Breit);
-        R1_plus = R1func(lv_p1_gN,ki_gN,kf_gN);
-        R1_minus = R1func(lv_p2_gN,ki_gN,kf_gN);
-        
-        R1num_lab = dihadron * ki;
-        R1denom_lab = dihadron * kf;
-        
-        R1num = dihadron_gN * ki_gN;
-        R1denom = dihadron_gN * kf_gN;
-        
-        R1num_Breit = dihadronBreit * ki_Breit;
-        R1denom_Breit = dihadronBreit * kf_Breit;
         
         R2 = R2func(k_gN, Q2);
         xF = xFpiplus + xFpiminus;
