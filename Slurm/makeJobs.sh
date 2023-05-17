@@ -3,7 +3,7 @@
 workdir="/work/clas12/users/rojokell/MCLundAnalysis"
 hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
 #hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v0/nobkg_10604MeV/" #THERE ARE FILES HERE, NOWHERE ELSE IN torus-1, nothing in torus+1 either
-outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/May_12/Run_1/"
+outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/May_17/Run_1/"
 rootname="file_"
 processdir="/work/clas12/users/rojokell/MCLundAnalysis/"
 processcodename="LundAnalysis.C"
@@ -28,14 +28,9 @@ do
     echo "#SBATCH --chdir=${workdir}" >> $file
     echo "#SBATCH --output=${workdir}/Slurm/output/%x-%j-%N.out" >> $file
     echo "#SBATCH --error=${workdir}/Slurm/output/%x-%j-%N.err" >> $file
-    echo "echo ${workdir}" >> $file
-    echo "source /group/clas12/packages/setup.csh" >> $file
     echo "module load clas12/pro" >> $file
-    echo "set CLAS12ROOT=/group/clas12/packages/clas12root/1.8.0/bin/clas12root" >> $file
-    echo "set CCDB_HOME=${CLAS12ROOT}/ccdb" >> $file
-#    echo "source ${CCDB_HOME}/environment.csh" >> $file
     echo "cd ${processdir}" >> $file    
-    echo "clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\"\\)" >> $file   
+    echo "/group/clas12/packages/clas12root/1.8.0/bin/clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\"\\)" >> $file   
     echo "sbatch shells/${rootname}${i}.sh" >> $runJobs
     i=$((i+1))
 done
