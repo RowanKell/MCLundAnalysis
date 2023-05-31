@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 #include "TROOT.h"
@@ -104,7 +105,7 @@ double R0func(TLorentzVector ki, TLorentzVector kf, TVector2 deltak, double Q2)
 
 double R1func(TLorentzVector Ph, TLorentzVector ki, TLorentzVector kf)
 {
-    return (Ph * ki) / (Ph * kf);
+    return (Ph * kf) / (Ph * ki);
 }
 
 double R2func(TLorentzVector k, double Q2)
@@ -365,6 +366,25 @@ class BinVariable
         v_R1.push_back(R1);
         v_R2.push_back(R2);
     }
+        //qTQFillVectors(x, z_h, Q2, pT, R0, R1, R2);
+    void qTQFillVectors(double x, double z_h, double Q2, double pT, double R0, double R1, double R2) {
+        v_x.push_back(x);
+        v_z_h.push_back(z_h);
+        v_Q2.push_back(Q2);
+        v_pT.push_back(pT);
+        v_R0.push_back(R0);
+        v_R1.push_back(R1);
+        v_R2.push_back(R2);
+    }
+        //Q2FillVectors(z_h, Q2, pT, R0, R1, R2);
+    void Q2FillVectors(double x, double z_h, double pT, double R0, double R1, double R2) {
+        v_z_h.push_back(z_h);
+        v_x.push_back(x);
+        v_pT.push_back(pT);
+        v_R0.push_back(R0);
+        v_R1.push_back(R1);
+        v_R2.push_back(R2);
+    }
     
     //Methods for calculating mean
     void meanZ_h() {
@@ -392,16 +412,34 @@ class BinVariable
         R1mean = meanfunc(v_R1);
         R2mean = meanfunc(v_R2);
     }
+    void meanqTQ() {
+        z_hmean = meanfunc(v_z_h);
+        xmean = meanfunc(v_x);
+        Q2mean = meanfunc(v_Q2);
+        pTmean = meanfunc(v_pT);
+        R0mean = meanfunc(v_R0);
+        R1mean = meanfunc(v_R1);
+        R2mean = meanfunc(v_R2);
+    }
+    void meanQ2() {
+        z_hmean = meanfunc(v_z_h);
+        xmean = meanfunc(v_x);
+        pTmean = meanfunc(v_pT);
+        R0mean = meanfunc(v_R0);
+        R1mean = meanfunc(v_R1);
+        R2mean = meanfunc(v_R2);
+    }
 };
 // 
 //    Main body of analysis function
 //
 
 int LundAnalysis(
-                 const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+//                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+                   const char * hipoFile = "/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV/50nA_OB_job_3313_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/March_7/file2.root"
+                   const char * rootfile = "OutputFiles/May_30/file2.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -475,7 +513,9 @@ int LundAnalysis(
     double m_plus;
     double m_minus;
 
-    double q_TdivQ;
+    double qTQ;
+    double qTQ_lab;
+    double qTQ_hadron;
     double q_TdivQplus;
     double q_TdivQminus;
     
@@ -491,7 +531,18 @@ int LundAnalysis(
     double R1;
     double R1_plus;
     double R1_minus;
+    double R1lab;
+    double R1breit;
     double R2;
+    
+    //Numerator and Denominator for R1
+    double R1num;
+    double R1denom;
+    double R1num_lab;
+    double R1denom_lab;
+    double R1num_Breit;
+    double R1denom_Breit;
+    
     int qparent;
     int diparent;
     double s;
@@ -568,6 +619,12 @@ int LundAnalysis(
     TLorentzVector kf_gN;
     TLorentzVector k_gN;
     
+    TLorentzVector ki_Breit;
+    TLorentzVector kf_Breit;
+    TLorentzVector k_Breit;
+    TLorentzVector q_Breit;
+    TLorentzVector proton_Breit;
+    
     double pt_gN;
     
     double pt_gN_plus;
@@ -595,6 +652,11 @@ int LundAnalysis(
     TVector2 plusBreitTran;
     TVector2 minusBreitTran;
     
+    //Hadron Frame Variables
+    TLorentzVector q_hadron;
+    TLorentzVector Hadron_frame;
+    TVector3 HadronBoost;
+    
     //Photon Frame variables
     TLorentzVector PFFrame;
     TVector3 PFBoost;
@@ -619,6 +681,11 @@ int LundAnalysis(
     TVector2 q_T;
     TVector2 q_Tplus;
     TVector2 q_Tminus;
+    TVector2 q_T_lab;
+    TVector2 q_T_hadron;
+    
+    TVector2 q_T_frac;
+    double qTQfrac;
     
     double Qdiff;
         // Bin objects for collecting kinematic variables
@@ -647,8 +714,30 @@ int LundAnalysis(
     BinVariable Mhbin5;
     BinVariable Mhbin6;
     
+    BinVariable Q2bin0;
+    BinVariable Q2bin1;
+    BinVariable Q2bin2;
+    BinVariable Q2bin3;
+    BinVariable Q2bin4;
+    BinVariable Q2bin5;
+    BinVariable Q2bin6;
+    BinVariable Q2bin7;
+    
+    BinVariable qTQbin0;
+    BinVariable qTQbin1;
+    BinVariable qTQbin2;
+    BinVariable qTQbin3;
+    BinVariable qTQbin4;
+    BinVariable qTQbin5;
+    BinVariable qTQbin6;
+    
     vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
     vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
+    vector<double> Q2bins{1,1.4,2,2.8,4,5.6,7.9,11.1};
+    vector<double> qTQbins;    
+    for(int i = 0;i < 7; i++) {
+        qTQbins.push_back(0.1 + i / 10.);
+    }
     vector<double> Mhbins;
     for(int i = 0;i < 7; i++) {
         Mhbins.push_back(0.3 + i / 6.);
@@ -657,7 +746,9 @@ int LundAnalysis(
     vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
     vector<BinVariable> xbinv = {xbin0, xbin1, xbin2, xbin3, xbin4, xbin5, xbin6};       
     vector<BinVariable> Mhbinv = {Mhbin0, Mhbin1, Mhbin2, Mhbin3, Mhbin4, Mhbin5, Mhbin6};
-    vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin"};
+    vector<BinVariable> Q2binv = {Q2bin0, Q2bin1, Q2bin2, Q2bin3, Q2bin4, Q2bin5, Q2bin6, Q2bin7};
+    vector<BinVariable> qTQbinv = {qTQbin0, qTQbin1, qTQbin2, qTQbin3, qTQbin4, qTQbin5, qTQbin6};
+    vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin", "7th bin"};
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -681,82 +772,24 @@ int LundAnalysis(
     vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
     
     int hash_count = 0;
-
-//     //Making new MC tree for piplus
-//     TTree *t_plus = new TTree("tree_MC_plus","Tree with MC data from pi+ hadron");
-
-//     t_plus->Branch("z",&z_h_plus);
-//     t_plus->Branch("x",&x);
-//     t_plus->Branch("pT",&pt_gN_plus);
-//     t_plus->Branch("Q2",&Q2);
-//     t_plus->Branch("R0max",&R0); //initial parton momentum
-//     t_plus->Branch("R1max",&R1_plus); //final parton momentum
-//     t_plus->Branch("R2max",&R2);
-//     t_plus->Branch("Mh",&Mdihadron);
-//     t_plus->Branch("q_TdivQ",&q_TdivQ);
-    
-    
-//     //Making new MC tree for piminus
-//     TTree *t_minus = new TTree("tree_MC_minus","Tree with MC data from pi- hadron");
-//     t_minus->Branch("z",&z_h_minus);
-//     t_minus->Branch("x",&x);
-//     t_minus->Branch("pT",&pt_gN_minus);
-//     t_minus->Branch("Q2",&Q2);
-//     t_minus->Branch("R0max",&R0); //initial parton momentum
-//     t_minus->Branch("R1max",&R1_minus); //final parton momentum
-//     t_minus->Branch("R2max",&R2);
-//     t_minus->Branch("Mh",&Mdihadron);
-//     t_minus->Branch("q_TdivQ",&q_TdivQ);
-    
-        
+         
     //Making new MC tree for dihadron
     TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
     tree_MC->Branch("z",&z_h);
+    tree_MC->Branch("z_N",&z_N);
     tree_MC->Branch("x",&x);
     tree_MC->Branch("pT",&pt_gN);
     tree_MC->Branch("Q2",&Q2);
     tree_MC->Branch("Q2calc",&Q2_calc);
-    tree_MC->Branch("R0max",&R0); //initial parton momentum
-    tree_MC->Branch("R1max",&R1); //final parton momentum
-    tree_MC->Branch("R1maxplus",&R1_plus);
-    tree_MC->Branch("R2max",&R2);
+    tree_MC->Branch("R0",&R0); //initial parton momentum
+    tree_MC->Branch("R1",&R1); //Measured in gN frame
+    tree_MC->Branch("R2",&R2);
     tree_MC->Branch("Mh",&Mdihadron);
-    tree_MC->Branch("q_TdivQ",&q_TdivQ);
-    tree_MC->Branch("R0check", &R0check);
-    
-//     tree_MC->Branch("ki2",&ki2);
-//     tree_MC->Branch("kf2",&kf2);
-//     tree_MC->Branch("deltak2",&deltak2);
-    
-//     tree_MC->Branch("qx",&qx);
-//     tree_MC->Branch("qy",&qy);
-//     tree_MC->Branch("qz",&qz);
-//     tree_MC->Branch("qE",&qE);
-    
-//     tree_MC->Branch("q_gNx",&q_gNx);
-//     tree_MC->Branch("q_gNy",&q_gNy);
-//     tree_MC->Branch("q_gNz",&q_gNz);
-//     tree_MC->Branch("q_gNE",&q_gNE);
-    
-//     tree_MC->Branch("photonx",&photonx);
-//     tree_MC->Branch("photony",&photony);
-//     tree_MC->Branch("photonz",&photonz);
-//     tree_MC->Branch("photonE",&photonE);
-    
-//     tree_MC->Branch("kix",&kix);
-//     tree_MC->Branch("kiy",&kiy);
-//     tree_MC->Branch("kiz",&kiz);
-//     tree_MC->Branch("kiE",&kiE);
-    
-//     tree_MC->Branch("kfx",&kfx);
-//     tree_MC->Branch("kfy",&kfy);
-//     tree_MC->Branch("kfz",&kfz);
-//     tree_MC->Branch("kfE",&kfE);
-    
-//     tree_MC->Branch("kTx",&kTx);
-//     tree_MC->Branch("kTy",&kTy);
-    
-    
+    tree_MC->Branch("q_TdivQ",&qTQ);
+    tree_MC->Branch("xF",&xF);
+    tree_MC->Branch("qTQ_lab",&qTQ_lab);
+    tree_MC->Branch("qTQfrac",&qTQfrac);
+    tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
@@ -1026,18 +1059,32 @@ int LundAnalysis(
         nu = nufunc(electron_beam_energy,electron.E);
         W = Wfunc(Q2,protonMass,nu);
         
+
         // Breit Frame Kinematics for delta k
         Breit = q;
-        Breit_target.SetPxPyPzE(0,0,0,2 * x * protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
+        Breit_target.SetPxPyPzE(0,0,0,2 * x *protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
         Breit += Breit_target;
         BreitBoost = Breit.BoostVector();
         BreitBoost = -1 * BreitBoost;
+            
+        //Setting up delta k variables
         kfBreit = kf;
         kfBreit.Boost(BreitBoost);
-        kfBreitTran = PtVectfunc(kfBreit); //kfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
+        kfBreitTran = PtVectfunc(kfBreit); //breit frame boostkfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
+        
+        q_Breit = q;
+        q_Breit.Boost(BreitBoost);
+//         Printf("q_Breit: "); q_Breit.Print(); cout << "\n";
+        proton_Breit = proton.lv;
+        proton_Breit.Boost(BreitBoost);
+//         Printf("proton_Breit: ");
+//         proton_Breit.Print(); cout << "\n";
+        
         
         dihadronBreit = dihadron;
         dihadronBreit.Boost(BreitBoost);
+//         Printf("DihadronBreit: ");
+//         dihadronBreit.Print(); cout << "\n";
         dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
         
         plusBreit = piplus.lv;
@@ -1057,6 +1104,22 @@ int LundAnalysis(
         PFAngle = qPFVectUnit.Angle(zAxis);
         PFAxis = qPFVectUnit.Cross(zAxis);
         //To rotate -> vector.Rotate(PFAngle,PFAxis);
+        
+        //Hadron frame kinematics for q_T
+        //Note: hadron frame here refers to frame where the target proton and outgoing hadron are back to back
+        //and the target proton has the same four momentum as it has in the breit frame
+        Hadron_frame = dihadron;
+        Hadron_frame += Breit_target;
+        HadronBoost = Hadron_frame.BoostVector();
+        HadronBoost = -1 * HadronBoost;
+        q_hadron = q;
+        q_hadron.Boost(HadronBoost);
+        q_T_hadron = PtVectfunc(q_hadron);
+        
+        q_T_lab = PtVectfunc(q);
+        
+        qTQ_lab = Ptfunc(q_T_lab) / sqrt(Q2);
+        qTQ_hadron = Ptfunc(q_T_hadron) / sqrt(Q2);
         
         //
         //Photon Frame
@@ -1087,9 +1150,12 @@ int LundAnalysis(
         q_Tplus = -1 * plusBreitTran / z_Nplus;
         q_Tminus = -1 * minusBreitTran / z_Nminus;
         
+        q_T_frac = dihadronBreitTran / z_h;
+        qTQfrac = Ptfunc(q_T_frac) / sqrt(Q2);
+        
 
         //q_T / Q for plotting
-        q_TdivQ = Ptfunc(q_T) / sqrt(Q2);
+        qTQ = Ptfunc(q_T) / sqrt(Q2);
         q_TdivQplus = Ptfunc(q_Tplus) / sqrt(Q2);
         q_TdivQminus = Ptfunc(q_Tminus) / sqrt(Q2);
         
@@ -1133,30 +1199,17 @@ int LundAnalysis(
         }
         
         R1 = R1func(dihadron_gN, ki_gN, kf_gN);
-        R1_plus = R1func(lv_p1_gN,ki_gN,kf_gN);
-        R1_minus = R1func(lv_p2_gN,ki_gN,kf_gN);
+        ki_Breit = ki;
+        ki_Breit.Boost(BreitBoost);
+        kf_Breit = kf;
+        kf_Breit.Boost(BreitBoost);
+        k_Breit = k;
+        k_Breit.Boost(BreitBoost);
         
         R2 = R2func(k_gN, Q2);
         xF = xFpiplus + xFpiminus;
         
-        //CUTS:
-        //Region cuts:
-        
-/*
-        //TMD and Collinear region selection:
-        if(R0 > 0.3 || R1 > 0.3) {
-            continue;
-        }
-        //TMD:
-        if(R2 > 0.3) {
-            continue;
-        }
-        //Collinear
-//        if(R2 < 0.9) {
-//            continue;
-//        }
-         
-*/
+
         //Missing mass
         if(Mx <= 1.5) {
             continue;
@@ -1216,6 +1269,20 @@ int LundAnalysis(
                 break;
             }
         }
+        //Q2 bins
+        for(int i = 0; i < Q2bins.size(); i++) {
+            if(Q2 <= Q2bins[i]) {
+                Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2);
+                break;
+            }
+        }
+        //qTQ bins
+        for(int i = 0; i < qTQbins.size(); i++) {
+            if(qTQ_hadron <= qTQbins[i]) {
+                qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+                break;
+            }
+        }
         //x bins
         for(int i = 0; i < xbins.size(); i++) {
             if(x <= xbins[i]) {
@@ -1236,6 +1303,9 @@ int LundAnalysis(
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
     TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
+    TTree *t_Q2 = new TTree("tree_Q2_bins","Tree with mean values binned by Q2 affinity calculations");
+    TTree *t_qTQ = new TTree("tree_qTQ_bins","Tree with mean values binned by Q2 affinity calculations");
+    
     
     string infoString;
     Double_t z_h_t;
@@ -1271,9 +1341,27 @@ int LundAnalysis(
     t_Mh->Branch("R1", &R1_t);
     t_Mh->Branch("R2", &R2_t);
     
+    t_Q2->Branch("Name",&infoString);
+    t_Q2->Branch("x", &x_t);
+    t_Q2->Branch("z_h", &z_h_t);
+    t_Q2->Branch("Q2", &Q2_t);
+    t_Q2->Branch("pT", &pT_t);
+    t_Q2->Branch("R0", &R0_t);
+    t_Q2->Branch("R1", &R1_t);
+    t_Q2->Branch("R2", &R2_t);
+    
+    t_qTQ->Branch("Name",&infoString);
+    t_qTQ->Branch("x", &x_t);
+    t_qTQ->Branch("z_h", &z_h_t);
+    t_qTQ->Branch("Q2", &Q2_t);
+    t_qTQ->Branch("pT", &pT_t);
+    t_qTQ->Branch("R0", &R0_t);
+    t_qTQ->Branch("R1", &R1_t);
+    t_qTQ->Branch("R2", &R2_t);
+    
     //Calculating means
     //Setting zbin means
-    for(int i = 0; i < vinfoString.size(); i++) {
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
         zbinv[i].meanZ_h();
         infoString = vinfoString[i];
         x_t = zbinv[i].xmean;
@@ -1284,7 +1372,7 @@ int LundAnalysis(
         R2_t = zbinv[i].R2mean;
         t_z_h->Fill();
         }
-    for(int i = 0; i < vinfoString.size(); i++) {
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
         xbinv[i].meanx();
         infoString = vinfoString[i];
         z_h_t = xbinv[i].z_hmean;
@@ -1295,7 +1383,7 @@ int LundAnalysis(
         R2_t = xbinv[i].R2mean;
         t_x->Fill();
         }
-    for(int i = 0; i < vinfoString.size(); i++) {
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
         Mhbinv[i].meanmh();
         infoString = vinfoString[i];
         x_t = Mhbinv[i].xmean;
@@ -1306,6 +1394,32 @@ int LundAnalysis(
         R1_t = Mhbinv[i].R1mean;
         R2_t = Mhbinv[i].R2mean;
         t_Mh->Fill();
+        }
+    
+    for(int i = 0; i < vinfoString.size(); i++) {
+        Q2binv[i].meanQ2();
+        infoString = vinfoString[i];
+        x_t = Q2binv[i].xmean;
+        z_h_t = Q2binv[i].z_hmean;
+        Q2_t = Q2binv[i].Q2mean;
+        pT_t = Q2binv[i].pTmean;
+        R0_t = Q2binv[i].R0mean;
+        R1_t = Q2binv[i].R1mean;
+        R2_t = Q2binv[i].R2mean;
+        t_Q2->Fill();
+        }
+    
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
+        qTQbinv[i].meanqTQ();
+        infoString = vinfoString[i];
+        x_t = qTQbinv[i].xmean;
+        z_h_t = qTQbinv[i].z_hmean;
+        Q2_t = qTQbinv[i].Q2mean;
+        pT_t = qTQbinv[i].pTmean;
+        R0_t = qTQbinv[i].R0mean;
+        R1_t = qTQbinv[i].R1mean;
+        R2_t = qTQbinv[i].R2mean;
+        t_qTQ->Fill();
         }
     
     f->Write();

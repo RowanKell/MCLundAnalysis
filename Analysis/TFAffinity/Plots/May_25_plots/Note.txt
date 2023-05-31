@@ -1,0 +1,8 @@
+Hello - Here is a note on this folder to explain why it exists
+
+To try to make sense of these plots, and why there are discrepencies between the TF model affinity and my box affinity, I have tried to calculate qT in different frames as it is not clear to me which frame qT should be calculated in. Most of the variables can be calculated in the breit frame, but in the breit frame q has no transverse momentum by definition.
+
+The three frames used here are the lab frame, the hadron frame, and the frame used to calculate delta k_T
+1. The lab frame is just regularly calculating the transverse momentum directly from the MC
+2. The hadron frame boosts the photon into a frame where the incoming target proton and the outgoing dihadron are back to back
+3. The last frame, I'm not too sure - I believe I pulled the calculation from: https://arxiv.org/pdf/1904.12882.pdf on page 8

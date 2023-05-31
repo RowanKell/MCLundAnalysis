@@ -43,7 +43,8 @@ current_model = tf.keras.models.load_model(current_model_name)
 soft_model_name = './models_copy/final_%s' % soft_region_name
 soft_model = tf.keras.models.load_model(soft_model_name)
 
-fileDirectory = "../../OutputFiles/Slurm/April_6/Run_1/"
+fileDirectory = "../../OutputFiles/Slurm/May_30/qTQ_hadron_torus+1/"
+# fileDirectory = "../../OutputFiles/Slurm/May_25/qTQ_hadron/"
 fileCount = 0
 #counting number of files in target directory
 for path in os.listdir(fileDirectory):
@@ -55,7 +56,7 @@ count = 0
 zarray = [[0 for i in range(3)] for j in range(7)]
 xarray = [[0 for i in range(3)] for j in range(7)]
 Mharray = [[0 for i in range(4)] for j in range(7)]
-Q2array = [[0 for i in range(4)] for j in range(8)]
+Q2array = [[0 for i in range(3)] for j in range(8)]
 qTQarray = [[0 for i in range(4)] for j in range(7)]
 
 
@@ -79,10 +80,13 @@ for path in os.listdir(fileDirectory):
         tree_qTQ_bins = inFile.Get("tree_qTQ_bins")
 #         print("On file #%d" % (count))
         try:
-            #loop over all the entries
+            #Use binnum as an interator over the number of bins in tree
             for binnum in range(0, tree_z_h_bins.GetEntries()):
+                #put tree on current entry
                 tree_z_h_bins.GetEntry(binnum)
+                #loop over all variables (and use varnum as the iterator)
                 for varnum in range(0, len(zkinematics)):
+                    #sum up the values from each file
                     zarray[binnum][varnum] += getattr(tree_z_h_bins, zkinematics[varnum])
 
             for binnum in range(0, tree_x_bins.GetEntries()):
@@ -111,6 +115,7 @@ for path in os.listdir(fileDirectory):
             
 for binnum in range(0, len(zarray)):
     for varnum in range(0, len(zkinematics)):
+        #calculate mean - already have sum so need to divide by number of files
         zarray[binnum][varnum] = zarray[binnum][varnum] / fileCount
 for binnum in range(0, len(xarray)):
     for varnum in range(0, len(xkinematics)):
@@ -125,7 +130,6 @@ for binnum in range(0, len(qTQarray)):
     for varnum in range(0, len(qTQkinematics)):
         qTQarray[binnum][varnum] = qTQarray[binnum][varnum] / fileCount
 
-#Bins (each has 8 including 0)
 Mhbins = np.linspace(0.3,1.3,7)
 xbins = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
 zbins = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
@@ -161,7 +165,7 @@ def calculator(array, region, binType, binnedVariable = 0):
     elif binType == "Q2":
         x = array[0]
         z = array[1]
-        pT = array[3]
+        pT = array[2]
         Q2 = binnedVariable
     test_features = pd.DataFrame({'pT':pT,'Q2':Q2,'x':x,'z':z,'R0max':R0max,'R1max':R1max,'R2max':R2max},index=[0])
 
@@ -217,6 +221,7 @@ for i in range(7):
 for i in range(8):
     CurrentQ2affinityplus[i] = calculator(Q2array[i], region3, "Q2", Q2bins[i])
     TMDQ2affinityplus[i] = calculator(Q2array[i], region2, "Q2", Q2bins[i])
+#     print(Q2array[i])
     colQ2affinityplus[i] = calculator(Q2array[i], region, "Q2", Q2bins[i])
 #     print(colzaffinityplus[i])
 #     print(colxaffinityplus[i])
@@ -228,7 +233,9 @@ for i in range(8):
 #     print(Currentxaffinityplus[i]) 
 #     print(CurrentMhaffinityplus[i])
 
-fig2, ((ax12, ax22, ax32),(ax42, ax52, ax62)) = plot.subplots(2, 3, figsize = (15, 10), dpi=60)
+
+# fig2, ax42 = plot.subplots(1, 1, figsize = (10, 10), dpi=60)
+fig2, ((ax12, ax22),(ax42, ax32)) = plot.subplots(2, 2, figsize = (12, 12), dpi=60)
 fig2.suptitle("MODEL Pi+ Affinity in the TMD region")
 ax12.set(ylabel = "Affinity")
 ax12.scatter(Mhbins, TMDMhaffinityplus)
@@ -247,8 +254,8 @@ ax42.scatter(qTQbins, TMDqTQaffinityplus)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("qTQ binning")
 ax42.set(xlabel = "qTQ")
-ax52.scatter(Q2bins, TMDQ2affinityplus)
-ax52.axhline(y=0, color="gray", lw = 1)
-ax52.set_title("Q2 binning")
-ax52.set(xlabel = "Q2")
-plot.savefig("Plots/TFAff5_fig15_10.jpeg")
+# ax52.scatter(Q2bins, TMDQ2affinityplus)
+# ax52.axhline(y=0, color="gray", lw = 1)
+# ax52.set_title("Q2 binning")
+# ax52.set(xlabel = "Q2")
+plot.savefig("Plots/May_30_plots/TF_hadron_qTQ_torus+1.jpeg")

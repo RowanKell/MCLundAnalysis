@@ -435,10 +435,11 @@ class BinVariable
 //
 
 int LundAnalysis(
-                 const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+//                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+                   const char * hipoFile = "/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV/50nA_OB_job_3313_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/May_17/file1.root"
+                   const char * rootfile = "OutputFiles/May_30/file2.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -683,6 +684,9 @@ int LundAnalysis(
     TVector2 q_T_lab;
     TVector2 q_T_hadron;
     
+    TVector2 q_T_frac;
+    double qTQfrac;
+    
     double Qdiff;
         // Bin objects for collecting kinematic variables
     
@@ -772,6 +776,7 @@ int LundAnalysis(
     //Making new MC tree for dihadron
     TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
     tree_MC->Branch("z",&z_h);
+    tree_MC->Branch("z_N",&z_N);
     tree_MC->Branch("x",&x);
     tree_MC->Branch("pT",&pt_gN);
     tree_MC->Branch("Q2",&Q2);
@@ -783,6 +788,7 @@ int LundAnalysis(
     tree_MC->Branch("q_TdivQ",&qTQ);
     tree_MC->Branch("xF",&xF);
     tree_MC->Branch("qTQ_lab",&qTQ_lab);
+    tree_MC->Branch("qTQfrac",&qTQfrac);
     tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
     
     //Tell the user that the loop is starting
@@ -1144,6 +1150,9 @@ int LundAnalysis(
         q_Tplus = -1 * plusBreitTran / z_Nplus;
         q_Tminus = -1 * minusBreitTran / z_Nminus;
         
+        q_T_frac = dihadronBreitTran / z_h;
+        qTQfrac = Ptfunc(q_T_frac) / sqrt(Q2);
+        
 
         //q_T / Q for plotting
         qTQ = Ptfunc(q_T) / sqrt(Q2);
@@ -1269,7 +1278,7 @@ int LundAnalysis(
         }
         //qTQ bins
         for(int i = 0; i < qTQbins.size(); i++) {
-            if(qTQ <= qTQbins[i]) {
+            if(qTQ_hadron <= qTQbins[i]) {
                 qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
                 break;
             }
