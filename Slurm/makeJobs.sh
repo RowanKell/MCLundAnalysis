@@ -1,9 +1,9 @@
 #!/bin/bash
 
 workdir="/work/clas12/users/rojokell/MCLundAnalysis"
-hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
-#hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v0/nobkg_10604MeV/" #THERE ARE FILES HERE, NOWHERE ELSE IN torus-1, nothing in torus+1 either
-outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/May_17/Run_1/"
+# hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
+hipodir="/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV"
+outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/May_30/qTQ_hadron_torus+1/"
 rootname="file_"
 processdir="/work/clas12/users/rojokell/MCLundAnalysis/"
 processcodename="LundAnalysis.C"
@@ -28,9 +28,10 @@ do
     echo "#SBATCH --chdir=${workdir}" >> $file
     echo "#SBATCH --output=${workdir}/Slurm/output/%x-%j-%N.out" >> $file
     echo "#SBATCH --error=${workdir}/Slurm/output/%x-%j-%N.err" >> $file
-    echo "module load clas12/pro" >> $file
+    echo "module purge -f" >> $file
+    echo "source /u/home/rojokell/.cshrc" >> $file
     echo "cd ${processdir}" >> $file    
-    echo "/group/clas12/packages/clas12root/1.8.0/bin/clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\"\\)" >> $file   
+    echo "clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\"\\)" >> $file   
     echo "sbatch shells/${rootname}${i}.sh" >> $runJobs
     i=$((i+1))
 done

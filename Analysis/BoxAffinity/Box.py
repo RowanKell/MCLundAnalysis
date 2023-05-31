@@ -16,7 +16,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 # print("tf.__version__", tf.__version__)
 
-d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/April_21/Run_1/file_*.root")
+d_plus = RDataFrame("tree_MC", "../../OutputFiles/Slurm/May_25/qTQ_hadron/file_*.root")
 
 #Bins (each has 8 including 0)
 Mhbins = np.linspace(0,1.3,8)
@@ -24,6 +24,10 @@ pTbins = np.linspace(0.1,0.8,8)
 xbins = np.array([0,0.1,0.13,0.16,0.19,0.235,0.3,0.5])
 zbins = np.array([0,0.35,0.43,0.49,0.55,0.62,0.7,0.83])
 qTQbins = np.linspace(0,0.7,8)
+
+#Below qTQ bins are used for lab frame qTQ
+# qTQbins = np.linspace(0.2,0.9,8)
+
 Q2bins = np.array([0,1,1.4,2,2.8,4,5.6,7.9,11.1])
 
 varName = np.array(["x", "z", "Q2", "pT", "R0max", "R1max", "R2max"])
@@ -49,8 +53,10 @@ Mhformat = "Mh <= {} && Mh > {}"
 pTformat = "pT <= {} && pT > {}"
 R0format = "R0max <= {} && R0max > {}"
 R1format = "R1max <= {} && R1max > {}"
-R2format = "R2max <= {} && R2max > {}"
-qdivformat = "q_TdivQ <= {} && q_TdivQ > {}"
+R2format = "R2max <= {} && R2max > {}" 
+# qdivformat = "q_TdivQ <= {} && q_TdivQ > {}"
+# qdivformat = "qTQ_lab <= {} && qTQ_lab > {}"
+qdivformat = "qTQ_hadron <= {} && qTQ_hadron > {}"
 Q2format = "Q2 <= {} && Q2 > {}"
 
 #Piplus
@@ -98,7 +104,11 @@ Mhbinsno0 = np.linspace(0.3,1.3,7)
 pTbinsno0 = np.linspace(0.2,0.8,7)
 xbinsno0 = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
 zbinsno0 = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
+
+#0.1->0.7 is for the hadron and regular qTQ
 qTQbinsno0 = np.linspace(0.1,0.7,7)
+#0.3->0.9 is for the lab frame qTQ
+# qTQbinsno0 = np.linspace(0.3,0.9,7)
 Q2binsno0 = np.array([1,1.4,2,2.8,4,5.6,7.9,11.1])
 
 
@@ -124,7 +134,8 @@ for i in range(8):
     else: pQ2val[i] = pQ2cut[i] / pQ2[i]
     
     
-fig2, ((ax42, ax22, ax32), (ax52, ax62, ax72)) = plot.subplots(2, 3, figsize = (15, 10), dpi=60)
+# fig2, ax52 = plot.subplots(1, 1, figsize = (10, 10), dpi=60)
+fig2, ((ax42, ax22), (ax52, ax32)) = plot.subplots(2, 2, figsize = (12, 12), dpi=60)
 # fig2, ((ax42, ax22, ax32), (ax52, ax62, ax72), (ax82, ax92, ax02)) = plot.subplots(3, 3, figsize = (15, 12), dpi=60)
 fig2.suptitle("BOX Pi+ Affinity in the TMD region: Rmax = 0.3")
 # fig2.ylable("Affinity")
@@ -151,10 +162,10 @@ ax52.scatter(qTQbinsno0, pqTQval, c = 'r', marker = "+")
 ax52.axhline(y=0, color="gray", lw = 1)
 ax52.set_title("qTdivQ binning")
 ax52.set(xlabel = "qTdivQ")
-ax62.scatter(Q2binsno0, pQ2val, c = 'r', marker = "+")
-ax62.axhline(y=0, color="gray", lw = 1)
-ax62.set_title("Q2 binning")
-ax62.set(xlabel = "Q2")
+# ax62.scatter(Q2binsno0, pQ2val, c = 'r', marker = "+")
+# ax62.axhline(y=0, color="gray", lw = 1)
+# ax62.set_title("Q2 binning")
+# ax62.set(xlabel = "Q2")
 # ax72.scatter(qTQbinsno0, pqTQ, c = 'r', marker = "+")
 # ax72.axhline(y=0, color="gray", lw = 1)
 # ax72.set_title("qTQ counts")
@@ -171,4 +182,4 @@ ax62.set(xlabel = "Q2")
 # ax02.axhline(y=0, color="gray", lw = 1)
 # ax02.set_title("Q2 counts")
 # ax02.set(xlabel = "Q2")
-plot.savefig("Plots/Box_April_28.jpeg")
+plot.savefig("Plots/May_30_plots/Box_hadron_qTQ_torus+1.jpeg")
