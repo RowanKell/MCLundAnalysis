@@ -1,6 +1,6 @@
 #include "src/LundAnalysis.h"
 
-int LundAnalysis(
+int LundAnalysisPiplus(
 //                  const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    const char * hipoFile = "/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV/50nA_OB_job_3313_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
@@ -521,172 +521,172 @@ int LundAnalysis(
         //Need: x, z, Q2, pT, R0, R1, R2
         //zbins:
 	
-        for(int i = 0; i < zbins.size(); i++) {
-            if(z_h <= zbins[i]) {
-                zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //Mh bins
-        for(int i = 0; i < Mhbins.size(); i++) {
-            if(Mdihadron <= Mhbins[i]) {
-                Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //Q2 bins
-        for(int i = 0; i < Q2bins.size(); i++) {
-            if(Q2 <= Q2bins[i]) {
-                Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //qTQ bins
-        for(int i = 0; i < qTQbins.size(); i++) {
-            if(qTQ_hadron <= qTQbins[i]) {
-                qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //x bins
-        for(int i = 0; i < xbins.size(); i++) {
-            if(x <= xbins[i]) {
-                xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //print out tree count every 100 to give update to user
-        if(tree_count % 100 == 0) {
-	//            cout << "Tree_count: " << tree_count << '\n';
-        }
+//         for(int i = 0; i < zbins.size(); i++) {
+//             if(z_h <= zbins[i]) {
+//                 zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+//                 break;
+//             }
+//         }
+//         //Mh bins
+//         for(int i = 0; i < Mhbins.size(); i++) {
+//             if(Mdihadron <= Mhbins[i]) {
+//                 Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+//                 break;
+//             }
+//         }
+//         //Q2 bins
+//         for(int i = 0; i < Q2bins.size(); i++) {
+//             if(Q2 <= Q2bins[i]) {
+//                 Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2);
+//                 break;
+//             }
+//         }
+//         //qTQ bins
+//         for(int i = 0; i < qTQbins.size(); i++) {
+//             if(qTQ_hadron <= qTQbins[i]) {
+//                 qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+//                 break;
+//             }
+//         }
+//         //x bins
+//         for(int i = 0; i < xbins.size(); i++) {
+//             if(x <= xbins[i]) {
+//                 xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
+//                 break;
+//             }
+//         }
+//         //print out tree count every 100 to give update to user
+//         if(tree_count % 100 == 0) {
+// 	//            cout << "Tree_count: " << tree_count << '\n';
+//         }
 	
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final event_count:" << event_count << '\n';
     cout << "Final tree_count: " << tree_count << '\n';
     
-    //Making new Affinity trees
-    TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
-    TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
-    TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
-    TTree *t_Q2 = new TTree("tree_Q2_bins","Tree with mean values binned by Q2 affinity calculations");
-    TTree *t_qTQ = new TTree("tree_qTQ_bins","Tree with mean values binned by Q2 affinity calculations");
+//     //Making new Affinity trees
+//     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
+//     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
+//     TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
+//     TTree *t_Q2 = new TTree("tree_Q2_bins","Tree with mean values binned by Q2 affinity calculations");
+//     TTree *t_qTQ = new TTree("tree_qTQ_bins","Tree with mean values binned by Q2 affinity calculations");
     
     
-    string infoString;
-    Double_t z_h_t;
-    Double_t x_t;
-    Double_t Q2_t;
-    Double_t pT_t;
-    Double_t R0_t;
-    Double_t R1_t;
-    Double_t R2_t;
+//     string infoString;
+//     Double_t z_h_t;
+//     Double_t x_t;
+//     Double_t Q2_t;
+//     Double_t pT_t;
+//     Double_t R0_t;
+//     Double_t R1_t;
+//     Double_t R2_t;
     
-    t_z_h->Branch("Name",&infoString);
-    t_z_h->Branch("x", &x_t);
-    t_z_h->Branch("Q2", &Q2_t);
-    t_z_h->Branch("pT", &pT_t);
-    t_z_h->Branch("R0", &R0_t);
-    t_z_h->Branch("R1", &R1_t);
-    t_z_h->Branch("R2", &R2_t);
+//     t_z_h->Branch("Name",&infoString);
+//     t_z_h->Branch("x", &x_t);
+//     t_z_h->Branch("Q2", &Q2_t);
+//     t_z_h->Branch("pT", &pT_t);
+//     t_z_h->Branch("R0", &R0_t);
+//     t_z_h->Branch("R1", &R1_t);
+//     t_z_h->Branch("R2", &R2_t);
     
-    t_x->Branch("Name",&infoString);
-    t_x->Branch("z_h", &z_h_t);
-    t_x->Branch("Q2", &Q2_t);
-    t_x->Branch("pT", &pT_t);
-    t_x->Branch("R0", &R0_t);
-    t_x->Branch("R1", &R1_t);
-    t_x->Branch("R2", &R2_t);
+//     t_x->Branch("Name",&infoString);
+//     t_x->Branch("z_h", &z_h_t);
+//     t_x->Branch("Q2", &Q2_t);
+//     t_x->Branch("pT", &pT_t);
+//     t_x->Branch("R0", &R0_t);
+//     t_x->Branch("R1", &R1_t);
+//     t_x->Branch("R2", &R2_t);
     
-    t_Mh->Branch("Name",&infoString);
-    t_Mh->Branch("x", &x_t);
-    t_Mh->Branch("z_h", &z_h_t);
-    t_Mh->Branch("Q2", &Q2_t);
-    t_Mh->Branch("pT", &pT_t);
-    t_Mh->Branch("R0", &R0_t);
-    t_Mh->Branch("R1", &R1_t);
-    t_Mh->Branch("R2", &R2_t);
+//     t_Mh->Branch("Name",&infoString);
+//     t_Mh->Branch("x", &x_t);
+//     t_Mh->Branch("z_h", &z_h_t);
+//     t_Mh->Branch("Q2", &Q2_t);
+//     t_Mh->Branch("pT", &pT_t);
+//     t_Mh->Branch("R0", &R0_t);
+//     t_Mh->Branch("R1", &R1_t);
+//     t_Mh->Branch("R2", &R2_t);
     
-    t_Q2->Branch("Name",&infoString);
-    t_Q2->Branch("x", &x_t);
-    t_Q2->Branch("z_h", &z_h_t);
-    t_Q2->Branch("Q2", &Q2_t);
-    t_Q2->Branch("pT", &pT_t);
-    t_Q2->Branch("R0", &R0_t);
-    t_Q2->Branch("R1", &R1_t);
-    t_Q2->Branch("R2", &R2_t);
+//     t_Q2->Branch("Name",&infoString);
+//     t_Q2->Branch("x", &x_t);
+//     t_Q2->Branch("z_h", &z_h_t);
+//     t_Q2->Branch("Q2", &Q2_t);
+//     t_Q2->Branch("pT", &pT_t);
+//     t_Q2->Branch("R0", &R0_t);
+//     t_Q2->Branch("R1", &R1_t);
+//     t_Q2->Branch("R2", &R2_t);
     
-    t_qTQ->Branch("Name",&infoString);
-    t_qTQ->Branch("x", &x_t);
-    t_qTQ->Branch("z_h", &z_h_t);
-    t_qTQ->Branch("Q2", &Q2_t);
-    t_qTQ->Branch("pT", &pT_t);
-    t_qTQ->Branch("R0", &R0_t);
-    t_qTQ->Branch("R1", &R1_t);
-    t_qTQ->Branch("R2", &R2_t);
+//     t_qTQ->Branch("Name",&infoString);
+//     t_qTQ->Branch("x", &x_t);
+//     t_qTQ->Branch("z_h", &z_h_t);
+//     t_qTQ->Branch("Q2", &Q2_t);
+//     t_qTQ->Branch("pT", &pT_t);
+//     t_qTQ->Branch("R0", &R0_t);
+//     t_qTQ->Branch("R1", &R1_t);
+//     t_qTQ->Branch("R2", &R2_t);
     
-    //Calculating means
-    //Setting zbin means
-    for(int i = 0; i < vinfoString.size() - 1; i++) {
-        zbinv[i].meanZ_h();
-        infoString = vinfoString[i];
-        x_t = zbinv[i].xmean;
-        Q2_t = zbinv[i].Q2mean;
-        pT_t = zbinv[i].pTmean;
-        R0_t = zbinv[i].R0mean;
-        R1_t = zbinv[i].R1mean;
-        R2_t = zbinv[i].R2mean;
-        t_z_h->Fill();
-        }
-    for(int i = 0; i < vinfoString.size() - 1; i++) {
-        xbinv[i].meanx();
-        infoString = vinfoString[i];
-        z_h_t = xbinv[i].z_hmean;
-        Q2_t = xbinv[i].Q2mean;
-        pT_t = xbinv[i].pTmean;
-        R0_t = xbinv[i].R0mean;
-        R1_t = xbinv[i].R1mean;
-        R2_t = xbinv[i].R2mean;
-        t_x->Fill();
-        }
-    for(int i = 0; i < vinfoString.size() - 1; i++) {
-        Mhbinv[i].meanmh();
-        infoString = vinfoString[i];
-        x_t = Mhbinv[i].xmean;
-        z_h_t = Mhbinv[i].z_hmean;
-        Q2_t = Mhbinv[i].Q2mean;
-        pT_t = Mhbinv[i].pTmean;
-        R0_t = Mhbinv[i].R0mean;
-        R1_t = Mhbinv[i].R1mean;
-        R2_t = Mhbinv[i].R2mean;
-        t_Mh->Fill();
-        }
+//     //Calculating means
+//     //Setting zbin means
+//     for(int i = 0; i < vinfoString.size() - 1; i++) {
+//         zbinv[i].meanZ_h();
+//         infoString = vinfoString[i];
+//         x_t = zbinv[i].xmean;
+//         Q2_t = zbinv[i].Q2mean;
+//         pT_t = zbinv[i].pTmean;
+//         R0_t = zbinv[i].R0mean;
+//         R1_t = zbinv[i].R1mean;
+//         R2_t = zbinv[i].R2mean;
+//         t_z_h->Fill();
+//         }
+//     for(int i = 0; i < vinfoString.size() - 1; i++) {
+//         xbinv[i].meanx();
+//         infoString = vinfoString[i];
+//         z_h_t = xbinv[i].z_hmean;
+//         Q2_t = xbinv[i].Q2mean;
+//         pT_t = xbinv[i].pTmean;
+//         R0_t = xbinv[i].R0mean;
+//         R1_t = xbinv[i].R1mean;
+//         R2_t = xbinv[i].R2mean;
+//         t_x->Fill();
+//         }
+//     for(int i = 0; i < vinfoString.size() - 1; i++) {
+//         Mhbinv[i].meanmh();
+//         infoString = vinfoString[i];
+//         x_t = Mhbinv[i].xmean;
+//         z_h_t = Mhbinv[i].z_hmean;
+//         Q2_t = Mhbinv[i].Q2mean;
+//         pT_t = Mhbinv[i].pTmean;
+//         R0_t = Mhbinv[i].R0mean;
+//         R1_t = Mhbinv[i].R1mean;
+//         R2_t = Mhbinv[i].R2mean;
+//         t_Mh->Fill();
+//         }
     
-    for(int i = 0; i < vinfoString.size(); i++) {
-        Q2binv[i].meanQ2();
-        infoString = vinfoString[i];
-        x_t = Q2binv[i].xmean;
-        z_h_t = Q2binv[i].z_hmean;
-        Q2_t = Q2binv[i].Q2mean;
-        pT_t = Q2binv[i].pTmean;
-        R0_t = Q2binv[i].R0mean;
-        R1_t = Q2binv[i].R1mean;
-        R2_t = Q2binv[i].R2mean;
-        t_Q2->Fill();
-        }
+//     for(int i = 0; i < vinfoString.size(); i++) {
+//         Q2binv[i].meanQ2();
+//         infoString = vinfoString[i];
+//         x_t = Q2binv[i].xmean;
+//         z_h_t = Q2binv[i].z_hmean;
+//         Q2_t = Q2binv[i].Q2mean;
+//         pT_t = Q2binv[i].pTmean;
+//         R0_t = Q2binv[i].R0mean;
+//         R1_t = Q2binv[i].R1mean;
+//         R2_t = Q2binv[i].R2mean;
+//         t_Q2->Fill();
+//         }
     
-    for(int i = 0; i < vinfoString.size() - 1; i++) {
-        qTQbinv[i].meanqTQ();
-        infoString = vinfoString[i];
-        x_t = qTQbinv[i].xmean;
-        z_h_t = qTQbinv[i].z_hmean;
-        Q2_t = qTQbinv[i].Q2mean;
-        pT_t = qTQbinv[i].pTmean;
-        R0_t = qTQbinv[i].R0mean;
-        R1_t = qTQbinv[i].R1mean;
-        R2_t = qTQbinv[i].R2mean;
-        t_qTQ->Fill();
-        }
+//     for(int i = 0; i < vinfoString.size() - 1; i++) {
+//         qTQbinv[i].meanqTQ();
+//         infoString = vinfoString[i];
+//         x_t = qTQbinv[i].xmean;
+//         z_h_t = qTQbinv[i].z_hmean;
+//         Q2_t = qTQbinv[i].Q2mean;
+//         pT_t = qTQbinv[i].pTmean;
+//         R0_t = qTQbinv[i].R0mean;
+//         R1_t = qTQbinv[i].R1mean;
+//         R2_t = qTQbinv[i].R2mean;
+//         t_qTQ->Fill();
+//         }
     
     f->Write();
     delete f;

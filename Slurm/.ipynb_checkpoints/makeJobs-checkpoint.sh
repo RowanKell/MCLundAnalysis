@@ -1,9 +1,9 @@
 #!/bin/bash
 
 workdir="/work/clas12/users/rojokell/MCLundAnalysis"
-# hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
-hipodir="/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV"
-outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/May_30/qTQ_hadron_torus+1/"
+hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
+# hipodir="/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV"
+outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm/Jan_30/Run_1/"
 rootname="file_"
 processdir="/work/clas12/users/rojokell/MCLundAnalysis/"
 processcodename="LundAnalysis.C"
