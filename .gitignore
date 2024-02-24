@@ -2,3 +2,4 @@ Slurm/shells/
 Slurm/output/
 OutputFiles/
 .ipynb_checkpoints/
+core*

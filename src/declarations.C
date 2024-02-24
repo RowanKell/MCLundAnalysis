@@ -41,23 +41,23 @@ double Q2_calc;
 double x;
 double pt_lab;
 double z_h;
-double z_h_plus;
-double z_h_minus;
+double z_h_1;
+double z_h_2;
 double xF;
 
-double m_plus;
-double m_minus;
+double m_1;
+double m_2;
 
 double qTQ;
 double qTQ_lab;
 double qTQ_hadron;
-double q_TdivQplus;
-double q_TdivQminus;
+double q_TdivQ1;
+double q_TdivQ2;
 
 //Cut Kinematics
 double W;
-double xFpiplus;
-double xFpiminus;
+double xFpi1;
+double xFpi2;
 double nu;
 double Mx;
 
@@ -162,8 +162,8 @@ TLorentzVector proton_Breit;
 
 double pt_gN;
 
-double pt_gN_plus;
-double pt_gN_minus;
+double pt_gN_1;
+double pt_gN_2;
 
 TLorentzVector gN;
 TVector3 gNBoost;
@@ -181,11 +181,11 @@ TVector3 BreitBoost;
 TLorentzVector kfBreit;
 TVector2 kfBreitTran;
 TLorentzVector dihadronBreit;
-TLorentzVector plusBreit;
-TLorentzVector minusBreit;
+TLorentzVector Breit1;
+TLorentzVector Breit2;
 TVector2 dihadronBreitTran;
-TVector2 plusBreitTran;
-TVector2 minusBreitTran;
+TVector2 BreitTran1;
+TVector2 BreitTran2;
 
 //Hadron Frame Variables
 TLorentzVector q_hadron;
@@ -204,18 +204,18 @@ TVector3 PFAxis;
 
 double qPFMinus;
 TLorentzVector dihadronPF;
-TLorentzVector plusPF;
-TLorentzVector minusPF;
+TLorentzVector PF1;
+TLorentzVector PF2;
 double dihadronPFMinus;
-double plusPFMinus;
-double minusPFMinus;
+double PF1Minus;
+double PF2Minus;
 
 double z_N;
-double z_Nplus;
-double z_Nminus;
+double z_N1;
+double z_N2;
 TVector2 q_T;
-TVector2 q_Tplus;
-TVector2 q_Tminus;
+TVector2 q_T1;
+TVector2 q_T2;
 TVector2 q_T_lab;
 TVector2 q_T_hadron;
 

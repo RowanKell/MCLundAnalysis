@@ -5,7 +5,7 @@ int LundAnalysis(
                    const char * hipoFile = "/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV/50nA_OB_job_3313_0.hipo",
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_10_17/noRcuts4.root"
 //                    const char * rootfile = "OutputFiles/Separate_Test_10_20/file2.root"
-                   const char * rootfile = "OutputFiles/TestFiles/Jan_30/file1.root"
+                   const char * rootfile = "OutputFiles/Files_Spring_24/Feb24/file0.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_16/TMD1.root"
 //                 const char * rootfile = "OutputFiles/AffinityFiles/Files_9_12/collinear1.root"
 )
@@ -68,7 +68,6 @@ int LundAnalysis(
     
     //Loop over all events in the file
     while(chain.Next()==true){
-        
         event_count += 1;
         if(event_count == 1) {
             cout << '\n';
@@ -110,8 +109,10 @@ int LundAnalysis(
         MCParticle photon;
         MCParticle Lund;
 
-        Pidi piplus;
-        Pidi piminus;
+        Pidi pi_v;
+        
+        Pidi pi1;
+        Pidi pi2;
 
         Quark quark;
 
@@ -145,15 +146,9 @@ int LundAnalysis(
                 electron.setVectors();
             }
             //pi+
-            else if(pid==pipluspid){
-                piplus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                piplus.update(id, pid, px, py, pz, daughter, parent, 
-                              mass, vz);
-            }
-            //pi-
-            else if(pid==piminuspid){
-                piminus.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
-                piminus.update(id, pid, px, py, pz, daughter, parent, 
+            else if(pid==pipluspid || pid ==piminuspid){
+                pi_v.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
+                pi_v.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
             }
             //all quarks
@@ -188,18 +183,6 @@ int LundAnalysis(
             }
         }
         
-        //Selecting pions that come from Lund particle
-        for(int i = 0; i < piplus.v_id.size(); i++) {
-            if(piplus.v_parent[i] == Lund.id) {
-                piplus.select_id = i;
-            }
-        }
-        for(int i = 0; i < piminus.v_id.size(); i++) {
-            if(piminus.v_parent[i] == Lund.id) {
-                piminus.select_id = i;
-            }
-        }
-        
         //Selecting initial quark
         for(int i = 0; i < quark.v_id.size(); i++) {
             if(quark.v_parent[i] == 0) {
@@ -215,10 +198,7 @@ int LundAnalysis(
         }
         
         //Skip non-dipion events
-        if(piplus.select_id == -999) {
-            continue;
-        }
-        else if(piminus.select_id == -999) {
+        if(pi_v.v_id.size() < 2) {
             continue;
         }
         if(diquark.select_id != -999) {
@@ -226,338 +206,348 @@ int LundAnalysis(
                            diquark.v_pz[diquark.select_id], diquark.v_daughter[diquark.select_id], diquark.v_parent[diquark.select_id], diquark.v_mass[diquark.select_id], diquark.v_vz[diquark.select_id]);
             diquark.setVectors();
         }
-        piplus.fillParticle(piplus.v_id[piplus.select_id], piplus.v_pid[piplus.select_id], piplus.v_px[piplus.select_id], piplus.v_py[piplus.select_id], 
-                           piplus.v_pz[piplus.select_id], piplus.v_daughter[piplus.select_id], piplus.v_parent[piplus.select_id], piplus.v_mass[piplus.select_id], piplus.v_vz[piplus.select_id]);
-        piplus.setVectors();
-        piminus.fillParticle(piminus.v_id[piminus.select_id], piminus.v_pid[piminus.select_id], piminus.v_px[piminus.select_id], piminus.v_py[piminus.select_id], 
-                           piminus.v_pz[piminus.select_id], piminus.v_daughter[piminus.select_id], piminus.v_parent[piminus.select_id], piminus.v_mass[piminus.select_id], piminus.v_vz[piminus.select_id]);
-        piminus.setVectors();
         
-        quark.fillParticle(quark.v_id[quark.final_id], quark.v_pid[quark.final_id], quark.v_px[quark.final_id], quark.v_py[quark.final_id], 
-                           quark.v_pz[quark.final_id], quark.v_daughter[quark.final_id], quark.v_parent[quark.final_id], quark.v_mass[quark.final_id], quark.v_vz[quark.final_id]);
-        quark.setVectors();
-       
-        //Setting inital beam and target particles
-        init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
-        init_target.SetPxPyPzE(0, 0, 0, proton.E);
+        //Loop over all combinations of pion pairs
         
-        
-        dihadron = piplus.lv + piminus.lv;
-        m_plus = piplus.mass;
-        m_minus = piminus.mass;
-        Mdihadron = dihadron.M();
-        Pdihadron = dihadron.P();
-//         q = init_electron - electron.lv; //virtual photon
-        q = photon.lv;
-        q_calc = init_electron - electron.lv;
-        qx = q_calc.Px();
-        qy = q_calc.Py();
-        qz = q_calc.Pz();
-        qE = q_calc.E();
-        
-        photonx = photon.lv.Px();
-        photony = photon.lv.Py();
-        photonz = photon.lv.Pz();
-        photonE = photon.lv.E();
-        
-        
-        //Missing mass
-        Mx = Mxfunc(q, init_target, piplus.lv, piminus.lv);
+        //Calculate number of unique pion pairs
+        for(int i = 0; i < pi_v.v_id.size(); i++) {
+            pi1.fillParticle(pi_v.v_id[i], pi_v.v_pid[i], pi_v.v_px[i], pi_v.v_py[i],pi_v.v_pz[i], pi_v.v_daughter[i], pi_v.v_parent[i], pi_v.v_mass[i], pi_v.v_vz[i]);
+            for(int j = 0; j < pi_v.v_id.size(); j++) {
+                if(i == j){
+                    //Continue past cases where both pions are the same
+                    continue;
+                }
+                pi2.fillParticle(pi_v.v_id[j], pi_v.v_pid[j], pi_v.v_px[j], pi_v.v_py[j],pi_v.v_pz[j], pi_v.v_daughter[j], pi_v.v_parent[j], pi_v.v_mass[j], pi_v.v_vz[j]);
+                
+                pi1.setVectors();
+                pi2.setVectors();
+                
+                
+                quark.fillParticle(quark.v_id[quark.final_id], quark.v_pid[quark.final_id], quark.v_px[quark.final_id], quark.v_py[quark.final_id], quark.v_pz[quark.final_id], quark.v_daughter[quark.final_id], quark.v_parent[quark.final_id], quark.v_mass[quark.final_id], quark.v_vz[quark.final_id]);
+                quark.setVectors();
+                //Setting inital beam and target particles
+                init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
+                init_target.SetPxPyPzE(0, 0, 0, proton.E);
 
-        cth = cthfunc(electron.px,electron.py,electron.pz);
-        Q2 = -(q * q);
-        Q2_calc = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
+                //Define the dihadron LorentzVector
+                dihadron = pi1.lv + pi2.lv;
+                m_1 = pi1.mass;
+                m_2 = pi2.mass;
+                Mdihadron = dihadron.M();
+                Pdihadron = dihadron.P();
+        //         q = init_electron - electron.lv; //virtual photon
+                q = photon.lv;
+                q_calc = init_electron - electron.lv;
+                qx = q_calc.Px();
+                qy = q_calc.Py();
+                qz = q_calc.Pz();
+                qE = q_calc.E();
 
-        z_h_plus = (init_target * piplus.lv) / (init_target * q);
-        z_h_minus = (init_target * piminus.lv) / (init_target * q);
-        z_h = z_h_plus + z_h_minus;
-        s = sfunc(protonMass, electronMass, electron_beam_energy);
-        y = yfunc(electron_beam_energy,electron.E);
-        x = Q2/s/y; // Bjorken x
-        pt_lab = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
-        
-        kf = quark.lv;
-        ki = kf - q;
-        //Cut Kinematics
-        
-        gN = q;
-        gN += init_target;
-        gNBoost = gN.BoostVector();
-        gNBoostNeg = -gNBoost;
-        
-        lv_p1_gN = piplus.lv;
-        lv_p2_gN = piminus.lv;
-        lv_p1_gN.Boost(gNBoostNeg);
-        lv_p2_gN.Boost(gNBoostNeg);
-        
-        lv_q_gN = q;
-        lv_q_gN.Boost(gNBoostNeg);
-        
-        q_gNx = lv_q_gN.Px();
-        q_gNy = lv_q_gN.Py();
-        q_gNz = lv_q_gN.Pz();
-        q_gNE = lv_q_gN.E();
-        
-        //Need dihadron in gN frame for pT
-        dihadron_gN = dihadron;
-        dihadron_gN.Boost(gNBoostNeg);
-        pt_gN = Ptfunc(dihadron_gN);
-        pt_gN_plus = Ptfunc(lv_p1_gN);
-        pt_gN_minus = Ptfunc(lv_p2_gN);
-        
-        //Need target in gN
-        target_gN = init_target;
-        target_gN.Boost(gNBoostNeg);
-        
-        //Need partonic in gN
-        ki_gN = ki;
-        ki_gN.Boost(gNBoostNeg);
-        
-        kf_gN = kf;
-        kf_gN.Boost(gNBoostNeg);
-        
-        //Feynman x
-        xFpiplus = xFfunc(lv_p1_gN,lv_q_gN,W);
-        xFpiminus = xFfunc(lv_p2_gN,lv_q_gN,W);
-        
-        //nu and W
-        nu = nufunc(electron_beam_energy,electron.E);
-        W = Wfunc(Q2,protonMass,nu);
-        
+                photonx = photon.lv.Px();
+                photony = photon.lv.Py();
+                photonz = photon.lv.Pz();
+                photonE = photon.lv.E();
 
-        // Breit Frame Kinematics for delta k
-        Breit = q;
-        Breit_target.SetPxPyPzE(0,0,0,2 * x *protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
-        Breit += Breit_target;
-        BreitBoost = Breit.BoostVector();
-        BreitBoost = -1 * BreitBoost;
-            
-        //Setting up delta k variables
-        kfBreit = kf;
-        kfBreit.Boost(BreitBoost);
-        kfBreitTran = PtVectfunc(kfBreit); //breit frame boostkfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
-        
-        q_Breit = q;
-        q_Breit.Boost(BreitBoost);
-//         Printf("q_Breit: "); q_Breit.Print(); cout << "\n";
-        proton_Breit = proton.lv;
-        proton_Breit.Boost(BreitBoost);
-//         Printf("proton_Breit: ");
-//         proton_Breit.Print(); cout << "\n";
-        
-        
-        dihadronBreit = dihadron;
-        dihadronBreit.Boost(BreitBoost);
-//         Printf("DihadronBreit: ");
-//         dihadronBreit.Print(); cout << "\n";
-        dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
-        
-        plusBreit = piplus.lv;
-        plusBreit.Boost(BreitBoost);
-        plusBreitTran = PtVectfunc(plusBreit);
-        minusBreit = piminus.lv;
-        minusBreit.Boost(BreitBoost);
-        minusBreitTran = PtVectfunc(minusBreit);
-        
-        PFFrame = q + init_target;
-        PFBoost = PFFrame.BoostVector();
-        PFBoost = -1 * PFBoost;
-        qPF = q;
-        qPF.Boost(PFBoost);
-        qPFVect = qPF.Vect();
-        qPFVectUnit = qPFVect.Unit();
-        PFAngle = qPFVectUnit.Angle(zAxis);
-        PFAxis = qPFVectUnit.Cross(zAxis);
-        //To rotate -> vector.Rotate(PFAngle,PFAxis);
-        
-        //Hadron frame kinematics for q_T
-        //Note: hadron frame here refers to frame where the target proton and outgoing hadron are back to back
-        //and the target proton has the same four momentum as it has in the breit frame
-        Hadron_frame = dihadron;
-        Hadron_frame += Breit_target;
-        HadronBoost = Hadron_frame.BoostVector();
-        HadronBoost = -1 * HadronBoost;
-        q_hadron = q;
-        q_hadron.Boost(HadronBoost);
-        q_T_hadron = PtVectfunc(q_hadron);
-        
-        q_T_lab = PtVectfunc(q);
-        
-        qTQ_lab = Ptfunc(q_T_lab) / sqrt(Q2);
-        qTQ_hadron = Ptfunc(q_T_hadron) / sqrt(Q2);
-        
-        //
-        //Photon Frame
-        //
-        
-        //Dihadron
-        dihadronPF = dihadron;
-        dihadronPF.Boost(PFBoost);
-        dihadronPF.Rotate(PFAngle,PFAxis);
-        dihadronPFMinus = LightConeMinus(dihadronPF);
-        
-        plusPF = piplus.lv;
-        plusPF.Boost(PFBoost);
-        plusPF.Rotate(PFAngle,PFAxis);
-        plusPFMinus = LightConeMinus(plusPF);
-        minusPF = piminus.lv;
-        minusPF.Boost(PFBoost);
-        minusPF.Rotate(PFAngle,PFAxis);
-        minusPFMinus = LightConeMinus(minusPF);
-        //Virtual Photon
-        qPF.Rotate(PFAngle,PFAxis);
-        qPFMinus = LightConeMinus(qPF);
-        //z_N and q_T
-        z_N = dihadronPFMinus / qPFMinus;
-        z_Nplus = plusPFMinus / qPFMinus;
-        z_Nminus = minusPFMinus / qPFMinus;
-        q_T = -1 * dihadronBreitTran / z_N;
-        q_Tplus = -1 * plusBreitTran / z_Nplus;
-        q_Tminus = -1 * minusBreitTran / z_Nminus;
-        
-        q_T_frac = dihadronBreitTran / z_h;
-        qTQfrac = Ptfunc(q_T_frac) / sqrt(Q2);
-        
 
-        //q_T / Q for plotting
-        qTQ = Ptfunc(q_T) / sqrt(Q2);
-        q_TdivQplus = Ptfunc(q_Tplus) / sqrt(Q2);
-        q_TdivQminus = Ptfunc(q_Tminus) / sqrt(Q2);
-        
+                //Missing mass
+                Mx = Mxfunc(q, init_target, pi1.lv, pi2.lv);
 
-        //ki, k, and delta k
-        deltak = kfBreitTran - (-1 * z_N * q_T); 
-        
-        k = kf - q;
-        k_gN = k;
-        k_gN.Boost(gNBoostNeg);
-//         These ratios are calculated in lab frame
-//        R0 = R0func(ki, kf, deltak, Q2);
-//        R1 = R1func(dihadron, ki, kf);
-//        R2 = R2func(k, Q2);
-        
-        //Ratios in gN frame
-        R0 = R0func(ki_gN, kf_gN, deltak, Q2);
-        kix = ki_gN.Px();
-        kiy = ki_gN.Py();
-        kiz = ki_gN.Pz();
-        kiE = ki_gN.E();
-        
-        kfx = kf_gN.Px();
-        kfy = kf_gN.Py();
-        kfz = kf_gN.Pz();
-        kfE = kf_gN.E();
-        
-        kTx = deltak_gN.Px();
-        kTy = deltak_gN.Py();
-        double ki2 = abs(ki_gN * ki_gN);
-        double kf2 = abs(kf_gN * kf_gN);
-        double deltak2 = abs(deltak * deltak);
-        if(deltak2 > ki2 && deltak2 > kf2) {
-            R0check = 0;//DeltaK is biggest
-        }
-        else if(ki2 > kf2) {
-            R0check = 1;//ki is biggest
-        }
-        else {
-            R0check = 2;//kf is biggest
-        }
-        
-        R1 = R1func(dihadron_gN, ki_gN, kf_gN);
-        ki_Breit = ki;
-        ki_Breit.Boost(BreitBoost);
-        kf_Breit = kf;
-        kf_Breit.Boost(BreitBoost);
-        k_Breit = k;
-        k_Breit.Boost(BreitBoost);
-        
-        R2 = R2func(k_gN, Q2);
-        xF = xFpiplus + xFpiminus;
-        
+                cth = cthfunc(electron.px,electron.py,electron.pz);
+                Q2 = -(q * q);
+                Q2_calc = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
 
-        //Missing mass
-        if(Mx <= 1.5) {
-            continue;
-        }
-        
-        //Feynman x
-        if(xFpiplus <= 0 || xFpiminus <= 0) {
-            continue;
-        }
-        
-        //Vertex Position
-        if(abs(electron.vz - piplus.vz) >= 20) {
-            continue;
-        }
-        if(abs(electron.vz - piminus.vz) >= 20) {
-            continue;
-        }
-        if(electron.vz <= -8 || electron.vz >= 3) {
-            continue;
-        }
-        
-        //Channel Selection
-        
-        //Virtual photon mass / momentum transfer
-        if(Q2 <= 1 || Q2 >= 100) {
-            continue;
-        }
-        //Hadronic system mass
-        if(W <= 2 || W >= 100) {
-            continue;
-        }
-        //Energy fraction
-        if(y <= 0 || y >= 0.8) {
-            continue;
-        }
-        if(piplus.P <= 1.25 || piminus.P <= 1.25) {
-            continue;
-        }
+                z_h_1 = (init_target * pi1.lv) / (init_target * q);
+                z_h_2 = (init_target * pi2.lv) / (init_target * q);
+                z_h = z_h_1 + z_h_2;
+                s = sfunc(protonMass, electronMass, electron_beam_energy);
+                y = yfunc(electron_beam_energy,electron.E);
+                x = Q2/s/y; // Bjorken x
+                pt_lab = Ptfunc(dihadron.Px(), dihadron.Py()); //hadron transverse momentum
 
-        tree_count += 1;
-        tree_MC->Fill();
-//         t_plus->Fill();
-//         t_minus->Fill();
-        //Need: x, z, Q2, pT, R0, R1, R2
-        //zbins:
-	
-        for(int i = 0; i < zbins.size(); i++) {
-            if(z_h <= zbins[i]) {
-                zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
-                break;
+                kf = quark.lv;
+                ki = kf - q;
+                //Cut Kinematics
+
+                gN = q;
+                gN += init_target;
+                gNBoost = gN.BoostVector();
+                gNBoostNeg = -gNBoost;
+
+                lv_p1_gN = pi1.lv;
+                lv_p2_gN = pi2.lv;
+                lv_p1_gN.Boost(gNBoostNeg);
+                lv_p2_gN.Boost(gNBoostNeg);
+
+                lv_q_gN = q;
+                lv_q_gN.Boost(gNBoostNeg);
+
+                q_gNx = lv_q_gN.Px();
+                q_gNy = lv_q_gN.Py();
+                q_gNz = lv_q_gN.Pz();
+                q_gNE = lv_q_gN.E();
+
+                //Need dihadron in gN frame for pT
+                dihadron_gN = dihadron;
+                dihadron_gN.Boost(gNBoostNeg);
+                pt_gN = Ptfunc(dihadron_gN);
+                pt_gN_1 = Ptfunc(lv_p1_gN);
+                pt_gN_2 = Ptfunc(lv_p2_gN);
+
+                //Need target in gN
+                target_gN = init_target;
+                target_gN.Boost(gNBoostNeg);
+
+                //Need partonic in gN
+                ki_gN = ki;
+                ki_gN.Boost(gNBoostNeg);
+
+                kf_gN = kf;
+                kf_gN.Boost(gNBoostNeg);
+
+                //Feynman x
+                xFpi1 = xFfunc(lv_p1_gN,lv_q_gN,W);
+                xFpi2 = xFfunc(lv_p2_gN,lv_q_gN,W);
+
+                //nu and W
+                nu = nufunc(electron_beam_energy,electron.E);
+                W = Wfunc(Q2,protonMass,nu);
+
+
+                // Breit Frame Kinematics for delta k
+                Breit = q;
+                Breit_target.SetPxPyPzE(0,0,0,2 * x *protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
+                Breit += Breit_target;
+                BreitBoost = Breit.BoostVector();
+                BreitBoost = -1 * BreitBoost;
+
+                //Setting up delta k variables
+                kfBreit = kf;
+                kfBreit.Boost(BreitBoost);
+                kfBreitTran = PtVectfunc(kfBreit); //breit frame boostkfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
+
+                q_Breit = q;
+                q_Breit.Boost(BreitBoost);
+        //         Printf("q_Breit: "); q_Breit.Print(); cout << "\n";
+                proton_Breit = proton.lv;
+                proton_Breit.Boost(BreitBoost);
+        //         Printf("proton_Breit: ");
+        //         proton_Breit.Print(); cout << "\n";
+
+
+                dihadronBreit = dihadron;
+                dihadronBreit.Boost(BreitBoost);
+        //         Printf("DihadronBreit: ");
+        //         dihadronBreit.Print(); cout << "\n";
+                dihadronBreitTran = PtVectfunc(dihadronBreit); //PBbT in qT part of delta k calculation
+
+                Breit1 = pi1.lv;
+                Breit1.Boost(BreitBoost);
+                BreitTran1 = PtVectfunc(Breit1);
+                Breit2 = pi2.lv;
+                Breit2.Boost(BreitBoost);
+                BreitTran2 = PtVectfunc(Breit2);
+
+                PFFrame = q + init_target;
+                PFBoost = PFFrame.BoostVector();
+                PFBoost = -1 * PFBoost;
+                qPF = q;
+                qPF.Boost(PFBoost);
+                qPFVect = qPF.Vect();
+                qPFVectUnit = qPFVect.Unit();
+                PFAngle = qPFVectUnit.Angle(zAxis);
+                PFAxis = qPFVectUnit.Cross(zAxis);
+                //To rotate -> vector.Rotate(PFAngle,PFAxis);
+
+                //Hadron frame kinematics for q_T
+                //Note: hadron frame here refers to frame where the target proton and outgoing hadron are back to back
+                //and the target proton has the same four momentum as it has in the breit frame
+                Hadron_frame = dihadron;
+                Hadron_frame += Breit_target;
+                HadronBoost = Hadron_frame.BoostVector();
+                HadronBoost = -1 * HadronBoost;
+                q_hadron = q;
+                q_hadron.Boost(HadronBoost);
+                q_T_hadron = PtVectfunc(q_hadron);
+
+                q_T_lab = PtVectfunc(q);
+
+                qTQ_lab = Ptfunc(q_T_lab) / sqrt(Q2);
+                qTQ_hadron = Ptfunc(q_T_hadron) / sqrt(Q2);
+
+                //
+                //Photon Frame
+                //
+
+                //Dihadron
+                dihadronPF = dihadron;
+                dihadronPF.Boost(PFBoost);
+                dihadronPF.Rotate(PFAngle,PFAxis);
+                dihadronPFMinus = LightConeMinus(dihadronPF);
+
+                PF1 = pi1.lv;
+                PF1.Boost(PFBoost);
+                PF1.Rotate(PFAngle,PFAxis);
+                PF1Minus = LightConeMinus(PF1);
+                PF2 = pi2.lv;
+                PF2.Boost(PFBoost);
+                PF2.Rotate(PFAngle,PFAxis);
+                PF2Minus = LightConeMinus(PF2);
+                //Virtual Photon
+                qPF.Rotate(PFAngle,PFAxis);
+                qPFMinus = LightConeMinus(qPF);
+                //z_N and q_T
+                z_N = dihadronPFMinus / qPFMinus;
+                z_N1 = PF1Minus / qPFMinus;
+                z_N1 = PF2Minus / qPFMinus;
+                q_T = -1 * dihadronBreitTran / z_N;
+                q_T1 = -1 * BreitTran1 / z_N1;
+                q_T2 = -1 * BreitTran2 / z_N2;
+
+                q_T_frac = dihadronBreitTran / z_h;
+                qTQfrac = Ptfunc(q_T_frac) / sqrt(Q2);
+
+
+                //q_T / Q for plotting
+                qTQ = Ptfunc(q_T) / sqrt(Q2);
+                q_TdivQ1 = Ptfunc(q_T1) / sqrt(Q2);
+                q_TdivQ2 = Ptfunc(q_T2) / sqrt(Q2);
+
+
+                //ki, k, and delta k
+                deltak = kfBreitTran - (-1 * z_N * q_T); 
+
+                k = kf - q;
+                k_gN = k;
+                k_gN.Boost(gNBoostNeg);
+        //         These ratios are calculated in lab frame
+        //        R0 = R0func(ki, kf, deltak, Q2);
+        //        R1 = R1func(dihadron, ki, kf);
+        //        R2 = R2func(k, Q2);
+
+                //Ratios in gN frame
+                R0 = R0func(ki_gN, kf_gN, deltak, Q2);
+                kix = ki_gN.Px();
+                kiy = ki_gN.Py();
+                kiz = ki_gN.Pz();
+                kiE = ki_gN.E();
+
+                kfx = kf_gN.Px();
+                kfy = kf_gN.Py();
+                kfz = kf_gN.Pz();
+                kfE = kf_gN.E();
+
+                kTx = deltak_gN.Px();
+                kTy = deltak_gN.Py();
+                double ki2 = abs(ki_gN * ki_gN);
+                double kf2 = abs(kf_gN * kf_gN);
+                double deltak2 = abs(deltak * deltak);
+                if(deltak2 > ki2 && deltak2 > kf2) {
+                    R0check = 0;//DeltaK is biggest
+                }
+                else if(ki2 > kf2) {
+                    R0check = 1;//ki is biggest
+                }
+                else {
+                    R0check = 2;//kf is biggest
+                }
+
+                R1 = R1func(dihadron_gN, ki_gN, kf_gN);
+                ki_Breit = ki;
+                ki_Breit.Boost(BreitBoost);
+                kf_Breit = kf;
+                kf_Breit.Boost(BreitBoost);
+                k_Breit = k;
+                k_Breit.Boost(BreitBoost);
+
+                R2 = R2func(k_gN, Q2);
+                xF = xFpi1 + xFpi2;
+
+
+                //Missing mass
+                if(Mx <= 1.5) {
+                    continue;
+                }
+
+                //Feynman x
+                if(xFpi1 <= 0 || xFpi2 <= 0) {
+                    continue;
+                }
+
+                //Vertex Position
+                if(abs(electron.vz - pi1.vz) >= 20) {
+                    continue;
+                }
+                if(abs(electron.vz - pi2.vz) >= 20) {
+                    continue;
+                }
+                if(electron.vz <= -8 || electron.vz >= 3) {
+                    continue;
+                }
+
+                //Channel Selection
+
+                //Virtual photon mass / momentum transfer
+                if(Q2 <= 1 || Q2 >= 100) {
+                    continue;
+                }
+                //Hadronic system mass
+                if(W <= 2 || W >= 100) {
+                    continue;
+                }
+                //Energy fraction
+                if(y <= 0 || y >= 0.8) {
+                    continue;
+                }
+                if(pi1.P <= 1.25 || pi2.P <= 1.25) {
+                    continue;
+                }
+
+                tree_count += 1;
+                tree_MC->Fill();
+        //         t_plus->Fill();
+        //         t_minus->Fill();
+                //Need: x, z, Q2, pT, R0, R1, R2
+                //zbins:
+
+                for(int i = 0; i < zbins.size(); i++) {
+                    if(z_h <= zbins[i]) {
+                        zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2);
+                        break;
+                    }
+                }
+                //Mh bins
+                for(int i = 0; i < Mhbins.size(); i++) {
+                    if(Mdihadron <= Mhbins[i]) {
+                        Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+                        break;
+                    }
+                }
+                //Q2 bins
+                for(int i = 0; i < Q2bins.size(); i++) {
+                    if(Q2 <= Q2bins[i]) {
+                        Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2);
+                        break;
+                    }
+                }
+                //qTQ bins
+                for(int i = 0; i < qTQbins.size(); i++) {
+                    if(qTQ_hadron <= qTQbins[i]) {
+                        qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
+                        break;
+                    }
+                }
+                //x bins
+                for(int i = 0; i < xbins.size(); i++) {
+                    if(x <= xbins[i]) {
+                        xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
+                        break;
+                    }
+                }
+                //print out tree count every 100 to give update to user
+                if(tree_count % 100 == 0) {
+            //            cout << "Tree_count: " << tree_count << '\n';
+                }
             }
-        }
-        //Mh bins
-        for(int i = 0; i < Mhbins.size(); i++) {
-            if(Mdihadron <= Mhbins[i]) {
-                Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //Q2 bins
-        for(int i = 0; i < Q2bins.size(); i++) {
-            if(Q2 <= Q2bins[i]) {
-                Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //qTQ bins
-        for(int i = 0; i < qTQbins.size(); i++) {
-            if(qTQ_hadron <= qTQbins[i]) {
-                qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //x bins
-        for(int i = 0; i < xbins.size(); i++) {
-            if(x <= xbins[i]) {
-                xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2);
-                break;
-            }
-        }
-        //print out tree count every 100 to give update to user
-        if(tree_count % 100 == 0) {
-	//            cout << "Tree_count: " << tree_count << '\n';
         }
 	
     }
