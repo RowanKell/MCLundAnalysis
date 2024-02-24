@@ -1,0 +1,10 @@
+#include "/u/apps/root/6.26.10/root-6.26.10-gcc9.3.0/include/TROOT.h"
+sH83&rN80$@dd#include <iostream>
+#include <stdio.h>
+int main() {
+  TLorentzVector t = new TLorentzVector();
+  double px = t.Px();
+  printf("px = %f\n", px);
+  delete t;
+  return 0;
+}

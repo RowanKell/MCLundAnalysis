@@ -43,7 +43,7 @@ current_model = tf.keras.models.load_model(current_model_name)
 soft_model_name = './models_copy/final_%s' % soft_region_name
 soft_model = tf.keras.models.load_model(soft_model_name)
 
-fileDirectory = "../../OutputFiles/Slurm/May_30/qTQ_hadron_torus+1/"
+fileDirectory = "../../OutputFiles/Slurm/May_31/Run_1/"
 # fileDirectory = "../../OutputFiles/Slurm/May_25/qTQ_hadron/"
 fileCount = 0
 #counting number of files in target directory
@@ -258,4 +258,4 @@ ax42.set(xlabel = "qTQ")
 # ax52.axhline(y=0, color="gray", lw = 1)
 # ax52.set_title("Q2 binning")
 # ax52.set(xlabel = "Q2")
-plot.savefig("Plots/May_30_plots/TF_hadron_qTQ_torus+1.jpeg")
+plot.savefig("Plots/May_31_plots/TF_Affinity.jpeg")
