@@ -64,8 +64,8 @@ double Mx;
 //Affinity ratios
 double R0;
 double R1;
-double R1_plus;
-double R1_minus;
+double R1_p;
+double R1_m;
 double R1lab;
 double R1breit;
 double R2;
@@ -265,11 +265,13 @@ BinVariable qTQbin3;
 BinVariable qTQbin4;
 BinVariable qTQbin5;
 BinVariable qTQbin6;
+BinVariable qTQbin7;
+BinVariable qTQbin8;
 
 vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
 vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
 vector<double> Q2bins{1,1.4,2,2.8,4,5.6,7.9,11.1};
-vector<double> qTQbins;
+vector<double> qTQbins{0.1,0.3,0.5,0.8,1.5,2,2.5,3,4};
 vector<double> Mhbins{0.4429,0.6357,0.8286,1.0214,1.2143,1.4071,1.6};
 
 
@@ -278,8 +280,8 @@ vector<BinVariable> zbinv = {zbin0, zbin1, zbin2, zbin3, zbin4, zbin5, zbin6};
 vector<BinVariable> xbinv = {xbin0, xbin1, xbin2, xbin3, xbin4, xbin5, xbin6};       
 vector<BinVariable> Mhbinv = {Mhbin0, Mhbin1, Mhbin2, Mhbin3, Mhbin4, Mhbin5, Mhbin6};
 vector<BinVariable> Q2binv = {Q2bin0, Q2bin1, Q2bin2, Q2bin3, Q2bin4, Q2bin5, Q2bin6, Q2bin7};
-vector<BinVariable> qTQbinv = {qTQbin0, qTQbin1, qTQbin2, qTQbin3, qTQbin4, qTQbin5, qTQbin6};
-vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin", "7th bin"};
+vector<BinVariable> qTQbinv = {qTQbin0, qTQbin1, qTQbin2, qTQbin3, qTQbin4, qTQbin5, qTQbin6,qTQbin7,qTQbin8};
+vector<string> vinfoString = {"0th bin", "1st bin", "2nd bin", "3rd bin", "4th bin", "5th bin", "6th bin", "7th bin", "8th bin"};
 
 //Creating vectors to fill using push_back in loop
 
@@ -289,10 +291,10 @@ vector<int> vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 
 
 int hash_count = 0;
 int declarations() {
-    
-    for(int i = 0;i < 7; i++) {
-        qTQbins.push_back(0.1 + i / 10.);
-    }
+//     cout << "qTQbins:\n";
+//     for(int i = 0;i < 9; i++) {
+//         cout << i << "th bin: " <<  qTQbins[i] << "\n";
+//     }
 //     for(int i = 0;i < 7; i++) {
 //         Mhbins.push_back(0.25 + (i+1) / 6.);
 //     }
