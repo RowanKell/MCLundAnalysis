@@ -4,7 +4,7 @@
 int LundAnalysis(
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
                    //const char * rootfile = "OutputFiles/Files_Spring_24/Feb29/ErrorTest.root"
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_6/Run_1/file_1.root",
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_8/file_1.root",
                     int dual_box_affinity = 1 //Use as a bool: true (1) if wanting both R1_p and R1_m; false (0) if wanting R1 only
 )
 {
@@ -67,8 +67,9 @@ int LundAnalysis(
     
     //Loop over all events in the file
     while(chain.Next()==true){
-        //if(event_count > 100) {break;}
+//         if(event_count > 30) {break;}
         event_count += 1;
+//         cout << "Starting event #" << event_count << "\n";
         if(event_count == 1) {
             cout << '\n';
             cout << "\033[96m";
@@ -212,7 +213,7 @@ int LundAnalysis(
         //Calculate number of unique pion pairs
         for(int i = 0; i < pi_v.v_id.size(); i++) {
             pi1.fillParticle(pi_v.v_id[i], pi_v.v_pid[i], pi_v.v_px[i], pi_v.v_py[i],pi_v.v_pz[i], pi_v.v_daughter[i], pi_v.v_parent[i], pi_v.v_mass[i], pi_v.v_vz[i]);
-            for(int j = 0; j < pi_v.v_id.size(); j++) {
+            for(int j = i; j < pi_v.v_id.size(); j++) {
                 if(i == j){
                     //Continue past cases where both pions are the same
                     continue;
@@ -454,6 +455,7 @@ int LundAnalysis(
                 R1 = R1func(dihadron_gN, ki_gN, kf_gN);
                 R1_p = R1func(lv_p1_gN, ki_gN, kf_gN);
                 R1_m = R1func(lv_p2_gN, ki_gN, kf_gN);
+//                 cout << "R1_p: " << R1_p << "| R1_m: " << R1_m << "\n";
                 ki_Breit = ki;
                 ki_Breit.Boost(BreitBoost);
                 kf_Breit = kf;
@@ -573,8 +575,7 @@ int LundAnalysis(
     Double_t Q2_t;
     Double_t pT_t;
     Double_t R0_t;
-    Double_t R1_m_t;
-    Double_t R1_p_t;
+    Double_t R1_t;
     Double_t R2_t;
     
     t_z_h->Branch("Name",&infoString);
@@ -582,8 +583,7 @@ int LundAnalysis(
     t_z_h->Branch("Q2", &Q2_t);
     t_z_h->Branch("pT", &pT_t);
     t_z_h->Branch("R0", &R0_t);
-    t_z_h->Branch("R1_p", &R1_p_t);
-    t_z_h->Branch("R1_m", &R1_m_t);
+    t_z_h->Branch("R1", &R1_t);
     t_z_h->Branch("R2", &R2_t);
     
     t_x->Branch("Name",&infoString);
@@ -591,8 +591,7 @@ int LundAnalysis(
     t_x->Branch("Q2", &Q2_t);
     t_x->Branch("pT", &pT_t);
     t_x->Branch("R0", &R0_t);
-    t_x->Branch("R1_p", &R1_p_t);
-    t_x->Branch("R1_m", &R1_m_t);
+    t_x->Branch("R1", &R1_t);
     t_x->Branch("R2", &R2_t);
     
     t_Mh->Branch("Name",&infoString);
@@ -601,8 +600,7 @@ int LundAnalysis(
     t_Mh->Branch("Q2", &Q2_t);
     t_Mh->Branch("pT", &pT_t);
     t_Mh->Branch("R0", &R0_t);
-    t_Mh->Branch("R1_p", &R1_p_t);
-    t_Mh->Branch("R1_m", &R1_m_t);
+    t_Mh->Branch("R1", &R1_t);
     t_Mh->Branch("R2", &R2_t);
     
     t_Q2->Branch("Name",&infoString);
@@ -611,8 +609,7 @@ int LundAnalysis(
     t_Q2->Branch("Q2", &Q2_t);
     t_Q2->Branch("pT", &pT_t);
     t_Q2->Branch("R0", &R0_t);
-    t_Q2->Branch("R1_p", &R1_p_t);
-    t_Q2->Branch("R1_m", &R1_m_t);
+    t_Q2->Branch("R1", &R1_t);
     t_Q2->Branch("R2", &R2_t);
     
     t_qTQ->Branch("Name",&infoString);
@@ -621,75 +618,68 @@ int LundAnalysis(
     t_qTQ->Branch("Q2", &Q2_t);
     t_qTQ->Branch("pT", &pT_t);
     t_qTQ->Branch("R0", &R0_t);
-    t_qTQ->Branch("R1_p", &R1_p_t);
-    t_qTQ->Branch("R1_m", &R1_m_t);
+    t_qTQ->Branch("R1", &R1_t);
     t_qTQ->Branch("R2", &R2_t);
     
     //Calculating means
     //Setting zbin means
-    for(int i = 0; i < vinfoString.size() - 2; i++) { //Note: we use i < vinfoString.size() - 2 for x,z,Mh 
-                                                      //bc they have 7 bins, and there are 9 bins for qTQ, so vinfoString has length 9
-        zbinv[i].meanZ_h(dual_box_affinity);
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
+        zbinv[i].meanZ_h();
         infoString = vinfoString[i];
         x_t = zbinv[i].xmean;
         Q2_t = zbinv[i].Q2mean;
         pT_t = zbinv[i].pTmean;
         R0_t = zbinv[i].R0mean;
-        R1_p_t = zbinv[i].R1_p_mean;
-        R1_m_t = zbinv[i].R1_m_mean;
+        R1_t = zbinv[i].R1mean;
         R2_t = zbinv[i].R2mean;
         t_z_h->Fill();
         }
-    for(int i = 0; i < vinfoString.size() - 2; i++) {
-        xbinv[i].meanx(dual_box_affinity);
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
+        xbinv[i].meanx();
         infoString = vinfoString[i];
         z_h_t = xbinv[i].z_hmean;
         Q2_t = xbinv[i].Q2mean;
         pT_t = xbinv[i].pTmean;
         R0_t = xbinv[i].R0mean;
-        R1_p_t = xbinv[i].R1_p_mean;
-        R1_m_t = xbinv[i].R1_m_mean;
+        R1_t = xbinv[i].R1mean;
         R2_t = xbinv[i].R2mean;
         t_x->Fill();
         }
-    for(int i = 0; i < vinfoString.size() - 2; i++) {
-        Mhbinv[i].meanmh(dual_box_affinity);
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
+        Mhbinv[i].meanmh();
         infoString = vinfoString[i];
         x_t = Mhbinv[i].xmean;
         z_h_t = Mhbinv[i].z_hmean;
         Q2_t = Mhbinv[i].Q2mean;
         pT_t = Mhbinv[i].pTmean;
         R0_t = Mhbinv[i].R0mean;
-        R1_p_t = Mhbinv[i].R1_p_mean;
-        R1_m_t = Mhbinv[i].R1_m_mean;
+        R1_t = Mhbinv[i].R1mean;
         R2_t = Mhbinv[i].R2mean;
         t_Mh->Fill();
         }
     
-    for(int i = 0; i < vinfoString.size() - 1; i++) {
-        Q2binv[i].meanQ2(dual_box_affinity);
+    for(int i = 0; i < vinfoString.size(); i++) {
+        Q2binv[i].meanQ2();
         infoString = vinfoString[i];
         x_t = Q2binv[i].xmean;
         z_h_t = Q2binv[i].z_hmean;
         Q2_t = Q2binv[i].Q2mean;
         pT_t = Q2binv[i].pTmean;
         R0_t = Q2binv[i].R0mean;
-        R1_p_t = Q2binv[i].R1_p_mean;
-        R1_m_t = Q2binv[i].R1_m_mean;
+        R1_t = Q2binv[i].R1mean;
         R2_t = Q2binv[i].R2mean;
         t_Q2->Fill();
         }
     
-    for(int i = 0; i < vinfoString.size(); i++) {
-        qTQbinv[i].meanqTQ(dual_box_affinity);
+    for(int i = 0; i < vinfoString.size() - 1; i++) {
+        qTQbinv[i].meanqTQ();
         infoString = vinfoString[i];
         x_t = qTQbinv[i].xmean;
         z_h_t = qTQbinv[i].z_hmean;
         Q2_t = qTQbinv[i].Q2mean;
         pT_t = qTQbinv[i].pTmean;
         R0_t = qTQbinv[i].R0mean;
-        R1_p_t = qTQbinv[i].R1_p_mean;
-        R1_m_t = qTQbinv[i].R1_m_mean;
+        R1_t = qTQbinv[i].R1mean;
         R2_t = qTQbinv[i].R2mean;
         t_qTQ->Fill();
         }
