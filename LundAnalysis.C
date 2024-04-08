@@ -4,7 +4,7 @@
 int LundAnalysis(
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
                    //const char * rootfile = "OutputFiles/Files_Spring_24/Feb29/ErrorTest.root"
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_8/file_2.root",
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_8/file_3.root",
                     int dual_box_affinity = 1 //Use as a bool: true (1) if wanting both R1_p and R1_m; false (0) if wanting R1 only
 )
 {
@@ -573,6 +573,7 @@ int LundAnalysis(
     Double_t Q2_t;
     Double_t pT_t;
     Double_t R0_t;
+    Double_t R1_t;
     Double_t R1_m_t;
     Double_t R1_p_t;
     Double_t R2_t;
@@ -582,6 +583,7 @@ int LundAnalysis(
     t_z_h->Branch("Q2", &Q2_t);
     t_z_h->Branch("pT", &pT_t);
     t_z_h->Branch("R0", &R0_t);
+    t_z_h->Branch("R1", &R1_t);
     t_z_h->Branch("R1_p", &R1_p_t);
     t_z_h->Branch("R1_m", &R1_m_t);
     t_z_h->Branch("R2", &R2_t);
@@ -591,6 +593,7 @@ int LundAnalysis(
     t_x->Branch("Q2", &Q2_t);
     t_x->Branch("pT", &pT_t);
     t_x->Branch("R0", &R0_t);
+    t_x->Branch("R1", &R1_t);
     t_x->Branch("R1_p", &R1_p_t);
     t_x->Branch("R1_m", &R1_m_t);
     t_x->Branch("R2", &R2_t);
@@ -601,6 +604,7 @@ int LundAnalysis(
     t_Mh->Branch("Q2", &Q2_t);
     t_Mh->Branch("pT", &pT_t);
     t_Mh->Branch("R0", &R0_t);
+    t_Mh->Branch("R1", &R1_t);
     t_Mh->Branch("R1_p", &R1_p_t);
     t_Mh->Branch("R1_m", &R1_m_t);
     t_Mh->Branch("R2", &R2_t);
@@ -611,6 +615,7 @@ int LundAnalysis(
     t_Q2->Branch("Q2", &Q2_t);
     t_Q2->Branch("pT", &pT_t);
     t_Q2->Branch("R0", &R0_t);
+    t_Q2->Branch("R1", &R1_t);
     t_Q2->Branch("R1_p", &R1_p_t);
     t_Q2->Branch("R1_m", &R1_m_t);
     t_Q2->Branch("R2", &R2_t);
@@ -621,6 +626,7 @@ int LundAnalysis(
     t_qTQ->Branch("Q2", &Q2_t);
     t_qTQ->Branch("pT", &pT_t);
     t_qTQ->Branch("R0", &R0_t);
+    t_qTQ->Branch("R1", &R1_t);
     t_qTQ->Branch("R1_p", &R1_p_t);
     t_qTQ->Branch("R1_m", &R1_m_t);
     t_qTQ->Branch("R2", &R2_t);
@@ -637,6 +643,7 @@ int LundAnalysis(
         R0_t = zbinv[i].R0mean;
         R1_p_t = zbinv[i].R1_p_mean;
         R1_m_t = zbinv[i].R1_m_mean;
+        R1_t = zbinv[i].R1mean;
         R2_t = zbinv[i].R2mean;
         t_z_h->Fill();
         }
@@ -649,6 +656,7 @@ int LundAnalysis(
         R0_t = xbinv[i].R0mean;
         R1_p_t = xbinv[i].R1_p_mean;
         R1_m_t = xbinv[i].R1_m_mean;
+        R1_t = xbinv[i].R1mean;
         R2_t = xbinv[i].R2mean;
         t_x->Fill();
         }
@@ -662,6 +670,7 @@ int LundAnalysis(
         R0_t = Mhbinv[i].R0mean;
         R1_p_t = Mhbinv[i].R1_p_mean;
         R1_m_t = Mhbinv[i].R1_m_mean;
+        R1_t = Mhbinv[i].R1mean;
         R2_t = Mhbinv[i].R2mean;
         t_Mh->Fill();
         }
@@ -676,6 +685,7 @@ int LundAnalysis(
         R0_t = Q2binv[i].R0mean;
         R1_p_t = Q2binv[i].R1_p_mean;
         R1_m_t = Q2binv[i].R1_m_mean;
+        R1_t = Q2binv[i].R1mean;
         R2_t = Q2binv[i].R2mean;
         t_Q2->Fill();
         }
@@ -690,6 +700,7 @@ int LundAnalysis(
         R0_t = qTQbinv[i].R0mean;
         R1_p_t = qTQbinv[i].R1_p_mean;
         R1_m_t = qTQbinv[i].R1_m_mean;
+        R1_t = qTQbinv[i].R1mean;
         R2_t = qTQbinv[i].R2mean;
         t_qTQ->Fill();
         }
