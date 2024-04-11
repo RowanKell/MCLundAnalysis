@@ -24,7 +24,7 @@ no_cut = args.no_cut
 
 dir_prefix = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/"
 
-d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/Feb29/Run_1/file_*.root")
+d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_8/Run_1/file_*.root")
 # d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/Feb29/Run_1/file_0.root")
 
 #Bins (each has 8 including 0)
@@ -41,7 +41,6 @@ qTQbins = np.array([0,0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
 Q2bins = np.array([0,1,1.4,2,2.8,4,5.6,7.9,11.1])
 
 varName = np.array(["x", "z", "Q2", "pT", "R0", "R1", "R2"])
-
 px = [0 for i in range(7)]
 pz = [0 for i in range(7)]
 pMh=[0 for i in range(7)]
@@ -214,10 +213,10 @@ for i in range(9):
 
 if no_cut == "":
     no_cut_text = ""
-    no_cut_file_name = "_all_cuts.jpeg"
+    no_cut_file_name = "_all_cuts.svg"
 else:
     no_cut_text = ", no cut on " + no_cut
-    no_cut_file_name = "_no_cut_" + no_cut + ".jpeg"
+    no_cut_file_name = "_no_cut_" + no_cut + ".svg"
 # fig2, ax52 = plot.subplots(1, 1, figsize = (10, 10), dpi=60)
 fig2, ((ax42, ax22), (ax32,ax52)) = plot.subplots(2, 2, figsize = (12, 12), dpi=60)
 # fig2, ((ax42, ax22, ax32), (ax52, ax62, ax72), (ax82, ax92, ax02)) = plot.subplots(3, 3, figsize = (15, 12), dpi=60)
@@ -267,4 +266,4 @@ ax52.set(xlabel = "qTdivQ")
 # ax02.axhline(y=0, color="gray", lw = 1)
 # ax02.set_title("Q2 counts")
 # ax02.set(xlabel = "Q2")
-plot.savefig(dir_prefix+"Analysis/BoxAffinity/Plots_S24/March_27/Box_affinity" + no_cut_file_name)
+plot.savefig(dir_prefix+"Analysis/BoxAffinity/Plots_S24/April_8/Box_affinity" + no_cut_file_name)

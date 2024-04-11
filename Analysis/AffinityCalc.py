@@ -16,7 +16,7 @@ import tensorflow as tf
 print("tf.__version__", tf.__version__)
 
 # simple version for working with CWD
-file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/Feb29/Run_1/"
+file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_8/Run_1/"
 num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
 file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
 
@@ -50,10 +50,10 @@ Mharray = np.array([np.array([np.zeros(7)] * 7)] * num_files)
 qTdivQarray = np.array([np.array([np.zeros(9)] * 7)] * num_files)
 
 
-xkinematics = np.array(["z_h", "Q2", "pT", "R0", "R1", "R2"])
-zkinematics = np.array(["x", "Q2", "pT", "R0", "R1", "R2"
-Mhkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
-qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
+xkinematics = np.array(["z_h", "Q2", "pT", "R0", "R1_p", "R2"])
+zkinematics = np.array(["x", "Q2", "pT", "R0", "R1_p", "R2"])
+Mhkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1_p", "R2"])
+qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1_p", "R2"])
 
 #These arrays each hold an array for each variable, meaning that the first bin of variables is in the first index of every kinematics array
 
@@ -116,30 +116,24 @@ qTdivQbins = np.array([0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
 # qTdivQbins = np.linspace(0.1,0.7,7)
 
 def calculator(array, region, binType, binnedVariable = 0):
+    R0max = 0.3
+    R1max = 0.3
+    R2max = 0.3
     if binType == "x":
         z = array[0]
         Q2 = array[1]
         pT = array[2]
-        R0max = array[3]
-        R1max = array[4]
-        R2max = array[5]
         x = binnedVariable
     elif binType == "z":
         x = array[0]
         Q2 = array[1]
         pT = array[2]
-        R0max = array[3]
-        R1max = array[4]
-        R2max = array[5]
         z = binnedVariable
     elif (binType == "Mh") or (binType == "qTdivQ"):
         x = array[0]
         z = array[1]
         Q2 = array[2]
         pT = array[3]
-        R0max = array[4]
-        R1max = array[5]
-        R2max = array[6]
         
     test_features = pd.DataFrame({'pT':pT,'Q2':Q2,'x':x,'z':z,'R0max':R0max,'R1max':R1max,'R2max':R2max},index=[0])
 
@@ -254,7 +248,7 @@ ax42.scatter(qTdivQbins, TMDqTdivQaffinity)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("q_T/Q binning")
 ax42.set(xlabel = "q_T/Q")
-fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/March27/TMD_test.jpeg")
+fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_8/TMD.svg")
 
 # fig3, (ax13, ax23, ax33) = plot.subplots(1, 3, figsize = (20, 5))
 # fig3.suptitle("Dihadron Affinity in the Current region")
