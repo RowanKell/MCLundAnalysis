@@ -24,7 +24,7 @@ no_cut = args.no_cut
 
 dir_prefix = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/"
 
-d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_8/Run_1/file_*.root")
+d_p = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_8/Run_1/file_*.root")
 # d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/Feb29/Run_1/file_0.root")
 
 #Bins (each has 8 including 0)
@@ -41,175 +41,182 @@ qTQbins = np.array([0,0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
 Q2bins = np.array([0,1,1.4,2,2.8,4,5.6,7.9,11.1])
 
 varName = np.array(["x", "z", "Q2", "pT", "R0", "R1", "R2"])
-px = [0 for i in range(7)]
-pz = [0 for i in range(7)]
-pMh=[0 for i in range(7)]
-ppT=[0 for i in range(7)]
-pQ2 = [0 for i in range(8)]
-pqTQ = [0 for i in range(9)]
 
-pxcut = [0 for i in range(7)]
-pzcut = [0 for i in range(7)]
-pMhcut=[0 for i in range(7)]
-ppTcut=[0 for i in range(7)]
-pQ2cut=[0 for i in range(8)]
-pqTQcut=[0 for i in range(9)]
+def calculate_Affinity(dataframe):
 
-# start_time = time.time()
-xformat = "x <= {} && x > {}"
-zformat = "z <= {} && z > {}"
-Mhformat = "Mh <= {} && Mh > {}"
-pTformat = "pT <= {} && pT > {}"
-R0format = "R0 <= {} && R0 > {}"
-R1format = "R1 <= {} && R1 > {}"
-R2format = "R2 <= {} && R2 > {}" 
-# qdivformat = "q_TdivQ <= {} && q_TdivQ > {}"
-# qdivformat = "qTQ_lab <= {} && qTQ_lab > {}"
-qdivformat = "qTQ_hadron <= {} && qTQ_hadron > {}"
-Q2format = "Q2 <= {} && Q2 > {}"
+    px = [0 for i in range(7)]
+    pz = [0 for i in range(7)]
+    pMh=[0 for i in range(7)]
+    ppT=[0 for i in range(7)]
+    pQ2 = [0 for i in range(8)]
+    pqTQ = [0 for i in range(9)]
 
-#Piplus
-#x bins
-#i is the kinematic variable
-#j is the bin num
-# for i in range(7):
-#     pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
-#     px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
-#     pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
-#     pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
-#     pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count() 
-#     pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
-#     ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
-#     ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
-#     pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
-#     pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
-# for i in range(8):
-#     pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
-#     pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
+    pxcut = [0 for i in range(7)]
+    pzcut = [0 for i in range(7)]
+    pMhcut=[0 for i in range(7)]
+    ppTcut=[0 for i in range(7)]
+    pQ2cut=[0 for i in range(8)]
+    pqTQcut=[0 for i in range(9)]
+
+    # start_time = time.time()
+    xformat = "x <= {} && x > {}"
+    zformat = "z <= {} && z > {}"
+    Mhformat = "Mh <= {} && Mh > {}"
+    pTformat = "pT <= {} && pT > {}"
+    R0format = "R0 <= {} && R0 > {}"
+    R1format = "R1 <= {} && R1 > {}"
+    R2format = "R2 <= {} && R2 > {}" 
+    # qdivformat = "q_TdivQ <= {} && q_TdivQ > {}"
+    # qdivformat = "qTQ_lab <= {} && qTQ_lab > {}"
+    qdivformat = "qTQ_hadron <= {} && qTQ_hadron > {}"
+    Q2format = "Q2 <= {} && Q2 > {}"
+
+    #Piplus
+    #x bins
+    #i is the kinematic variable
+    #j is the bin num
+    # for i in range(7):
+    #     pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
+    #     px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
+    #     pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
+    #     pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
+    #     pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count() 
+    #     pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
+    #     ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
+    #     ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+    #     pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
+    #     pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
+    # for i in range(8):
+    #     pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
+    #     pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Filter("R2 < 0.3").Count()
 
 
-if(no_cut == "R1"):
+    if(no_cut == "R1"):
+        for i in range(7):
+            pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
+            px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
+            pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
+            pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
+            pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count() 
+            pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
+            ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
+            ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+        for i in range(8):
+            pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
+            pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
+        for i in range(9):
+            pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
+            pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
+    elif(no_cut == "R2"):
+        for i in range(7):
+            pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+            px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
+            pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+            pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
+            pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count() 
+            pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
+            ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+            ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+        for i in range(8):
+            pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
+            pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+        for i in range(9):
+            pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
+            pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+    elif(no_cut == "R0"):
+        for i in range(7):
+            pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
+            px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
+            pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
+            pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
+            pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count() 
+            pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
+            ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
+            ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+        for i in range(8):
+            pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
+            pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
+        for i in range(9):
+            pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
+            pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
+    else:
+        for i in range(7):
+            pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+            px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
+            pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+            pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
+            pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count() 
+            pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
+            ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+            ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+        for i in range(8):
+            pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
+            pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+        for i in range(9):
+            pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
+            pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+
     for i in range(7):
-        pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
-        px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
-        pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
-        pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
-        pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count() 
-        pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
-        ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
-        ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+        pxcut[i] = pxcut[i].GetValue()
+        px[i] = px[i].GetValue()
+        pMhcut[i] = pMhcut[i].GetValue()
+        pMh[i] = pMh[i].GetValue()
+        pzcut[i] = pzcut[i].GetValue()
+        pz[i] = pz[i].GetValue()
+        ppTcut[i] = ppTcut[i].GetValue()
+        ppT[i] = ppT[i].GetValue()
     for i in range(8):
-        pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
-        pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
+        pQ2cut[i] = pQ2cut[i].GetValue()
+        pQ2[i] = pQ2[i].GetValue()
     for i in range(9):
-        pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
-        pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R2 < 0.3").Filter("R0 < 0.3").Count()
-elif(no_cut == "R2"):
+        pqTQcut[i] = pqTQcut[i].GetValue()
+        pqTQ[i] = pqTQ[i].GetValue()
+
+
+    pxval = [0 for i in range(7)]
+    pzval = [0 for i in range(7)]
+    pMhval=[0 for i in range(7)]
+    ppTval=[0 for i in range(7)]
+    pqTQval = [0 for i in range(9)]
+    pQ2val = [0 for i in range(8)]
+    Mhbinsno0 = np.delete(Mhbins, 0)
+    pTbinsno0 = np.linspace(0.2,0.8,7)
+    xbinsno0 = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
+    zbinsno0 = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
+
+    #0.1->0.7 is for the hadron and regular qTQ
+    # qTQbinsno0 = np.linspace(0.1,0.7,7)
+    qTQbinsno0 = np.array([0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
+    #0.3->0.9 is for the lab frame qTQ
+    # qTQbinsno0 = np.linspace(0.3,0.9,7)
+    Q2binsno0 = np.array([1,1.4,2,2.8,4,5.6,7.9,11.1])
+
+
     for i in range(7):
-        pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-        px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
-        pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-        pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
-        pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count() 
-        pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
-        ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-        ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
+        if(px[i] == 0):
+            pxval[i] = 0
+        else: pxval[i] = pxcut[i] / px[i]
+        if(pz[i] == 0):
+            pzval[i] = 0
+        else: pzval[i] = pzcut[i] / pz[i]
+        if(ppT[i] == 0):
+            ppTval[i] = 0
+        else: ppTval[i] = ppTcut[i] / ppT[i]
+        if(pMh[i] == 0):
+            pMhval[i] = 0
+        else: pMhval[i] = pMhcut[i] / pMh[i]
     for i in range(8):
-        pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
-        pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+        if(pQ2[i] == 0):
+            pQ2val[i] = 0
+        else: pQ2val[i] = pQ2cut[i] / pQ2[i]
     for i in range(9):
-        pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
-        pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-elif(no_cut == "R0"):
-    for i in range(7):
-        pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
-        px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
-        pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
-        pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
-        pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count() 
-        pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
-        ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
-        ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
-    for i in range(8):
-        pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
-        pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
-    for i in range(9):
-        pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
-        pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Count()
-else:
-    for i in range(7):
-        pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-        px[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Count()
-        pMhcut[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-        pMh[i] = d.Filter(Mhformat.format(Mhbins[i + 1],Mhbins[i])).Count()
-        pzcut[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count() 
-        pz[i] = d.Filter(zformat.format(zbins[i + 1],zbins[i])).Count()
-        ppTcut[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-        ppT[i] = d.Filter(pTformat.format(pTbins[i + 1],pTbins[i])).Count()
-    for i in range(8):
-        pQ2[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Count()
-        pQ2cut[i] = d.Filter(Q2format.format(Q2bins[i + 1],Q2bins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
-    for i in range(9):
-        pqTQ[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Count()
-        pqTQcut[i] = d.Filter(qdivformat.format(qTQbins[i + 1],qTQbins[i])).Filter("R2 < 0.3").Filter("R1 < 0.3").Filter("R0 < 0.3").Count()
+        if(pqTQ[i] == 0):
+            pqTQval[i] = 0
+        else: pqTQval[i] = pqTQcut[i] / pqTQ[i]
+    Affinity_arrs = [pxval,pzval,pMhval,pQ2val,pqTval]
+    return Affinity_arrs
 
-for i in range(7):
-    pxcut[i] = pxcut[i].GetValue()
-    px[i] = px[i].GetValue()
-    pMhcut[i] = pMhcut[i].GetValue()
-    pMh[i] = pMh[i].GetValue()
-    pzcut[i] = pzcut[i].GetValue()
-    pz[i] = pz[i].GetValue()
-    ppTcut[i] = ppTcut[i].GetValue()
-    ppT[i] = ppT[i].GetValue()
-for i in range(8):
-    pQ2cut[i] = pQ2cut[i].GetValue()
-    pQ2[i] = pQ2[i].GetValue()
-for i in range(9):
-    pqTQcut[i] = pqTQcut[i].GetValue()
-    pqTQ[i] = pqTQ[i].GetValue()
-    
-    
-pxval = [0 for i in range(7)]
-pzval = [0 for i in range(7)]
-pMhval=[0 for i in range(7)]
-ppTval=[0 for i in range(7)]
-pqTQval = [0 for i in range(9)]
-pQ2val = [0 for i in range(8)]
-Mhbinsno0 = np.delete(Mhbins, 0)
-pTbinsno0 = np.linspace(0.2,0.8,7)
-xbinsno0 = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
-zbinsno0 = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
-
-#0.1->0.7 is for the hadron and regular qTQ
-# qTQbinsno0 = np.linspace(0.1,0.7,7)
-qTQbinsno0 = np.array([0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
-#0.3->0.9 is for the lab frame qTQ
-# qTQbinsno0 = np.linspace(0.3,0.9,7)
-Q2binsno0 = np.array([1,1.4,2,2.8,4,5.6,7.9,11.1])
-
-
-for i in range(7):
-    if(px[i] == 0):
-        pxval[i] = 0
-    else: pxval[i] = pxcut[i] / px[i]
-    if(pz[i] == 0):
-        pzval[i] = 0
-    else: pzval[i] = pzcut[i] / pz[i]
-    if(ppT[i] == 0):
-        ppTval[i] = 0
-    else: ppTval[i] = ppTcut[i] / ppT[i]
-    if(pMh[i] == 0):
-        pMhval[i] = 0
-    else: pMhval[i] = pMhcut[i] / pMh[i]
-for i in range(8):
-    if(pQ2[i] == 0):
-        pQ2val[i] = 0
-    else: pQ2val[i] = pQ2cut[i] / pQ2[i]
-for i in range(9):
-    if(pqTQ[i] == 0):
-        pqTQval[i] = 0
-    else: pqTQval[i] = pqTQcut[i] / pqTQ[i]
+plus_arrs = calculate_Affinity(d_p)
 
 if no_cut == "":
     no_cut_text = ""
@@ -228,21 +235,21 @@ fig2.suptitle("BOX Affinity in the TMD region: Rmax = 0.3" + no_cut_text)
 # ax12.axhline(y=0, color="gray", lw = 1)
 # ax12.set_title("pT binning")
 # ax12.set(xlabel = "pT (GeV)")
-ax22.scatter(xbinsno0, pxval, c = 'r', marker = '+')
+ax22.scatter(xbinsno0, plus_arrs[0], c = 'r', marker = '+')
 ax22.axhline(y=0, color="gray", lw = 1)
 ax22.set_title("x binning")
 ax22.set(xlabel = "x")
-ax32.scatter(zbinsno0, pzval, c = 'r', marker = '+')
+ax32.scatter(zbinsno0, plus_arrs[1], c = 'r', marker = '+')
 ax32.axhline(y=0, color="gray", lw = 1)
 ax32.set_title("z_h binning")
 ax32.set(xlabel = "z_h")
 ax42.set(ylabel = "Affinity")
-ax42.scatter(Mhbinsno0, pMhval, c = 'r', marker = "+")
+ax42.scatter(Mhbinsno0, plus_arrs[2], c = 'r', marker = "+")
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("Mh binning")
 ax42.set(xlabel = "Mh (GeV)")
 # print(f"len(qTQbinsno0): {len(qTQbinsno0)}; len(pqTQval): {len(pqTQval)}")
-ax52.scatter(qTQbinsno0, pqTQval, c = 'r', marker = "+")
+ax52.scatter(qTQbinsno0, plus_arrs[4], c = 'r', marker = "+")
 ax52.axhline(y=0, color="gray", lw = 1)
 ax52.set_title("qTdivQ binning")
 ax52.set(xlabel = "qTdivQ")

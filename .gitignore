@@ -4,3 +4,4 @@ OutputFiles/
 .ipynb_checkpoints/
 core*
 Analysis/TFAffinity/models_copy/
+venv/
