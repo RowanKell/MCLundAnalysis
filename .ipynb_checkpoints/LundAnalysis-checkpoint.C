@@ -41,11 +41,12 @@ int LundAnalysis(
     TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
     tree_MC->Branch("z",&z_h);
     tree_MC->Branch("z_1",&z_h_1);
-    tree_MC->Branch("z_N",&z_N);
+    tree_MC->Branch("z_2",&z_h_1);
     tree_MC->Branch("x",&x);
     tree_MC->Branch("pT",&pt_gN);
+    tree_MC->Branch("pT_1",&pt_gN_2);
+    tree_MC->Branch("pT_2",&pt_gN_1);
     tree_MC->Branch("Q2",&Q2);
-    tree_MC->Branch("Q2calc",&Q2_calc);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
     tree_MC->Branch("R1_p",&R1_p); //Measured in gN frame
@@ -53,10 +54,6 @@ int LundAnalysis(
     tree_MC->Branch("R2",&R2);
     tree_MC->Branch("Mh",&Mdihadron);
     tree_MC->Branch("q_TdivQ",&qTQ);
-    tree_MC->Branch("xF",&xF);
-    tree_MC->Branch("qTQ_lab",&qTQ_lab);
-    tree_MC->Branch("qTQfrac",&qTQfrac);
-    tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
     
     //Tell the user that the loop is starting
     cout << "Start Event Loop" << endl;
