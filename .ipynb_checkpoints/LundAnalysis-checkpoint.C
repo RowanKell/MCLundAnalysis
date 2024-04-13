@@ -4,8 +4,8 @@
 int LundAnalysis(
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
                    //const char * rootfile = "OutputFiles/Files_Spring_24/Feb29/ErrorTest.root"
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_8/file_3.root",
-                    int dual_box_affinity = 1 //Use as a bool: true (1) if wanting both R1_p and R1_m; false (0) if wanting R1 only
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_13/Run_1_single_pion/file_0.root",
+                    int single_pion = 1 //Use as a bool: true (1) if wanting to bin with z of single pion; false (0) if wanting to bin with z
 )
 {
     declarations();
@@ -40,6 +40,7 @@ int LundAnalysis(
     //Making new MC tree for dihadron
     TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
     tree_MC->Branch("z",&z_h);
+    tree_MC->Branch("z_1",&z_h_1);
     tree_MC->Branch("z_N",&z_N);
     tree_MC->Branch("x",&x);
     tree_MC->Branch("pT",&pt_gN);
@@ -47,6 +48,8 @@ int LundAnalysis(
     tree_MC->Branch("Q2calc",&Q2_calc);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
+    tree_MC->Branch("R1_p",&R1_p); //Measured in gN frame
+    tree_MC->Branch("R1_m",&R1_m); //Measured in gN frame
     tree_MC->Branch("R2",&R2);
     tree_MC->Branch("Mh",&Mdihadron);
     tree_MC->Branch("q_TdivQ",&qTQ);
@@ -210,9 +213,15 @@ int LundAnalysis(
         //Loop over all combinations of pion pairs
         
         //Calculate number of unique pion pairs
+        
+
+        
         for(int i = 0; i < pi_v.v_id.size(); i++) {
             pi1.fillParticle(pi_v.v_id[i], pi_v.v_pid[i], pi_v.v_px[i], pi_v.v_py[i],pi_v.v_pz[i], pi_v.v_daughter[i], pi_v.v_parent[i], pi_v.v_mass[i], pi_v.v_vz[i]);
-            for(int j = 0; j < pi_v.v_id.size(); j++) {
+            //Consider all pion pairs (including duplicates) if doing single pion to ensure all pions are accounted for
+            if(single_pion) {j_start = 0;}//Make sure all pions will be a pi_1
+            else{j_start = i;}//Start at i to make sure pi_2 has never been a pi_1
+            for(int j = j_start; j < pi_v.v_id.size(); j++) {
                 if(i == j){
                     //Continue past cases where both pions are the same
                     continue;
@@ -292,7 +301,10 @@ int LundAnalysis(
                 pt_gN = Ptfunc(dihadron_gN);
                 pt_gN_1 = Ptfunc(lv_p1_gN);
                 pt_gN_2 = Ptfunc(lv_p2_gN);
-
+                //dihadron_gN.Print();
+                //cout << "1, 2 below\n";
+                //lv_p1_gN.Print();
+                //lv_p1_gN.Print();
                 //Need target in gN
                 target_gN = init_target;
                 target_gN.Boost(gNBoostNeg);
@@ -510,24 +522,25 @@ int LundAnalysis(
         //         t_minus->Fill();
                 //Need: x, z, Q2, pT, R0, R1, R2
                 //zbins:
-
+                if(single_pion) {z_h_cut_val = z_h_1;}
+                else {z_h_cut_val = z_h;}
                 for(int i = 0; i < zbins.size(); i++) {
                     if(z_h <= zbins[i]) {
-                        zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R1_p, R1_m, R2);
+                        zbinv[i].zFillVectors(x, Q2, pt_gN,pt_gN_1,pt_gN_2, R0, R1, R2);
                         break;
                     }
                 }
                 //Mh bins
                 for(int i = 0; i < Mhbins.size(); i++) {
                     if(Mdihadron <= Mhbins[i]) {
-                        Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN, R0, R1, R1_p, R1_m, R2);
+                        Mhbinv[i].mhFillVectors(x, z_h, Q2, pt_gN,z_h_1,  pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }
                 }
                 //Q2 bins
                 for(int i = 0; i < Q2bins.size(); i++) {
                     if(Q2 <= Q2bins[i]) {
-                        Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R1_p, R1_m, R2);
+                        Q2binv[i].Q2FillVectors(x, z_h, pt_gN,z_h_1, pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }
                 }
@@ -536,14 +549,14 @@ int LundAnalysis(
                 for(int i = 0; i < qTQbins.size(); i++) {
                     if(qTQ_hadron <= qTQbins[i]) {
 //                         cout << "event #" << tree_count << " entered qTQ cut at cut value: "<< qTQbins[i] << "\n";
-                        qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R1_p, R1_m, R2);
+                        qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN,z_h_1, pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }
                 }
                 //x bins
                 for(int i = 0; i < xbins.size(); i++) {
                     if(x <= xbins[i]) {
-                        xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R1_p, R1_m, R2);
+                        xbinv[i].xFillVectors(z_h, Q2, pt_gN,z_h_1,pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }
                 }
@@ -572,134 +585,194 @@ int LundAnalysis(
     Double_t x_t;
     Double_t Q2_t;
     Double_t pT_t;
+    
+    Double_t z_h_t_1;
+    Double_t pT_t_1;
+    
+    Double_t z_h_t_2;
+    Double_t pT_t_2;
+    
     Double_t R0_t;
     Double_t R1_t;
-    Double_t R1_m_t;
-    Double_t R1_p_t;
     Double_t R2_t;
-    
+    //z branch
     t_z_h->Branch("Name",&infoString);
     t_z_h->Branch("x", &x_t);
     t_z_h->Branch("Q2", &Q2_t);
     t_z_h->Branch("pT", &pT_t);
+    
+    t_z_h->Branch("pT_1", &pT_t_1);
+    
+    t_z_h->Branch("pT_2", &pT_t_2);
+    
     t_z_h->Branch("R0", &R0_t);
     t_z_h->Branch("R1", &R1_t);
-    t_z_h->Branch("R1_p", &R1_p_t);
-    t_z_h->Branch("R1_m", &R1_m_t);
     t_z_h->Branch("R2", &R2_t);
     
+    //x branch
     t_x->Branch("Name",&infoString);
     t_x->Branch("z_h", &z_h_t);
     t_x->Branch("Q2", &Q2_t);
     t_x->Branch("pT", &pT_t);
+    
+    t_x->Branch("z_h_1", &z_h_t_1);
+    t_x->Branch("pT_1", &pT_t_1);
+    
+    t_x->Branch("z_h_2", &z_h_t_2);
+    t_x->Branch("pT_2", &pT_t_2);
+    
+    
     t_x->Branch("R0", &R0_t);
     t_x->Branch("R1", &R1_t);
-    t_x->Branch("R1_p", &R1_p_t);
-    t_x->Branch("R1_m", &R1_m_t);
     t_x->Branch("R2", &R2_t);
     
+    //Mh branch
+    
     t_Mh->Branch("Name",&infoString);
-    t_Mh->Branch("x", &x_t);
     t_Mh->Branch("z_h", &z_h_t);
-    t_Mh->Branch("Q2", &Q2_t);
     t_Mh->Branch("pT", &pT_t);
+    t_Mh->Branch("x", &x_t);
+    t_Mh->Branch("Q2", &Q2_t);
+    
+    t_Mh->Branch("z_h_1", &z_h_t_1);
+    t_Mh->Branch("pT_1", &pT_t_1);
+
+    t_Mh->Branch("z_h_2", &z_h_t_2);
+    t_Mh->Branch("pT_2", &pT_t_2);
+    
+    
     t_Mh->Branch("R0", &R0_t);
     t_Mh->Branch("R1", &R1_t);
-    t_Mh->Branch("R1_p", &R1_p_t);
-    t_Mh->Branch("R1_m", &R1_m_t);
     t_Mh->Branch("R2", &R2_t);
     
+    
+    //Q2 branch
     t_Q2->Branch("Name",&infoString);
-    t_Q2->Branch("x", &x_t);
     t_Q2->Branch("z_h", &z_h_t);
-    t_Q2->Branch("Q2", &Q2_t);
+    t_Q2->Branch("x", &x_t);
     t_Q2->Branch("pT", &pT_t);
+
+    t_Q2->Branch("z_h_1", &z_h_t_1);
+    t_Q2->Branch("pT_1", &pT_t_1);
+    
+    t_Q2->Branch("z_h_2", &z_h_t_2);
+    t_Q2->Branch("pT_2", &pT_t_2);
+    
+    
     t_Q2->Branch("R0", &R0_t);
     t_Q2->Branch("R1", &R1_t);
-    t_Q2->Branch("R1_p", &R1_p_t);
-    t_Q2->Branch("R1_m", &R1_m_t);
     t_Q2->Branch("R2", &R2_t);
     
+    //qTQ branch
     t_qTQ->Branch("Name",&infoString);
     t_qTQ->Branch("x", &x_t);
     t_qTQ->Branch("z_h", &z_h_t);
     t_qTQ->Branch("Q2", &Q2_t);
     t_qTQ->Branch("pT", &pT_t);
+    
+    t_qTQ->Branch("z_h_1", &z_h_t_1);
+    t_qTQ->Branch("pT_1", &pT_t_1);
+    
+    t_qTQ->Branch("z_h_2", &z_h_t_2);
+    t_qTQ->Branch("pT_2", &pT_t_2);
+    
+    
     t_qTQ->Branch("R0", &R0_t);
     t_qTQ->Branch("R1", &R1_t);
-    t_qTQ->Branch("R1_p", &R1_p_t);
-    t_qTQ->Branch("R1_m", &R1_m_t);
     t_qTQ->Branch("R2", &R2_t);
     
     //Calculating means
     //Setting zbin means
     for(int i = 0; i < vinfoString.size() - 2; i++) { //Note: we use i < vinfoString.size() - 2 for x,z,Mh 
                                                       //bc they have 7 bins, and there are 9 bins for qTQ, so vinfoString has length 9
-        zbinv[i].meanZ_h(dual_box_affinity);
+        zbinv[i].meanZ_h();
         infoString = vinfoString[i];
         x_t = zbinv[i].xmean;
         Q2_t = zbinv[i].Q2mean;
         pT_t = zbinv[i].pTmean;
+        
+        pT_t_1 = zbinv[i].pTmean_1;
+        
+        pT_t_2 = zbinv[i].pTmean_2;
+        
         R0_t = zbinv[i].R0mean;
-        R1_p_t = zbinv[i].R1_p_mean;
-        R1_m_t = zbinv[i].R1_m_mean;
         R1_t = zbinv[i].R1mean;
         R2_t = zbinv[i].R2mean;
         t_z_h->Fill();
         }
     for(int i = 0; i < vinfoString.size() - 2; i++) {
-        xbinv[i].meanx(dual_box_affinity);
+        xbinv[i].meanx();
         infoString = vinfoString[i];
         z_h_t = xbinv[i].z_hmean;
         Q2_t = xbinv[i].Q2mean;
         pT_t = xbinv[i].pTmean;
+        
+        z_h_t_1 = xbinv[i].z_hmean_1;
+        pT_t_1 = xbinv[i].pTmean_1;
+        
+        z_h_t_2 = xbinv[i].z_hmean_2;
+        pT_t_2 = xbinv[i].pTmean_2;
+        
         R0_t = xbinv[i].R0mean;
-        R1_p_t = xbinv[i].R1_p_mean;
-        R1_m_t = xbinv[i].R1_m_mean;
         R1_t = xbinv[i].R1mean;
         R2_t = xbinv[i].R2mean;
         t_x->Fill();
         }
     for(int i = 0; i < vinfoString.size() - 2; i++) {
-        Mhbinv[i].meanmh(dual_box_affinity);
+        Mhbinv[i].meanmh();
         infoString = vinfoString[i];
         x_t = Mhbinv[i].xmean;
         z_h_t = Mhbinv[i].z_hmean;
         Q2_t = Mhbinv[i].Q2mean;
         pT_t = Mhbinv[i].pTmean;
+        
+        z_h_t_1 = Mhbinv[i].z_hmean_1;
+        pT_t_1 = Mhbinv[i].pTmean_1;
+        
+        z_h_t_2 = Mhbinv[i].z_hmean_2;
+        pT_t_2 = Mhbinv[i].pTmean_2;
+        
         R0_t = Mhbinv[i].R0mean;
-        R1_p_t = Mhbinv[i].R1_p_mean;
-        R1_m_t = Mhbinv[i].R1_m_mean;
         R1_t = Mhbinv[i].R1mean;
         R2_t = Mhbinv[i].R2mean;
         t_Mh->Fill();
         }
     
     for(int i = 0; i < vinfoString.size() - 1; i++) {
-        Q2binv[i].meanQ2(dual_box_affinity);
+        Q2binv[i].meanQ2();
         infoString = vinfoString[i];
         x_t = Q2binv[i].xmean;
         z_h_t = Q2binv[i].z_hmean;
         Q2_t = Q2binv[i].Q2mean;
         pT_t = Q2binv[i].pTmean;
+        
+        z_h_t_1 = Q2binv[i].z_hmean_1;
+        pT_t_1 = Q2binv[i].pTmean_1;
+        
+        z_h_t_2 = Q2binv[i].z_hmean_2;
+        pT_t_2 = Q2binv[i].pTmean_2;
+        
         R0_t = Q2binv[i].R0mean;
-        R1_p_t = Q2binv[i].R1_p_mean;
-        R1_m_t = Q2binv[i].R1_m_mean;
         R1_t = Q2binv[i].R1mean;
         R2_t = Q2binv[i].R2mean;
         t_Q2->Fill();
         }
     
     for(int i = 0; i < vinfoString.size(); i++) {
-        qTQbinv[i].meanqTQ(dual_box_affinity);
+        qTQbinv[i].meanqTQ();
         infoString = vinfoString[i];
         x_t = qTQbinv[i].xmean;
         z_h_t = qTQbinv[i].z_hmean;
         Q2_t = qTQbinv[i].Q2mean;
         pT_t = qTQbinv[i].pTmean;
+        
+        z_h_t_1 = qTQbinv[i].z_hmean_1;
+        pT_t_1 = qTQbinv[i].pTmean_1;
+        
+        z_h_t_2 = qTQbinv[i].z_hmean_2;
+        pT_t_2 = qTQbinv[i].pTmean_2;
+        
         R0_t = qTQbinv[i].R0mean;
-        R1_p_t = qTQbinv[i].R1_p_mean;
-        R1_m_t = qTQbinv[i].R1_m_mean;
         R1_t = qTQbinv[i].R1mean;
         R2_t = qTQbinv[i].R2mean;
         t_qTQ->Fill();

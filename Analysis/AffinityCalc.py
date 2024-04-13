@@ -16,13 +16,15 @@ import tensorflow as tf
 print("tf.__version__", tf.__version__)
 
 # simple version for working with CWD
-file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_8/Run_1/"
+file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_11/Run_1/"
 num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
 file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
 
-# file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/Feb29/Run_1/"
+# file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_11/Run_1/"
 # num_files = 1
 # file_names = ["file_1.root"]
+
+product = True
 
 tree_MC_list = []
 tree_x_list = []
@@ -48,13 +50,29 @@ zarray = np.array([np.array([np.zeros(7)] * 6)] * num_files)
 xarray = np.array([np.array([np.zeros(7)] * 6)] * num_files)
 Mharray = np.array([np.array([np.zeros(7)] * 7)] * num_files)
 qTdivQarray = np.array([np.array([np.zeros(9)] * 7)] * num_files)
+if(product):
+    zarray_2 = np.array([np.array([np.zeros(7)] * 6)] * num_files)
+    xarray_2 = np.array([np.array([np.zeros(7)] * 6)] * num_files)
+    Mharray_2 = np.array([np.array([np.zeros(7)] * 7)] * num_files)
+    qTdivQarray_2 = np.array([np.array([np.zeros(9)] * 7)] * num_files)
 
 
-xkinematics = np.array(["z_h", "Q2", "pT", "R0", "R1_p", "R2"])
-zkinematics = np.array(["x", "Q2", "pT", "R0", "R1_p", "R2"])
-Mhkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1_p", "R2"])
-qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1_p", "R2"])
 
+if(product):
+    xkinematics = np.array(["z_h_1", "Q2", "pT_1", "R0", "R1", "R2"])
+    zkinematics = np.array(["x", "Q2", "pT_1", "R0", "R1", "R2"])
+    Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1", "R0", "R1", "R2"])
+    qTdivQkinematics = np.array(["x", "z_h_1", "Q2", "pT_1", "R0", "R1", "R2"])
+    
+    xkinematics_2 = np.array(["z_h_2", "Q2", "pT_2", "R0", "R1", "R2"])
+    zkinematics_2 = np.array(["x", "Q2", "pT_2", "R0", "R1", "R2"])
+    Mhkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2", "R0", "R1", "R2"])
+    qTdivQkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2", "R0", "R1", "R2"])
+else:
+    xkinematics = np.array(["z_h", "Q2", "pT", "R0", "R1", "R2"])
+    zkinematics = np.array(["x", "Q2", "pT", "R0", "R1", "R2"])
+    Mhkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
+    qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
 #These arrays each hold an array for each variable, meaning that the first bin of variables is in the first index of every kinematics array
 
 #piplus
@@ -76,16 +94,43 @@ for i in range(num_files):
     for var in qTdivQkinematics:
         qTdivQarray[i][qTdivQ_iter] = tree_qTdivQ_list[i][var].array(library='np')
         qTdivQ_iter += 1
+    if(product):
+        z_iter = 0
+        for var in zkinematics_2:
+            zarray_2[i][z_iter] = tree_z_h_list[i][var].array(library='np')
+            z_iter += 1
+        x_iter = 0
+        for var in xkinematics_2:
+            xarray_2[i][x_iter] = tree_x_list[i][var].array(library='np')
+            x_iter += 1
+        Mh_iter = 0
+        for var in Mhkinematics_2:
+            Mharray_2[i][Mh_iter] = tree_Mh_list[i][var].array(library='np')
+            Mh_iter += 1
+        qTdivQ_iter = 0
+        for var in qTdivQkinematics_2:
+            qTdivQarray_2[i][qTdivQ_iter] = tree_qTdivQ_list[i][var].array(library='np')
+            qTdivQ_iter += 1
 
 zarray_t = np.array([np.array([np.zeros(6)] * 7)] * num_files)
 xarray_t = np.array([np.array([np.zeros(6)] * 7)] * num_files)
 Mharray_t = np.array([np.array([np.zeros(7)] * 7)] * num_files)
 qTdivQarray_t = np.array([np.array([np.zeros(7)] * 9)] * num_files)
+if(product):
+    zarray_t_2 = np.array([np.array([np.zeros(6)] * 7)] * num_files)
+    xarray_t_2 = np.array([np.array([np.zeros(6)] * 7)] * num_files)
+    Mharray_t_2 = np.array([np.array([np.zeros(7)] * 7)] * num_files)
+    qTdivQarray_t_2 = np.array([np.array([np.zeros(7)] * 9)] * num_files)
 for i in range(num_files):
     xarray_t[i] = np.transpose(xarray[i])
     zarray_t[i] = np.transpose(zarray[i])
     Mharray_t[i] = np.transpose(Mharray[i])
     qTdivQarray_t[i] = np.transpose(qTdivQarray[i])
+    if(product):
+        xarray_t_2[i] = np.transpose(xarray[i])
+        zarray_t_2[i] = np.transpose(zarray[i])
+        Mharray_t_2[i] = np.transpose(Mharray[i])
+        qTdivQarray_t_2[i] = np.transpose(qTdivQarray[i])
     
 collinear_region_name = 'collinear'
 current_region_name = 'current'
@@ -129,6 +174,7 @@ def calculator(array, region, binType, binnedVariable = 0):
         Q2 = array[1]
         pT = array[2]
         z = binnedVariable
+        
     elif (binType == "Mh") or (binType == "qTdivQ"):
         x = array[0]
         z = array[1]
@@ -170,25 +216,45 @@ CurrentqTdivQaffinity = np.zeros(9)
 region = "collinear"
 region2 = "tmd"
 region3 = "current"
-for file in range(num_files):
-    for i in range(7):
-        colzaffinity[i] += calculator(zarray_t[file][i], region, "z", zbins[i])
-        colxaffinity[i] += calculator(xarray_t[file][i], region, "x", xbins[i])
-        colMhaffinity[i] += calculator(Mharray_t[file][i], region, "Mh")
-        
-        TMDzaffinity[i] += calculator(zarray_t[file][i], region2, "z", zbins[i])
-        TMDxaffinity[i] += calculator(xarray_t[file][i], region2, "x", xbins[i])
-        TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh")
-        
-        Currentzaffinity[i] += calculator(zarray_t[file][i], region3, "z", zbins[i])
-        Currentxaffinity[i] += calculator(xarray_t[file][i], region3, "x", xbins[i])
-        CurrentMhaffinity[i] += calculator(Mharray_t[file][i], region3, "Mh")
-    for i in range(9):
-        CurrentqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region3, "qTdivQ")
-        TMDqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region2, "qTdivQ")
-        colqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region, "qTdivQ")
-for i in range(9):
-    print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}")
+#For product affinity - multiply output of calculator for both pions
+if(product):
+    for file in range(num_files):
+        for i in range(7):
+            colzaffinity[i] += calculator(zarray_t[file][i], region, "z", zbins[i]) * calculator(zarray_t_2[file][i], region, "z", zbins[i])
+            colxaffinity[i] += calculator(xarray_t[file][i], region, "x", xbins[i]) * calculator(xarray_t_2[file][i], region, "x", xbins[i])
+            colMhaffinity[i] += calculator(Mharray_t[file][i], region, "Mh") * calculator(Mharray_t_2[file][i], region, "Mh")
+
+            TMDzaffinity[i] += calculator(zarray_t[file][i], region2, "z", zbins[i]) * calculator(zarray_t_2[file][i], region2, "z", zbins[i])
+            TMDxaffinity[i] += calculator(xarray_t[file][i], region2, "x", xbins[i]) * calculator(xarray_t_2[file][i], region2, "x", xbins[i])
+            TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh") * calculator(Mharray_t_2[file][i], region2, "Mh")
+
+            Currentzaffinity[i] += calculator(zarray_t[file][i], region3, "z", zbins[i]) * calculator(zarray_t_2[file][i], region3, "z", zbins[i])
+            Currentxaffinity[i] += calculator(xarray_t[file][i], region3, "x", xbins[i]) * calculator(xarray_t_2[file][i], region3, "x", xbins[i])
+            CurrentMhaffinity[i] += calculator(Mharray_t[file][i], region3, "Mh") * calculator(Mharray_t_2[file][i], region3, "Mh")
+        for i in range(9):
+            CurrentqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region3, "qTdivQ") * calculator(qTdivQarray_t_2[file][i], region3, "qTdivQ")
+            TMDqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region2, "qTdivQ") * calculator(qTdivQarray_t_2[file][i], region2, "qTdivQ")
+            colqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region, "qTdivQ") * calculator(qTdivQarray_t_2[file][i], region, "qTdivQ")
+else:
+    for file in range(num_files):
+        for i in range(7):
+            colzaffinity[i] += calculator(zarray_t[file][i], region, "z", zbins[i])
+            colxaffinity[i] += calculator(xarray_t[file][i], region, "x", xbins[i])
+            colMhaffinity[i] += calculator(Mharray_t[file][i], region, "Mh")
+
+            TMDzaffinity[i] += calculator(zarray_t[file][i], region2, "z", zbins[i])
+            TMDxaffinity[i] += calculator(xarray_t[file][i], region2, "x", xbins[i])
+            TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh")
+
+            Currentzaffinity[i] += calculator(zarray_t[file][i], region3, "z", zbins[i])
+            Currentxaffinity[i] += calculator(xarray_t[file][i], region3, "x", xbins[i])
+            CurrentMhaffinity[i] += calculator(Mharray_t[file][i], region3, "Mh")
+        for i in range(9):
+            CurrentqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region3, "qTdivQ")
+            TMDqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region2, "qTdivQ")
+            colqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region, "qTdivQ")
+#for i in range(9):
+    #print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}")
 #Now to average the affinity across all files (prob do this earlier)
 for i in range(7):
     colzaffinity[i] = colzaffinity[i] / num_files
@@ -204,7 +270,7 @@ for i in range(7):
     CurrentMhaffinity[i] = CurrentMhaffinity[i] / num_files
 for i in range(9):
     CurrentqTdivQaffinity[i] = CurrentqTdivQaffinity[i] / num_files
-    print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}; num_files: {num_files}\n div: {TMDqTdivQaffinity[i] / num_files}\n\n")
+    #print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}; num_files: {num_files}\n div: {TMDqTdivQaffinity[i] / num_files}\n\n")
     TMDqTdivQaffinity[i] = TMDqTdivQaffinity[i] / num_files 
     colqTdivQaffinity[i] = colqTdivQaffinity[i] / num_files
     
@@ -226,8 +292,8 @@ for i in range(9):
 # ax3.set(xlabel = "z_h")
 # fig.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/Affinity_plots/col.jpeg")
 
-fig2, ((ax12, ax22),(ax32,ax42)) = plot.subplots(2, 2, figsize = (12,12),dpi=60)
-fig2.suptitle("Dihadron Affinity in the TMD region")
+fig2, ((ax12, ax22),(ax32,ax42)) = plot.subplots(2, 2, figsize = (10,10),dpi=60)
+fig2.suptitle("Single Pion Affinity in the TMD region")
 ax12.set(ylabel = "Affinity")
 ax12.scatter(Mhbins, TMDMhaffinity)
 ax12.axhline(y=0, color="gray", lw = 1)
@@ -242,13 +308,13 @@ ax32.axhline(y=0, color="gray", lw = 1)
 ax32.set_title("z_h binning")
 ax32.set(xlabel = "z_h")
 # print(f"x: {len(qTdivQbins)}; y: {len(TMDqTdivQaffinity)}")
-for i in range(9):
-    print(f"x: {qTdivQbins[i]}; y = {TMDqTdivQaffinity[i]}")
+#for i in range(9):
+    #print(f"x: {qTdivQbins[i]}; y = {TMDqTdivQaffinity[i]}")
 ax42.scatter(qTdivQbins, TMDqTdivQaffinity)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("q_T/Q binning")
 ax42.set(xlabel = "q_T/Q")
-fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_8/TMD.svg")
+fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_11/TMD_all_files_product.svg")
 
 # fig3, (ax13, ax23, ax33) = plot.subplots(1, 3, figsize = (20, 5))
 # fig3.suptitle("Dihadron Affinity in the Current region")
