@@ -23,7 +23,6 @@ args = parser.parse_args()
 no_cut = args.no_cut
 
 dir_prefix = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/"
-
 calculate_product = True
 
 d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_11/Run_1/file_*.root")
@@ -41,7 +40,6 @@ qTQbins = np.array([0,0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
 # qTQbins = np.linspace(0.2,0.9,8)
 
 Q2bins = np.array([0,1,1.4,2,2.8,4,5.6,7.9,11.1])
-
 
 Mhbinsno0 = np.delete(Mhbins, 0)
 pTbinsno0 = np.linspace(0.2,0.8,7)
@@ -208,6 +206,7 @@ else:
     no_cut_file_name = "_no_cut_" + no_cut + "test.svg"
 # fig2, ax52 = plot.subplots(1, 1, figsize = (10, 10), dpi=60)
 fig2, ((ax42, ax22), (ax32,ax52)) = plot.subplots(2, 2, figsize = (10, 10), dpi=60)
+
 # fig2, ((ax42, ax22, ax32), (ax52, ax62, ax72), (ax82, ax92, ax02)) = plot.subplots(3, 3, figsize = (15, 12), dpi=60)
 fig2.suptitle("BOX Affinity in the TMD region: Rmax = 0.3" + no_cut_text)
 # fig2.ylable("Affinity")

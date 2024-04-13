@@ -25,7 +25,6 @@ file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
 # file_names = ["file_1.root"]
 
 product = True
-
 tree_MC_list = []
 tree_x_list = []
 tree_z_h_list = []
@@ -168,13 +167,15 @@ def calculator(array, region, binType, binnedVariable = 0):
         z = array[0]
         Q2 = array[1]
         pT = array[2]
+        R0max = array[3]
+        R1max = array[4]
+        R2max = array[5]
         x = binnedVariable
     elif binType == "z":
         x = array[0]
         Q2 = array[1]
         pT = array[2]
         z = binnedVariable
-        
     elif (binType == "Mh") or (binType == "qTdivQ"):
         x = array[0]
         z = array[1]
@@ -255,6 +256,7 @@ else:
             colqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region, "qTdivQ")
 #for i in range(9):
     #print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}")
+
 #Now to average the affinity across all files (prob do this earlier)
 for i in range(7):
     colzaffinity[i] = colzaffinity[i] / num_files

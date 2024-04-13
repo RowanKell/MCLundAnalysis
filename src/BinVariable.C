@@ -21,7 +21,6 @@ class BinVariable
     vector<double> v_z_h_2;
     vector<double> v_Q2_2;
     vector<double> v_pT_2;
-    
     vector<double> v_R0;
     vector<double> v_R1;
     vector<double> v_R1_p;
@@ -38,7 +37,6 @@ class BinVariable
     
     double z_hmean_2;
     double pTmean_2;
-    
     double R0mean;
     double R1mean;
     double R1_p_mean;
@@ -59,7 +57,6 @@ class BinVariable
         v_pT_1.push_back(pT_1);
         
         v_pT_2.push_back(pT_2);
-        
         v_R0.push_back(R0);
         v_R1.push_back(R1);
         v_R2.push_back(R2);
@@ -75,7 +72,7 @@ class BinVariable
         
         v_z_h_2.push_back(z_h_2);
         v_pT_2.push_back(pT_2);
-        
+
         v_R0.push_back(R0);
         v_R1.push_back(R1);
         v_R2.push_back(R2);
@@ -94,7 +91,6 @@ class BinVariable
 
         v_z_h_2.push_back(z_h_2);
         v_pT_2.push_back(pT_2);
-        
         v_R0.push_back(R0);
         v_R1.push_back(R1);
         v_R2.push_back(R2);
@@ -113,7 +109,6 @@ class BinVariable
 
         v_z_h_2.push_back(z_h_2);
         v_pT_2.push_back(pT_2);
-        
         v_R0.push_back(R0);
         v_R1.push_back(R1);
         v_R2.push_back(R2);
@@ -143,7 +138,6 @@ class BinVariable
         
         pTmean_1 = meanfunc(v_pT_1);
         pTmean_2 = meanfunc(v_pT_2);
-        
         R0mean = meanfunc(v_R0);
         R1mean = meanfunc(v_R1);
         R2mean = meanfunc(v_R2);

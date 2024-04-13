@@ -272,7 +272,6 @@ vector<double> xbins{0.1,0.13,0.16,0.19,0.235,0.3,0.5};
 vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
 double z_h_cut_val;
 int j_start; //Used to either run over duplicate pion pairs or to not run over duplicates
-
 vector<double> Q2bins{1,1.4,2,2.8,4,5.6,7.9,11.1};
 vector<double> qTQbins{0.1,0.3,0.5,0.8,1.5,2,2.5,3,4};
 vector<double> Mhbins{0.4429,0.6357,0.8286,1.0214,1.2143,1.4071,1.6};
