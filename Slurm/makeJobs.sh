@@ -11,6 +11,7 @@ single_pion_flag=1 #1 = true, bin by single pion values | 0 = false, bin by diha
 
 out_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/output/output${current_date}"
 error_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/error/error${current_date}"
+
 rootname="file_"
 processdir="/work/clas12/users/rojokell/MCLundAnalysis/"
 processcodename="LundAnalysis.C"

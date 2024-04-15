@@ -6,9 +6,8 @@ int LundAnalysis(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_14/Run_1_single_pion/file_0.root",
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_14/Run_1_single_pion/file_0_test_merge.root",
                     int single_pion = 1 //Use as a bool: true (1) if wanting to bin with z of single pion; false (0) if wanting to bin with z of dihadron
-
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -74,7 +73,7 @@ int LundAnalysis(
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-//         if(event_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+        if(event_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
         //Aesthetics/loading bar
         if(event_count == 1) {
@@ -581,11 +580,13 @@ int LundAnalysis(
             }
         }
 	
+
     }
     cout << "\033[0m" << "\033[49m";
     cout << "Final event_count:" << event_count << '\n';
     cout << "Final tree_count: " << tree_count << '\n';
     
+
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
@@ -746,7 +747,7 @@ int LundAnalysis(
         pT_t_2 = qTQbinv[i].pTmean_2;
         t_qTQ->Fill();
         }
-    
+
     f->Write();
     delete f;
     return 0;
