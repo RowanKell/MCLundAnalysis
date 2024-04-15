@@ -49,13 +49,16 @@ class BinVariable
     Second set of functions overload the first and are for storing the R1 for each hadron as well
     */
     //zFillVectors(z_h, Q2, pT, R0, R1, R2)
-    void zFillVectors(double x, double Q2, double pT, double pT_1, double pT_2, double R0, double R1, double R2) {
+    void zFillVectors(double x, double z_h, double Q2, double pT, double z_h_1, double pT_1, double z_h_2, double pT_2, double R0, double R1, double R2) {
         v_x.push_back(x);
+        v_z_h.push_back(z_h);
         v_Q2.push_back(Q2);
         v_pT.push_back(pT);
-        
+
+        v_z_h_1.push_back(z_h_1);
         v_pT_1.push_back(pT_1);
-        
+
+        v_z_h_2.push_back(z_h_2);
         v_pT_2.push_back(pT_2);
         v_R0.push_back(R0);
         v_R1.push_back(R1);
@@ -132,12 +135,17 @@ class BinVariable
     
     //Methods for calculating mean
     void meanZ_h() {
+        z_hmean = meanfunc(v_z_h);
         xmean = meanfunc(v_x);
         Q2mean = meanfunc(v_Q2);
         pTmean = meanfunc(v_pT);
         
+        z_hmean_1 = meanfunc(v_z_h_1);
         pTmean_1 = meanfunc(v_pT_1);
+        
+        z_hmean_2 = meanfunc(v_z_h_2);
         pTmean_2 = meanfunc(v_pT_2);
+        
         R0mean = meanfunc(v_R0);
         R1mean = meanfunc(v_R1);
         R2mean = meanfunc(v_R2);
@@ -202,128 +210,6 @@ class BinVariable
         
         R0mean = meanfunc(v_R0);
         R1mean = meanfunc(v_R1);
-        R2mean = meanfunc(v_R2);
-    }
-    /*
-    //zFillVectors(z_h, Q2, pT, R0, R1, R2)
-    void zFillVectors(double x, double Q2, double pT, double R0, double R1, double R1_p, double R1_m, double R2) {
-        v_x.push_back(x);
-        v_Q2.push_back(Q2);
-        v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R1_p.push_back(R1_p);
-        v_R1_m.push_back(R1_m);
-        v_R2.push_back(R2);
-    }
-    //xFillVectors(z_h, Q2, pT, R0, R1, R2);
-    void xFillVectors(double z_h, double Q2, double pT, double R0, double R1, double R1_p, double R1_m, double R2) {
-        v_z_h.push_back(z_h);
-        v_Q2.push_back(Q2);
-        v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R1_p.push_back(R1_p);
-        v_R1_m.push_back(R1_m);
-        v_R2.push_back(R2);
-    }
-    //mhFillVectors(x, z_h, Q2, pT, R0, R1, R2);
-    void mhFillVectors(double x, double z_h, double Q2, double pT, double R0, double R1, double R1_p, double R1_m, double R2) {
-        v_x.push_back(x);
-        v_z_h.push_back(z_h);
-        v_Q2.push_back(Q2);
-        v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R1_p.push_back(R1_p);
-        v_R1_m.push_back(R1_m);
-        v_R2.push_back(R2);
-    }
-        //qTQFillVectors(x, z_h, Q2, pT, R0, R1, R2);
-    void qTQFillVectors(double x, double z_h, double Q2, double pT, double R0, double R1, double R1_p, double R1_m, double R2) {
-        v_x.push_back(x);
-        v_z_h.push_back(z_h);
-        v_Q2.push_back(Q2);
-        v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R1_p.push_back(R1_p);
-        v_R1_m.push_back(R1_m);
-        v_R2.push_back(R2);
-    }
-        //Q2FillVectors(z_h, Q2, pT, R0, R1, R2);
-    void Q2FillVectors(double x, double z_h, double pT, double R0, double R1, double R1_p, double R1_m, double R2) {
-        v_z_h.push_back(z_h);
-        v_x.push_back(x);
-        v_pT.push_back(pT);
-        v_R0.push_back(R0);
-        v_R1.push_back(R1);
-        v_R1_p.push_back(R1_p);
-        v_R1_m.push_back(R1_m);
-        v_R2.push_back(R2);
-    }*/
-    
-    //Methods for calculating mean
-    void meanZ_h(int dual_box_affinity) {
-        xmean = meanfunc(v_x);
-        Q2mean = meanfunc(v_Q2);
-        pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        if(dual_box_affinity) {
-            R1_p_mean = meanfunc(v_R1_p);
-            R1_m_mean = meanfunc(v_R1_m);
-        }
-        R2mean = meanfunc(v_R2);
-    }
-    void meanx(int dual_box_affinity) {
-        z_hmean = meanfunc(v_z_h);
-        Q2mean = meanfunc(v_Q2);
-        pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        if(dual_box_affinity) {
-            R1_p_mean = meanfunc(v_R1_p);
-            R1_m_mean = meanfunc(v_R1_m);
-        }
-        R2mean = meanfunc(v_R2);
-    }
-    void meanmh(int dual_box_affinity) {
-        z_hmean = meanfunc(v_z_h);
-        xmean = meanfunc(v_x);
-        Q2mean = meanfunc(v_Q2);
-        pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        if(dual_box_affinity) {
-            R1_p_mean = meanfunc(v_R1_p);
-            R1_m_mean = meanfunc(v_R1_m);
-        }
-        R2mean = meanfunc(v_R2);
-    }
-    void meanqTQ(int dual_box_affinity) {
-        z_hmean = meanfunc(v_z_h);
-        xmean = meanfunc(v_x);
-        Q2mean = meanfunc(v_Q2);
-        pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        if(dual_box_affinity) {
-            R1_p_mean = meanfunc(v_R1_p);
-            R1_m_mean = meanfunc(v_R1_m);
-        }
-        R2mean = meanfunc(v_R2);
-    }
-    void meanQ2(int dual_box_affinity) {
-        z_hmean = meanfunc(v_z_h);
-        xmean = meanfunc(v_x);
-        pTmean = meanfunc(v_pT);
-        R0mean = meanfunc(v_R0);
-        R1mean = meanfunc(v_R1);
-        if(dual_box_affinity) {
-            R1_p_mean = meanfunc(v_R1_p);
-            R1_m_mean = meanfunc(v_R1_m);
-        }
         R2mean = meanfunc(v_R2);
     }
 };

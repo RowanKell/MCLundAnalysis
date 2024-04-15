@@ -24,9 +24,11 @@ no_cut = args.no_cut
 
 dir_prefix = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/"
 calculate_product = True
-
-d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_11/Run_1/file_*.root")
+single_pion = False
+d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_13/Run_1_dihadron/file_*.root")
+# d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Slurm_Spring_24/April_13/Run_1_single_pion/file_*.root")
 # d = RDataFrame("tree_MC",dir_prefix + "OutputFiles/Files_Spring_24/April_11/Run_1/file_1.root")
+
 
 #Bins (each has 8 including 0)
 Mhbins = np.linspace(0.25,1.6,8)
@@ -74,7 +76,10 @@ def calculate_Affinity(d, calculate_product, pi_num):
 
     # start_time = time.time()
     xformat = "x <= {} && x > {}"
-    zformat = "z <= {} && z > {}"
+    if(single_pion):
+        zformat = "z_1 <= {} && z_1 > {}" #bin based on the z of only 1 pion
+    else:
+        zformat = "z <= {} && z > {}"
     Mhformat = "Mh <= {} && Mh > {}"
     pTformat = "pT <= {} && pT > {}"
     R0format = "R0 <= {} && R0 > {}"
@@ -83,6 +88,8 @@ def calculate_Affinity(d, calculate_product, pi_num):
             R1format = "R1_p < 0.3"
         else:
             R1format = "R1_m < 0.3"
+    elif(single_pion):
+        R1format = "R1_p < 0.3" #if single pion, use R1 for first pion
     else:
         R1format = "R1 < 0.3"
     R2format = "R2 <= {} && R2 > {}" 
@@ -195,15 +202,17 @@ if(calculate_product):
         for bin_num in range(bin_lengths[variable]):
             #print(f"currently at variable  = {variable} | bin_num: {bin_num}")
             product_arrs[variable][bin_num] = plus_arrs[variable][bin_num] * minus_arrs[variable][bin_num]
+elif(single_pion):
+    product_arrs = calculate_Affinity(d, calculate_product, 0)
 else:
     product_arrs = calculate_Affinity(d, calculate_product, 0)
 
 if no_cut == "":
     no_cut_text = ""
-    no_cut_file_name = "_all_files_product.svg"
+    no_cut_file_name = "_all_files_product_test.svg"
 else:
     no_cut_text = ", no cut on " + no_cut
-    no_cut_file_name = "_no_cut_" + no_cut + "test.svg"
+    no_cut_file_name = "_no_cut_" + no_cut + ".svg"
 # fig2, ax52 = plot.subplots(1, 1, figsize = (10, 10), dpi=60)
 fig2, ((ax42, ax22), (ax32,ax52)) = plot.subplots(2, 2, figsize = (10, 10), dpi=60)
 
@@ -254,4 +263,4 @@ ax52.set(xlabel = "qTdivQ")
 # ax02.axhline(y=0, color="gray", lw = 1)
 # ax02.set_title("Q2 counts")
 # ax02.set(xlabel = "Q2")
-plot.savefig(dir_prefix+"Analysis/BoxAffinity/Plots_S24/April_11/Box_affinity" + no_cut_file_name)
+plot.savefig(dir_prefix+"Analysis/BoxAffinity/Plots_S24/April_13/Box_affinity" + no_cut_file_name)

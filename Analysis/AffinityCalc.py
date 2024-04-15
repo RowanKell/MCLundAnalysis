@@ -13,21 +13,20 @@ logging.disable(logging.WARNING)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import tensorflow as tf
-print("tf.__version__", tf.__version__)
 
 # simple version for working with CWD
-file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_11/Run_1/"
+file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_14/Run_1_single_pion/"
 num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
 file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
-
 # file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_11/Run_1/"
 # num_files = 1
 # file_names = ["file_1.root"]
 
-product = True
+product = False
+single_pion = True
 tree_MC_list = []
 tree_x_list = []
-tree_z_h_list = []
+tree_z_h_list = [] #Notes - for product, the bin z_h is the dihadron z_h, while the z we need for affinity is z_1
 tree_Mh_list = []
 tree_qTdivQ_list = []
 
@@ -45,33 +44,40 @@ for i in range(num_files):
         
     
 #0 is z, 1 is x, 2 is mh
-zarray = np.array([np.array([np.zeros(7)] * 6)] * num_files)
-xarray = np.array([np.array([np.zeros(7)] * 6)] * num_files)
-Mharray = np.array([np.array([np.zeros(7)] * 7)] * num_files)
-qTdivQarray = np.array([np.array([np.zeros(9)] * 7)] * num_files)
+xarray = np.array([np.array([np.zeros(7)] * 3)] * num_files)
+Mharray = np.array([np.array([np.zeros(7)] * 4)] * num_files)
+qTdivQarray = np.array([np.array([np.zeros(9)] * 4)] * num_files)
 if(product):
-    zarray_2 = np.array([np.array([np.zeros(7)] * 6)] * num_files)
-    xarray_2 = np.array([np.array([np.zeros(7)] * 6)] * num_files)
-    Mharray_2 = np.array([np.array([np.zeros(7)] * 7)] * num_files)
-    qTdivQarray_2 = np.array([np.array([np.zeros(9)] * 7)] * num_files)
-
-
-
-if(product):
-    xkinematics = np.array(["z_h_1", "Q2", "pT_1", "R0", "R1", "R2"])
-    zkinematics = np.array(["x", "Q2", "pT_1", "R0", "R1", "R2"])
-    Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1", "R0", "R1", "R2"])
-    qTdivQkinematics = np.array(["x", "z_h_1", "Q2", "pT_1", "R0", "R1", "R2"])
-    
-    xkinematics_2 = np.array(["z_h_2", "Q2", "pT_2", "R0", "R1", "R2"])
-    zkinematics_2 = np.array(["x", "Q2", "pT_2", "R0", "R1", "R2"])
-    Mhkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2", "R0", "R1", "R2"])
-    qTdivQkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2", "R0", "R1", "R2"])
+    zarray = np.array([np.array([np.zeros(7)] * 4)] * num_files)#for product, need to include z for pion in array
+    zarray_2 = np.array([np.array([np.zeros(7)] * 4)] * num_files)
+    xarray_2 = np.array([np.array([np.zeros(7)] * 3)] * num_files)
+    Mharray_2 = np.array([np.array([np.zeros(7)] * 4)] * num_files)
+    qTdivQarray_2 = np.array([np.array([np.zeros(9)] * 4)] * num_files)
 else:
-    xkinematics = np.array(["z_h", "Q2", "pT", "R0", "R1", "R2"])
-    zkinematics = np.array(["x", "Q2", "pT", "R0", "R1", "R2"])
-    Mhkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
-    qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT", "R0", "R1", "R2"])
+    zarray = np.array([np.array([np.zeros(7)] * 3)] * num_files)
+
+
+
+if(product):
+    xkinematics = np.array(["z_h_1", "Q2", "pT_1"])
+    zkinematics = np.array(["x", "Q2", "pT_1","z_h_1"])
+    Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
+    qTdivQkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
+    
+    xkinematics_2 = np.array(["z_h_2", "Q2", "pT_2"])
+    zkinematics_2 = np.array(["x", "Q2", "pT_2","z_h_2"])
+    Mhkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2"])
+    qTdivQkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2"])
+elif(single_pion):
+    xkinematics = np.array(["z_h_1", "Q2", "pT_1"])
+    zkinematics = np.array(["x", "Q2", "pT_1"])
+    Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
+    qTdivQkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
+else:#dihadron case
+    xkinematics = np.array(["z_h", "Q2", "pT"])
+    zkinematics = np.array(["x", "Q2", "pT"])
+    Mhkinematics = np.array(["x", "z_h", "Q2", "pT"])
+    qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT"])
 #These arrays each hold an array for each variable, meaning that the first bin of variables is in the first index of every kinematics array
 
 #piplus
@@ -111,15 +117,17 @@ for i in range(num_files):
             qTdivQarray_2[i][qTdivQ_iter] = tree_qTdivQ_list[i][var].array(library='np')
             qTdivQ_iter += 1
 
-zarray_t = np.array([np.array([np.zeros(6)] * 7)] * num_files)
-xarray_t = np.array([np.array([np.zeros(6)] * 7)] * num_files)
-Mharray_t = np.array([np.array([np.zeros(7)] * 7)] * num_files)
-qTdivQarray_t = np.array([np.array([np.zeros(7)] * 9)] * num_files)
+xarray_t = np.array([np.array([np.zeros(3)] * 7)] * num_files)
+Mharray_t = np.array([np.array([np.zeros(4)] * 7)] * num_files)
+qTdivQarray_t = np.array([np.array([np.zeros(4)] * 9)] * num_files)
 if(product):
-    zarray_t_2 = np.array([np.array([np.zeros(6)] * 7)] * num_files)
-    xarray_t_2 = np.array([np.array([np.zeros(6)] * 7)] * num_files)
-    Mharray_t_2 = np.array([np.array([np.zeros(7)] * 7)] * num_files)
-    qTdivQarray_t_2 = np.array([np.array([np.zeros(7)] * 9)] * num_files)
+    zarray_t = np.array([np.array([np.zeros(4)] * 7)] * num_files)
+    zarray_t_2 = np.array([np.array([np.zeros(4)] * 7)] * num_files)
+    xarray_t_2 = np.array([np.array([np.zeros(3)] * 7)] * num_files)
+    Mharray_t_2 = np.array([np.array([np.zeros(4)] * 7)] * num_files)
+    qTdivQarray_t_2 = np.array([np.array([np.zeros(4)] * 9)] * num_files)
+else:
+    zarray_t = np.array([np.array([np.zeros(3)] * 7)] * num_files)
 for i in range(num_files):
     xarray_t[i] = np.transpose(xarray[i])
     zarray_t[i] = np.transpose(zarray[i])
@@ -167,15 +175,15 @@ def calculator(array, region, binType, binnedVariable = 0):
         z = array[0]
         Q2 = array[1]
         pT = array[2]
-        R0max = array[3]
-        R1max = array[4]
-        R2max = array[5]
         x = binnedVariable
     elif binType == "z":
         x = array[0]
         Q2 = array[1]
         pT = array[2]
-        z = binnedVariable
+        if(product):
+            z = array[3]
+        else:
+            z = binnedVariable
     elif (binType == "Mh") or (binType == "qTdivQ"):
         x = array[0]
         z = array[1]
@@ -219,6 +227,7 @@ region2 = "tmd"
 region3 = "current"
 #For product affinity - multiply output of calculator for both pions
 if(product):
+    print("entering product")
     for file in range(num_files):
         for i in range(7):
             colzaffinity[i] += calculator(zarray_t[file][i], region, "z", zbins[i]) * calculator(zarray_t_2[file][i], region, "z", zbins[i])
@@ -316,7 +325,7 @@ ax42.scatter(qTdivQbins, TMDqTdivQaffinity)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("q_T/Q binning")
 ax42.set(xlabel = "q_T/Q")
-fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_11/TMD_all_files_product.svg")
+fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_14/TMD_one_file_single_pion.svg")
 
 # fig3, (ax13, ax23, ax33) = plot.subplots(1, 3, figsize = (20, 5))
 # fig3.suptitle("Dihadron Affinity in the Current region")

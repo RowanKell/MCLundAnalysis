@@ -213,11 +213,21 @@ double PF2Minus;
 double z_N;
 double z_N1;
 double z_N2;
+
 TVector2 q_T;
 TVector2 q_T1;
 TVector2 q_T2;
 TVector2 q_T_lab;
 TVector2 q_T_hadron;
+
+//qT variables for single pion affinity qTQ binning
+TLorentzVector pion_frame;
+TVector3 pionBoost;
+TLorentzVector q_pion;
+TVector2 q_T_pion;
+double qTQ_pion;
+double qTQ_cut_val;
+
 
 TVector2 q_T_frac;
 double qTQfrac;

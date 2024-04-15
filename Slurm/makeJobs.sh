@@ -1,9 +1,14 @@
 #!/bin/bash
-current_date=$(date +"%b_%d")
+current_date=$(date +"%B_%d")
 workdir="/work/clas12/users/rojokell/MCLundAnalysis"
 hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
 # hipodir="/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV"
-outputdir="/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_11/Run_1/"
+slurm_output="${workdir}/OutputFiles/Slurm_Spring_24"
+daydir="${slurm_output}/${current_date}"
+#USER SET VALUES
+outputdir="${daydir}/Run_1_dihadron/"
+single_pion_flag=0 #1 = true, bin by single pion values | 0 = false, bin by dihadron values
+
 out_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/output/output${current_date}"
 error_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/error/error${current_date}"
 rootname="file_"
@@ -13,8 +18,12 @@ runJobs="${workdir}/Slurm/runJobs.sh"
 touch $runJobs
 chmod +x $runJobs
 echo " " > $runJobs
-
+echo $daydir
 i=0
+
+if [ ! -d "$daydir" ]; then
+  mkdir "$daydir"
+fi
 
 if [ ! -d "$outputdir" ]; then
   mkdir "$outputdir"
@@ -45,7 +54,7 @@ do
     echo "module purge -f" >> $file
     echo "source /u/home/rojokell/.cshrc" >> $file
     echo "cd ${processdir}" >> $file    
-    echo "clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\"\\)" >> $file   
+    echo "clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\",${single_pion_flag}\\)" >> $file   
     echo "sbatch shells/${rootname}${i}.sh" >> $runJobs
     i=$((i+1))
 done
