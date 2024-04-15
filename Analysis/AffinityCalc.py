@@ -138,28 +138,11 @@ for i in range(num_files):
         zarray_t_2[i] = np.transpose(zarray[i])
         Mharray_t_2[i] = np.transpose(Mharray[i])
         qTdivQarray_t_2[i] = np.transpose(qTdivQarray[i])
-    
-collinear_region_name = 'collinear'
-current_region_name = 'current'
-target_region_name = 'target'
 TMD_region_name = 'TMD'
-soft_region_name = 'soft'
-collinear_lable_name = 'collinearaff'
-target_lable_name = 'targetaff'
-current_lable_name = 'currentaff'
 TMD_lable_name = 'tmdaff'
-soft_lable_name = 'softaff'
 
 tmd_model_name = '../../SIDIS-Affinity/models/final_%s' % TMD_region_name
 tmd_model = tf.keras.models.load_model(tmd_model_name)
-target_model_name = '../../SIDIS-Affinity/models/final_%s' % target_region_name
-target_model = tf.keras.models.load_model(target_model_name)
-collinear_model_name = '../../SIDIS-Affinity/models/final_%s' % collinear_region_name
-collinear_model = tf.keras.models.load_model(collinear_model_name)
-current_model_name = '../../SIDIS-Affinity/models/final_%s' % current_region_name
-current_model = tf.keras.models.load_model(current_model_name)
-soft_model_name = '../../SIDIS-Affinity/models/final_%s' % soft_region_name
-soft_model = tf.keras.models.load_model(soft_model_name)
 
 Mhbins = np.linspace(0.3,1.3,7)
 xbins = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
@@ -208,19 +191,10 @@ def calculator(array, region, binType, binnedVariable = 0):
         prediction = current_model.predict(test_features).flatten()
 
     return prediction[0] #returns affinity value
-
-colxaffinity = np.zeros(7)
-colzaffinity = np.zeros(7)
-colMhaffinity = np.zeros(7)
-colqTdivQaffinity = np.zeros(9)
 TMDxaffinity = np.zeros(7)
 TMDzaffinity = np.zeros(7)
 TMDMhaffinity = np.zeros(7)
 TMDqTdivQaffinity = np.zeros(9)
-Currentxaffinity = np.zeros(7)
-Currentzaffinity = np.zeros(7)
-CurrentMhaffinity = np.zeros(7)
-CurrentqTdivQaffinity = np.zeros(9)
 
 region = "collinear"
 region2 = "tmd"
@@ -230,78 +204,27 @@ if(product):
     print("entering product")
     for file in range(num_files):
         for i in range(7):
-            colzaffinity[i] += calculator(zarray_t[file][i], region, "z", zbins[i]) * calculator(zarray_t_2[file][i], region, "z", zbins[i])
-            colxaffinity[i] += calculator(xarray_t[file][i], region, "x", xbins[i]) * calculator(xarray_t_2[file][i], region, "x", xbins[i])
-            colMhaffinity[i] += calculator(Mharray_t[file][i], region, "Mh") * calculator(Mharray_t_2[file][i], region, "Mh")
-
             TMDzaffinity[i] += calculator(zarray_t[file][i], region2, "z", zbins[i]) * calculator(zarray_t_2[file][i], region2, "z", zbins[i])
             TMDxaffinity[i] += calculator(xarray_t[file][i], region2, "x", xbins[i]) * calculator(xarray_t_2[file][i], region2, "x", xbins[i])
             TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh") * calculator(Mharray_t_2[file][i], region2, "Mh")
-
-            Currentzaffinity[i] += calculator(zarray_t[file][i], region3, "z", zbins[i]) * calculator(zarray_t_2[file][i], region3, "z", zbins[i])
-            Currentxaffinity[i] += calculator(xarray_t[file][i], region3, "x", xbins[i]) * calculator(xarray_t_2[file][i], region3, "x", xbins[i])
-            CurrentMhaffinity[i] += calculator(Mharray_t[file][i], region3, "Mh") * calculator(Mharray_t_2[file][i], region3, "Mh")
         for i in range(9):
-            CurrentqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region3, "qTdivQ") * calculator(qTdivQarray_t_2[file][i], region3, "qTdivQ")
             TMDqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region2, "qTdivQ") * calculator(qTdivQarray_t_2[file][i], region2, "qTdivQ")
-            colqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region, "qTdivQ") * calculator(qTdivQarray_t_2[file][i], region, "qTdivQ")
 else:
     for file in range(num_files):
         for i in range(7):
-            colzaffinity[i] += calculator(zarray_t[file][i], region, "z", zbins[i])
-            colxaffinity[i] += calculator(xarray_t[file][i], region, "x", xbins[i])
-            colMhaffinity[i] += calculator(Mharray_t[file][i], region, "Mh")
-
             TMDzaffinity[i] += calculator(zarray_t[file][i], region2, "z", zbins[i])
             TMDxaffinity[i] += calculator(xarray_t[file][i], region2, "x", xbins[i])
             TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh")
-
-            Currentzaffinity[i] += calculator(zarray_t[file][i], region3, "z", zbins[i])
-            Currentxaffinity[i] += calculator(xarray_t[file][i], region3, "x", xbins[i])
-            CurrentMhaffinity[i] += calculator(Mharray_t[file][i], region3, "Mh")
         for i in range(9):
-            CurrentqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region3, "qTdivQ")
             TMDqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region2, "qTdivQ")
-            colqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region, "qTdivQ")
-#for i in range(9):
-    #print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}")
 
 #Now to average the affinity across all files (prob do this earlier)
 for i in range(7):
-    colzaffinity[i] = colzaffinity[i] / num_files
-    colxaffinity[i] = colxaffinity[i] / num_files
-    colMhaffinity[i] = colMhaffinity[i] / num_files
-    
     TMDzaffinity[i] = TMDzaffinity[i] / num_files
     TMDxaffinity[i] = TMDxaffinity[i] / num_files
     TMDMhaffinity[i] = TMDMhaffinity[i] / num_files 
-    
-    Currentzaffinity[i] = Currentzaffinity[i] / num_files 
-    Currentxaffinity[i] = Currentxaffinity[i] / num_files 
-    CurrentMhaffinity[i] = CurrentMhaffinity[i] / num_files
 for i in range(9):
-    CurrentqTdivQaffinity[i] = CurrentqTdivQaffinity[i] / num_files
-    #print(f"TMDqTdivQaffinity[{i}] total: {TMDqTdivQaffinity[i]}; num_files: {num_files}\n div: {TMDqTdivQaffinity[i] / num_files}\n\n")
     TMDqTdivQaffinity[i] = TMDqTdivQaffinity[i] / num_files 
-    colqTdivQaffinity[i] = colqTdivQaffinity[i] / num_files
-    
-    
-# fig, ((ax1, ax2),(ax3, ax4)) = plot.subplots(2, 2, figsize = (12,12),dpi=60)
-# fig.suptitle("Dihadron Affinity in the Collinear region")
-# ax1.set(ylabel = "Affinity")
-# ax1.scatter(Mhbins, colMhaffinity)
-# ax1.axhline(y=0, color="gray", lw = 1)
-# ax1.set_title("Mh binning")
-# ax1.set(xlabel = "Mh (GeV)")
-# ax2.scatter(xbins, colxaffinity)
-# ax2.axhline(y=0, color="gray", lw = 1)
-# ax2.set_title("x binning")
-# ax2.set(xlabel = "x")
-# ax3.scatter(zbins, colzaffinity)
-# ax3.axhline(y=0, color="gray", lw = 1)
-# ax3.set_title("z_h binning")
-# ax3.set(xlabel = "z_h")
-# fig.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/Affinity_plots/col.jpeg")
 
 fig2, ((ax12, ax22),(ax32,ax42)) = plot.subplots(2, 2, figsize = (10,10),dpi=60)
 fig2.suptitle("Single Pion Affinity in the TMD region")
@@ -318,28 +241,8 @@ ax32.scatter(zbins, TMDzaffinity)
 ax32.axhline(y=0, color="gray", lw = 1)
 ax32.set_title("z_h binning")
 ax32.set(xlabel = "z_h")
-# print(f"x: {len(qTdivQbins)}; y: {len(TMDqTdivQaffinity)}")
-#for i in range(9):
-    #print(f"x: {qTdivQbins[i]}; y = {TMDqTdivQaffinity[i]}")
 ax42.scatter(qTdivQbins, TMDqTdivQaffinity)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("q_T/Q binning")
 ax42.set(xlabel = "q_T/Q")
 fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_14/TMD_one_file_single_pion.svg")
-
-# fig3, (ax13, ax23, ax33) = plot.subplots(1, 3, figsize = (20, 5))
-# fig3.suptitle("Dihadron Affinity in the Current region")
-# ax13.set(ylabel = "Affinity")
-# ax13.scatter(Mhbins, CurrentMhaffinity)
-# ax13.axhline(y=0, color="gray", lw = 1)
-# ax13.set_title("Mh binning")
-# ax13.set(xlabel = "Mh (GeV)")
-# ax23.scatter(xbins, Currentxaffinity)
-# ax23.axhline(y=0, color="gray", lw = 1)
-# ax23.set_title("x binning")
-# ax23.set(xlabel = "x")
-# ax33.scatter(zbins, Currentzaffinity)
-# ax33.axhline(y=0, color="gray", lw = 1)
-# ax33.set_title("z_h binning")
-# ax33.set(xlabel = "z_h")
-# fig3.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/Affinity_plots/Cur.jpeg")
