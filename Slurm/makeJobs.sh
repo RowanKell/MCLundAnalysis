@@ -6,8 +6,8 @@ hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bk
 slurm_output="${workdir}/OutputFiles/Slurm_Spring_24"
 daydir="${slurm_output}/${current_date}"
 #USER SET VALUES
-outputdir="${daydir}/Run_1_dihadron/"
-single_pion_flag=0 #1 = true, bin by single pion values | 0 = false, bin by dihadron values
+outputdir="${daydir}/Run_1_single_pion/"
+single_pion_flag=1 #1 = true, bin by single pion values | 0 = false, bin by dihadron values
 
 out_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/output/output${current_date}"
 error_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/error/error${current_date}"

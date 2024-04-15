@@ -33,7 +33,7 @@ tree_qTdivQ_list = []
 
 for i in range(num_files):
     try:
-        tree_MC_list.append(uproot.open(file_dir + file_names[i]+ ":tree_MC"))
+#         tree_MC_list.append(uproot.open(file_dir + file_names[i]+ ":tree_MC"))
         tree_x_list.append(uproot.open(file_dir + file_names[i]+ ":tree_x_bins"))    
         tree_z_h_list.append(uproot.open(file_dir + file_names[i]+ ":tree_z_h_bins"))    
         tree_Mh_list.append(uproot.open(file_dir + file_names[i]+ ":tree_Mh_bins"))
@@ -154,6 +154,7 @@ def calculator(array, region, binType, binnedVariable = 0):
     R0max = 0.3
     R1max = 0.3
     R2max = 0.3
+    
     if binType == "x":
         z = array[0]
         Q2 = array[1]

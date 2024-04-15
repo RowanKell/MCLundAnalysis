@@ -171,7 +171,7 @@ else:
 
 if no_cut == "":
     no_cut_text = ""
-    no_cut_file_name = "_all_files_single_pion.svg"
+    no_cut_file_name = "_1_files_single_pion_slurm_test.svg"
 else:
     no_cut_text = ", no cut on " + no_cut
     no_cut_file_name = "_no_cut_" + no_cut + ".svg"
