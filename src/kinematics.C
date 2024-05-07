@@ -108,6 +108,14 @@ double Mxfunc(TLorentzVector q, TLorentzVector target, TLorentzVector hadron1, T
     lv_Mx = q + target - hadron1 - hadron2;
     return lv_Mx.M();
 }
+
+double Mxfunc(TLorentzVector q, TLorentzVector target, TLorentzVector hadron1)
+{
+    TLorentzVector lv_Mx;
+    lv_Mx = q + target - hadron1;
+    return lv_Mx.M();
+}
+
 double xFfunc(TLorentzVector p, TLorentzVector q, double W)
 {
     return 2 * (p.Vect().Dot(q.Vect())) / (q.Vect().Mag() * W);

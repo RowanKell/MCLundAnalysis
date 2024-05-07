@@ -7,8 +7,7 @@ int LundAnalysis(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_14/Run_1_single_pion/file_0_test_merge.root",
-                    int single_pion = 1 //Use as a bool: true (1) if wanting to bin with z of single pion; false (0) if wanting to bin with z of dihadron
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_21/Run_1_dihadron/file_0_test.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -25,8 +24,8 @@ int LundAnalysis(
     auto config_c12 = chain.GetC12Reader();
     
     //Pre-select only events with 1 electron and 1 proton | SHOULD CHECK IF THESE SHOULD BE ATLEAST
-    config_c12->addExactPid(11,1);    //exactly 1 electron
-    config_c12->addExactPid(2212,1);    //exactly 1 proton
+    config_c12->addAtLeastPid(11,1);    //exactly 1 electron
+    config_c12->addAtLeastPid(2212,1);    //exactly 1 proton
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -44,13 +43,13 @@ int LundAnalysis(
     //These are the kinematics/Ratios we need to bin and calculate affinity BOX style
     tree_MC->Branch("z",&z_h);
     tree_MC->Branch("z_1",&z_h_1);
-    tree_MC->Branch("z_2",&z_h_1);
+    tree_MC->Branch("z_2",&z_h_2);
     tree_MC->Branch("x",&x);
     tree_MC->Branch("pT",&pt_gN);
     //variables with _1 _2 or _p _m are for individual pions that add to make a dihadron
     //other variables are for the dihadron
-    tree_MC->Branch("pT_1",&pt_gN_2);
-    tree_MC->Branch("pT_2",&pt_gN_1);
+    tree_MC->Branch("pT_1",&pt_gN_1);
+    tree_MC->Branch("pT_2",&pt_gN_2);
     tree_MC->Branch("Q2",&Q2);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
@@ -75,7 +74,7 @@ int LundAnalysis(
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-        if(event_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+//         if(event_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
         //Aesthetics/loading bar
         if(event_count == 1) {
@@ -206,7 +205,7 @@ int LundAnalysis(
             }
         }
         
-        //Skip non-dipion events
+        //Skip non-dipion events if looking at dihadrons
         if(pi_v.v_id.size() < 2) {
             continue;
         }
@@ -224,9 +223,7 @@ int LundAnalysis(
             pi1.fillParticle(pi_v.v_id[i], pi_v.v_pid[i], pi_v.v_px[i], pi_v.v_py[i],pi_v.v_pz[i], pi_v.v_daughter[i], pi_v.v_parent[i], pi_v.v_mass[i], pi_v.v_vz[i]);
             
             //Consider all pion pairs (including duplicates) if doing single pion to ensure all pions are accounted for
-            if(single_pion) {j_start = 0;}//Make sure all pions will be a pi_1
-            else{j_start = i;}//Start at i to make sure pi_2 has never been a pi_1
-            for(int j = j_start; j < pi_v.v_id.size(); j++) {
+            for(int j = i; j < pi_v.v_id.size(); j++) {
                 if(i == j){
                     //Continue past cases where both pions are the same
                     continue;
@@ -306,6 +303,7 @@ int LundAnalysis(
                 pt_gN = Ptfunc(dihadron_gN);
                 pt_gN_1 = Ptfunc(lv_p1_gN);
                 pt_gN_2 = Ptfunc(lv_p2_gN);
+                
                 //dihadron_gN.Print();
                 //cout << "1, 2 below\n";
                 //lv_p1_gN.Print();
@@ -538,10 +536,8 @@ int LundAnalysis(
         //         t_minus->Fill();
                 //Need: x, z, Q2, pT, R0, R1, R2
                 //zbins:
-                if(single_pion) {z_h_cut_val = z_h_1;}
-                else {z_h_cut_val = z_h;}
                 for(int i = 0; i < zbins.size(); i++) {
-                    if(z_h_cut_val <= zbins[i]) {
+                    if(z_h <= zbins[i]) {
                         zbinv[i].zFillVectors(x, z_h, Q2, pt_gN,z_h_1,  pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }
@@ -561,10 +557,8 @@ int LundAnalysis(
                     }
                 }
                 //qTQ bins
-                if(single_pion) {qTQ_cut_val = qTQ_pion;}
-                else {qTQ_cut_val = qTQ_hadron;}
                 for(int i = 0; i < qTQbins.size(); i++) {
-                    if(qTQ_cut_val <= qTQbins[i]) {
+                    if(qTQ_hadron <= qTQbins[i]) {
                         qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN,z_h_1, pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }

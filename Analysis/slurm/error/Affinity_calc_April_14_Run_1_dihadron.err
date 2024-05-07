@@ -1,0 +1,96 @@
+/u/group/clas12/packages/root/6.28.04-gcc9.2.0/etc/cling/std.modulemap:277:12: error: header 'optional' not found
+    header "optional"
+           ^
+input_line_1:1:10: note: submodule of top-level module 'std' implicitly imported here
+#include <new>
+         ^
+Warning in cling::IncrementalParser::CheckABICompatibility():
+  Failed to extract C++ standard library version.
+Replaced symbol atexit cannot be found in JIT!
+Replaced symbol at_quick_exit cannot be found in JIT!
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+sh: root-config: command not found
+Error in <TUnixSystem::GetFromPipe>: command "root-config --has-dataframe" returned 32512
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?
+IncrementalExecutor::executeFunction: symbol '_ZN5cling7runtime6gClingE' unresolved while linking [cling interface function]!
+You are probably missing the definition of cling::runtime::gCling
+Maybe you need to load the corresponding shared library?

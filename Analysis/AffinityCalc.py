@@ -15,19 +15,25 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 
 # simple version for working with CWD
-file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_14/Run_1_single_pion/"
-num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
-file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
-# file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_11/Run_1/"
-# num_files = 1
-# file_names = ["file_1.root"]
+# file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_14/Run_1_single_pion/"
+# num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
+# file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
 
-product = False
-single_pion = True
+# file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_14/Run_1_single_pion/"
+file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_21/Run_1_dihadron/"
+num_files = 1
+file_names = ["file_0_test.root"]
+
+product = True
+single_pion = False
+
+plot_suffix = "/May_7/TMD_one_file_product.svg"
+
 tree_MC_list = []
 tree_x_list = []
-tree_z_h_list = [] #Notes - for product, the bin z_h is the dihadron z_h, while the z we need for affinity is z_1
-tree_Mh_list = []
+tree_z_h_list = [] 
+if(not single_pion):
+    tree_Mh_list = []
 tree_qTdivQ_list = []
 
 
@@ -36,7 +42,8 @@ for i in range(num_files):
 #         tree_MC_list.append(uproot.open(file_dir + file_names[i]+ ":tree_MC"))
         tree_x_list.append(uproot.open(file_dir + file_names[i]+ ":tree_x_bins"))    
         tree_z_h_list.append(uproot.open(file_dir + file_names[i]+ ":tree_z_h_bins"))    
-        tree_Mh_list.append(uproot.open(file_dir + file_names[i]+ ":tree_Mh_bins"))
+        if(not single_pion):
+            tree_Mh_list.append(uproot.open(file_dir + file_names[i]+ ":tree_Mh_bins"))
         tree_qTdivQ_list.append(uproot.open(file_dir + file_names[i]+ ":tree_qTQ_bins"))
     except uproot.exceptions.KeyInFileError as e:
         print(f"exception: {e}\nexception for file {file_names[i]}; continuing")
@@ -71,7 +78,7 @@ if(product):
 elif(single_pion):
     xkinematics = np.array(["z_h_1", "Q2", "pT_1"])
     zkinematics = np.array(["x", "Q2", "pT_1"])
-    Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
+    #Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
     qTdivQkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
 else:#dihadron case
     xkinematics = np.array(["z_h", "Q2", "pT"])
@@ -92,33 +99,35 @@ for i in range(num_files):
         xarray[i][x_iter] = tree_x_list[i][var].array(library='np')
         x_iter += 1
     Mh_iter = 0
-    for var in Mhkinematics:
-        Mharray[i][Mh_iter] = tree_Mh_list[i][var].array(library='np')
-        Mh_iter += 1
+    if(not single_pion):
+        for var in Mhkinematics:
+            Mharray[i][Mh_iter] = tree_Mh_list[i][var].array(library='np')
+            Mh_iter += 1
     qTdivQ_iter = 0
     for var in qTdivQkinematics:
         qTdivQarray[i][qTdivQ_iter] = tree_qTdivQ_list[i][var].array(library='np')
         qTdivQ_iter += 1
     if(product):
-        z_iter = 0
+        z_iter_2 = 0
         for var in zkinematics_2:
-            zarray_2[i][z_iter] = tree_z_h_list[i][var].array(library='np')
-            z_iter += 1
-        x_iter = 0
+            zarray_2[i][z_iter_2] = tree_z_h_list[i][var].array(library='np')
+            z_iter_2 += 1
+        x_iter_2 = 0
         for var in xkinematics_2:
-            xarray_2[i][x_iter] = tree_x_list[i][var].array(library='np')
-            x_iter += 1
-        Mh_iter = 0
+            xarray_2[i][x_iter_2] = tree_x_list[i][var].array(library='np')
+            x_iter_2 += 1
+        Mh_iter_2 = 0
         for var in Mhkinematics_2:
-            Mharray_2[i][Mh_iter] = tree_Mh_list[i][var].array(library='np')
-            Mh_iter += 1
-        qTdivQ_iter = 0
+            Mharray_2[i][Mh_iter_2] = tree_Mh_list[i][var].array(library='np')
+            Mh_iter_2 += 1
+        qTdivQ_iter_2 = 0
         for var in qTdivQkinematics_2:
-            qTdivQarray_2[i][qTdivQ_iter] = tree_qTdivQ_list[i][var].array(library='np')
-            qTdivQ_iter += 1
+            qTdivQarray_2[i][qTdivQ_iter_2] = tree_qTdivQ_list[i][var].array(library='np')
+            qTdivQ_iter_2 += 1
 
 xarray_t = np.array([np.array([np.zeros(3)] * 7)] * num_files)
-Mharray_t = np.array([np.array([np.zeros(4)] * 7)] * num_files)
+if(not single_pion):
+    Mharray_t = np.array([np.array([np.zeros(4)] * 7)] * num_files)
 qTdivQarray_t = np.array([np.array([np.zeros(4)] * 9)] * num_files)
 if(product):
     zarray_t = np.array([np.array([np.zeros(4)] * 7)] * num_files)
@@ -131,17 +140,18 @@ else:
 for i in range(num_files):
     xarray_t[i] = np.transpose(xarray[i])
     zarray_t[i] = np.transpose(zarray[i])
-    Mharray_t[i] = np.transpose(Mharray[i])
+    if(not single_pion):
+        Mharray_t[i] = np.transpose(Mharray[i])
     qTdivQarray_t[i] = np.transpose(qTdivQarray[i])
     if(product):
-        xarray_t_2[i] = np.transpose(xarray[i])
-        zarray_t_2[i] = np.transpose(zarray[i])
-        Mharray_t_2[i] = np.transpose(Mharray[i])
-        qTdivQarray_t_2[i] = np.transpose(qTdivQarray[i])
+        xarray_t_2[i] = np.transpose(xarray_2[i])
+        zarray_t_2[i] = np.transpose(zarray_2[i])
+        Mharray_t_2[i] = np.transpose(Mharray_2[i])
+        qTdivQarray_t_2[i] = np.transpose(qTdivQarray_2[i])
 TMD_region_name = 'TMD'
 TMD_lable_name = 'tmdaff'
 
-tmd_model_name = '../../SIDIS-Affinity/models/final_%s' % TMD_region_name
+tmd_model_name = '/w/hallb-scshelf2102/clas12/users/rojokell/SIDIS-Affinity/models/final_%s' % TMD_region_name
 tmd_model = tf.keras.models.load_model(tmd_model_name)
 
 Mhbins = np.linspace(0.3,1.3,7)
@@ -156,23 +166,23 @@ def calculator(array, region, binType, binnedVariable = 0):
     R2max = 0.3
     
     if binType == "x":
-        z = array[0]
+        z = array[0] #* 2
         Q2 = array[1]
-        pT = array[2]
+        pT = array[2] #/ 0.837
         x = binnedVariable
     elif binType == "z":
         x = array[0]
         Q2 = array[1]
-        pT = array[2]
+        pT = array[2] #/ 0.837
         if(product):
             z = array[3]
         else:
             z = binnedVariable
     elif (binType == "Mh") or (binType == "qTdivQ"):
         x = array[0]
-        z = array[1]
+        z = array[1] #* 2
         Q2 = array[2]
-        pT = array[3]
+        pT = array[3] #/ 0.837
         
     test_features = pd.DataFrame({'pT':pT,'Q2':Q2,'x':x,'z':z,'R0max':R0max,'R1max':R1max,'R2max':R2max},index=[0])
 
@@ -194,7 +204,8 @@ def calculator(array, region, binType, binnedVariable = 0):
     return prediction[0] #returns affinity value
 TMDxaffinity = np.zeros(7)
 TMDzaffinity = np.zeros(7)
-TMDMhaffinity = np.zeros(7)
+if(not single_pion):
+    TMDMhaffinity = np.zeros(7)
 TMDqTdivQaffinity = np.zeros(9)
 
 region = "collinear"
@@ -215,25 +226,35 @@ else:
         for i in range(7):
             TMDzaffinity[i] += calculator(zarray_t[file][i], region2, "z", zbins[i])
             TMDxaffinity[i] += calculator(xarray_t[file][i], region2, "x", xbins[i])
-            TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh")
+            if(not single_pion):
+                TMDMhaffinity[i] += calculator(Mharray_t[file][i], region2, "Mh")
         for i in range(9):
+            #qTQ_val = calculator(qTdivQarray_t[file][i], region2, "qTdivQ")
             TMDqTdivQaffinity[i] += calculator(qTdivQarray_t[file][i], region2, "qTdivQ")
+            #print(f"i: {i} | calc for qtQ: {qTQ_val}")
 
 #Now to average the affinity across all files (prob do this earlier)
 for i in range(7):
     TMDzaffinity[i] = TMDzaffinity[i] / num_files
     TMDxaffinity[i] = TMDxaffinity[i] / num_files
-    TMDMhaffinity[i] = TMDMhaffinity[i] / num_files 
+    if(not single_pion):
+        TMDMhaffinity[i] = TMDMhaffinity[i] / num_files 
 for i in range(9):
     TMDqTdivQaffinity[i] = TMDqTdivQaffinity[i] / num_files 
 
 fig2, ((ax12, ax22),(ax32,ax42)) = plot.subplots(2, 2, figsize = (10,10),dpi=60)
-fig2.suptitle("Single Pion Affinity in the TMD region")
+if(product):
+    fig2.suptitle("Product Dihadron Affinity in the TMD region")
+elif(single_pion):
+    fig2.suptitle("Single Pion Affinity in the TMD region")
+else:
+    fig2.suptitle("Dihadron Affinity in the TMD region")
 ax12.set(ylabel = "Affinity")
-ax12.scatter(Mhbins, TMDMhaffinity)
-ax12.axhline(y=0, color="gray", lw = 1)
-ax12.set_title("Mh binning")
-ax12.set(xlabel = "Mh (GeV)")
+if(not single_pion):
+    ax12.scatter(Mhbins, TMDMhaffinity)
+    ax12.axhline(y=0, color="gray", lw = 1)
+    ax12.set_title("Mh binning")
+    ax12.set(xlabel = "Mh (GeV)")
 ax22.scatter(xbins, TMDxaffinity)
 ax22.axhline(y=0, color="gray", lw = 1)
 ax22.set_title("x binning")
@@ -246,4 +267,4 @@ ax42.scatter(qTdivQbins, TMDqTdivQaffinity)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("q_T/Q binning")
 ax42.set(xlabel = "q_T/Q")
-fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc/April_14/TMD_one_file_single_pion.svg")
+fig2.savefig("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/PlotAffinityCalc" + plot_suffix)
