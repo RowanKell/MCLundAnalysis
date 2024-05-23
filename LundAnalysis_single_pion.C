@@ -1,13 +1,15 @@
 #include "src/LundAnalysis.h"
+#include <random>
+#include <cmath>
 
 //Main program of MCLundAnalysis - Reads Hipo file, calculates kinematics/Ratios, bins (sometimes) and saves
 // to root file
 int LundAnalysis_single_pion(
 
                     // hipoFile is the file we read in
-                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
+                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_21/Run_1_single_pion/file_0_test.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_23/for_box_500k.root"
                                         //single_pion flag also includes events where there are only 1 pion
 )
 {
@@ -34,27 +36,75 @@ int LundAnalysis_single_pion(
     // These are used to create the loading bar, just aesthetic
     int hash_count = 0;
 
-    int num_events = 29125;
+    int num_events = 18297;
          
-    //Making new MC tree for dihadron
+    //Making new MC tree for dihadron·
     //This tree is used for BOX affinity calculations, diff trees are used for AffinityCalc
     //We do not bin in this tree, rather we bin later for tree_MC
     TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
     
     //These are the kinematics/Ratios we need to bin and calculate affinity BOX style
-    tree_MC->Branch("z",&z_h_1);
+    tree_MC->Branch("z",&z_h);
     tree_MC->Branch("x",&x);
-    tree_MC->Branch("pT",&pt_gN_1);
+    tree_MC->Branch("pT",&pt_gN);
     tree_MC->Branch("Q2",&Q2);
     tree_MC->Branch("R0",&R0); //initial parton momentum
-    tree_MC->Branch("R1_p",&R1_p); //Measured in gN frame
+    tree_MC->Branch("R1",&R1); //Measured in gN frame
     tree_MC->Branch("R2",&R2);
     tree_MC->Branch("q_TdivQ",&qTQ);
     tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
+    tree_MC->Branch("R2_adjust",&R2_adjust);
+    
+    TTree *tree_maxmin = new TTree("tree_maxmin","Tree with max and min Ri values");
+    
+    tree_maxmin->Branch("R0_max",&R0_max); //initial parton momentum
+    tree_maxmin->Branch("R1_max",&R1_max); //Measured in gN frame
+    tree_maxmin->Branch("R2_max",&R2_max);
+    
+    tree_maxmin->Branch("R0_min",&R0_min); //initial parton momentum
+    tree_maxmin->Branch("R1_min",&R1_min); //Measured in gN frame
+    tree_maxmin->Branch("R2_min",&R2_min);
+    
+    TTree *tree_test = new TTree("tree_test","Tree with kinematics for viewing distributions");
+    tree_test->Branch("delta_k_T",&delta_k_T);
+    tree_test->Branch("M_ki",&M_ki);
+    tree_test->Branch("M_kf",&M_kf);
+    
+    tree_test->Branch("r_delta_k_T",&r_delta_k_T);
+    tree_test->Branch("r_M_ki",&r_M_ki);
+    tree_test->Branch("r_M_kf",&r_M_kf);
+    
+    tree_test->Branch("ki_x",&kix);
+    tree_test->Branch("ki_y",&kiy);
+    tree_test->Branch("ki_z",&kiz);
+    tree_test->Branch("kf_x",&kfx);
+    tree_test->Branch("kf_y",&kfy);
+    tree_test->Branch("kf_z",&kfz);
+    
+    int up_count = 0;
+    int down_count = 0;
+    double quark_ratio = 0;
+    double qTQmax = 0;
+    double qTQcounts[9] = {};
+    double xcounts[7] = {};
+    double zcounts[7] = {};
+    
+    int one_bin = 0;
+    double qTQcut_min = 0.3;
+    double qTQcut_max = 0.5;
+    
+    double xcut_min = 0.235;
+    double xcut_max = 0.3;
+    
+    double zcut_min = 0.43;
+    double zcut_max = 0.49;
+    
+
     
     //prints this text, but just aesthetic
     cout << "Start Event Loop" << endl;
     int tree_count = 0;
+    int passed_count = 0;
     
     //now get reference to (unique)ptr for accessing data in loop
     //this will point to the correct place when file changes
@@ -66,7 +116,7 @@ int LundAnalysis_single_pion(
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-//         if(event_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+        if(tree_count > 500000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
         //Aesthetics/loading bar
         if(event_count == 1) {
@@ -137,6 +187,8 @@ int LundAnalysis_single_pion(
             //Kinematics
             // 
 
+            if(pid == 2){up_count++;}
+            if(pid == 1){down_count++;}
 
             //Setting scattered electron
             if(pid==11 && parent==1){
@@ -245,9 +297,7 @@ int LundAnalysis_single_pion(
             Q2 = -(q * q);
             Q2_calc = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
 
-            z_h_1 = (init_target * pi1.lv) / (init_target * q);
-            z_h = z_h_1;
-            z_h_2 = z_h_1;
+            z_h = (init_target * pi1.lv) / (init_target * q);
             s = sfunc(protonMass, electronMass, electron_beam_energy);
             y = yfunc(electron_beam_energy,electron.E);
             x = Q2/s/y; // Bjorken x
@@ -268,8 +318,7 @@ int LundAnalysis_single_pion(
             lv_q_gN.Boost(gNBoostNeg);
 
             //Need pion pt in gN frame
-            pt_gN_1 = Ptfunc(lv_p1_gN);
-            pt_gN_2 = pt_gN_2;
+            pt_gN = Ptfunc(lv_p1_gN);
             
             target_gN = init_target;
             target_gN.Boost(gNBoostNeg);
@@ -383,9 +432,17 @@ int LundAnalysis_single_pion(
             //Ratios in gN frame
             R0 = R0func(ki_gN, kf_gN, deltak, Q2);
             
-            double ki2 = abs(ki_gN * ki_gN);
-            double kf2 = abs(kf_gN * kf_gN);
-            double deltak2 = abs(deltak * deltak);
+            ki2 = abs(ki_gN * ki_gN);
+            kf2 = abs(kf_gN * kf_gN);
+            deltak2 = abs(deltak * deltak);
+            
+            kix = ki_gN.Px();
+            kiy = ki_gN.Py();
+            kiz = ki_gN.Pz();
+            kfx = kf_gN.Px();
+            kfy = kf_gN.Py();
+            kfz = kf_gN.Pz();
+            
             if(deltak2 > ki2 && deltak2 > kf2) {
                 R0check = 0;//DeltaK is biggest
             }
@@ -396,7 +453,12 @@ int LundAnalysis_single_pion(
                 R0check = 2;//kf is biggest
             }
             
-            R1_p = R1func(lv_p1_gN, ki_gN, kf_gN);
+            //Checking parton distributions
+            M_ki = pow(ki2,0.5);
+            M_kf = pow(kf2,0.5);
+            delta_k_T = pow(deltak2,0.5);
+            
+            R1 = R1func(lv_p1_gN, ki_gN, kf_gN);
             ki_Breit = ki;
             ki_Breit.Boost(BreitBoost);
             kf_Breit = kf;
@@ -405,6 +467,7 @@ int LundAnalysis_single_pion(
             k_Breit.Boost(BreitBoost);
 
             R2 = R2func(k_gN, Q2);
+            R2_adjust = R2func_adjust(Ptfunc(q_T_hadron), Q2);
             xF = xFpi1;
 
 
@@ -446,37 +509,69 @@ int LundAnalysis_single_pion(
             if(pi1.P <= 1.25) {
                 continue;
             }
-
+            if(one_bin) {
+                if(x < xcut_min || x > xcut_max){continue;}
+                if(z_h < zcut_min || z_h > zcut_max){continue;}
+                if(qTQ_pion < qTQcut_min || qTQ_pion > qTQcut_max){continue;}
+            }
+            if(i == 0){passed_count++;}
+            
+            //Calculate r_M_ki etc from normal distributions
+            r_M_ki = std::abs(distribution_M_ki(generator_M_ki));
+            
+            r_M_kf = std::abs(distribution_M_kf(generator_M_kf));
+            
+            r_delta_k_T = std::abs(distribution_delta_k_T(generator_delta_k_T));
+            
+            //Calculating max and min ratios
+            if(R0 > R0_max) {R0_max = R0;}
+            if(R1 > R1_max) {R1_max = R1;}
+            if(R2 > R2_max) {R2_max = R2;}
+            
+            if(R0 < R0_min) {R0_min = R0;}
+            if(R1 < R1_min) {R1_min = R1;}
+            if(R2 < R2_min) {R2_min = R2;}
+            
+            
+            
             tree_count += 1;
             tree_MC->Fill();
+            tree_test->Fill();
             //zbins:
             for(int i = 0; i < zbins.size(); i++) {
                 if(z_h <= zbins[i]) {
-                    zbinv[i].zFillVectors(x, z_h, Q2, pt_gN,z_h_1,  pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
-                    break;
-                }
-            }
-            //Q2 bins
-            for(int i = 0; i < Q2bins.size(); i++) {
-                if(Q2 <= Q2bins[i]) {
-                    Q2binv[i].Q2FillVectors(x, z_h, pt_gN,z_h_1, pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
-                    break;
-                }
-            }
-            //qTQ bins
-            for(int i = 0; i < qTQbins.size(); i++) {
-                if(qTQ_pion <= qTQbins[i]) {
-                    qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN,z_h_1, pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
+                    zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2_adjust);
+//                     cout << "filling z_h bin #" << i << " with: x - " << x << " | pt_gN: " << pt_gN << "\n";
+                    zcounts[i] += 1;
                     break;
                 }
             }
             //x bins
             for(int i = 0; i < xbins.size(); i++) {
                 if(x <= xbins[i]) {
-                    xbinv[i].xFillVectors(z_h, Q2, pt_gN,z_h_1,pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
+                    xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2_adjust);
+                    xcounts[i] += 1;
                     break;
                 }
             }
+            //Q2 bins
+            for(int i = 0; i < Q2bins.size(); i++) {
+                if(Q2 <= Q2bins[i]) {
+                    Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2_adjust);
+                    break;
+                }
+            }
+            if(qTQ_pion > qTQmax){qTQmax = qTQ_pion;}
+            //qTQ bins
+            for(int i = 0; i < qTQbins.size(); i++) {
+                if(qTQ_pion <= qTQbins[i]) {
+                    qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2_adjust);
+                    qTQcounts[i] += 1;
+                    break;
+                }
+            }
+            //if((qTQ_pion > qTQbins[7]) &&(qTQ_pion <= qTQbins[8])) {qTdivQ_count++;}
+            
             //print out tree count every 100 to give update to user
             if(tree_count % 100 == 0) {
         //            cout << "Tree_count: " << tree_count << '\n';
@@ -488,13 +583,24 @@ int LundAnalysis_single_pion(
     cout << "\033[0m" << "\033[49m";
     cout << "Final event_count:" << event_count << '\n';
     cout << "Final tree_count: " << tree_count << '\n';
+    cout << "Final events passed: " << passed_count << '\n';
+    //quark_ratio = up_count / (up_count + down_count);
+    //cout << "#up quarks: " << up_count << " | #down quarks: " << down_count << " | up ratio: " << quark_ratio << "\n";
+//     for (int i = 0; i < 9; i++) {
+//         cout << "\nqTQcount #" << i << ": " << qTQcounts[i] << " | ";
+//     }
 
+//     for (int i = 0; i < 7; i++) {
+//         cout << "\nxcount #" << i << ": " << xcounts[i] << " | ";
+//     }
     
+//     for (int i = 0; i < 7; i++) {
+//         cout << "\nzcount #" << i << ": " << zcounts[i] << " | ";
+//     }
 
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
-    TTree *t_Mh = new TTree("tree_Mh_bins","Tree with mean values binned by Mh affinity calculations");
     TTree *t_Q2 = new TTree("tree_Q2_bins","Tree with mean values binned by Q2 affinity calculations");
     TTree *t_qTQ = new TTree("tree_qTQ_bins","Tree with mean values binned by Q2 affinity calculations");
     
@@ -510,101 +616,86 @@ int LundAnalysis_single_pion(
     
     Double_t z_h_t_2;
     Double_t pT_t_2;
+    
+    Double_t R2_t; //R2 calculated as qT^2 / Q^2
     //z branch
     t_z_h->Branch("Name",&infoString);
     t_z_h->Branch("x", &x_t);
     t_z_h->Branch("Q2", &Q2_t);
     t_z_h->Branch("pT", &pT_t);
-    
-    t_z_h->Branch("z_h_1", &z_h_t_1);
-    t_z_h->Branch("pT_1", &pT_t_1);
+    t_z_h->Branch("R2", &R2_t);
     
     //x branch
     t_x->Branch("Name",&infoString);
     t_x->Branch("Q2", &Q2_t);
     
-    t_x->Branch("z_h_1", &z_h_t_1);
-    t_x->Branch("pT_1", &pT_t_1);
-    
-    //Mh branch
-    
-    t_Mh->Branch("Name",&infoString);
-    t_Mh->Branch("x", &x_t);
-    t_Mh->Branch("Q2", &Q2_t);
-    
-    t_Mh->Branch("z_h_1", &z_h_t_1);
-    t_Mh->Branch("pT_1", &pT_t_1);
-    
+    t_x->Branch("z_h", &z_h_t);
+    t_x->Branch("pT", &pT_t);
+    t_x->Branch("R2", &R2_t);
     
     //Q2 branch
     t_Q2->Branch("Name",&infoString);
     t_Q2->Branch("x", &x_t);
 
-    t_Q2->Branch("z_h_1", &z_h_t_1);
-    t_Q2->Branch("pT_1", &pT_t_1);
+    t_Q2->Branch("z_h", &z_h_t);
+    t_Q2->Branch("pT", &pT_t);
+    t_Q2->Branch("R2", &R2_t);
     
     //qTQ branch
     t_qTQ->Branch("Name",&infoString);
     t_qTQ->Branch("x", &x_t);
     t_qTQ->Branch("Q2", &Q2_t);
     
-    t_qTQ->Branch("z_h_1", &z_h_t_1);
-    t_qTQ->Branch("pT_1", &pT_t_1);
+    t_qTQ->Branch("z_h", &z_h_t);
+    t_qTQ->Branch("pT", &pT_t);
+    t_qTQ->Branch("R2", &R2_t);
     //Calculating means
     //Setting zbin means
     for(int i = 0; i < vinfoString.size() - 2; i++) { //Note: we use i < vinfoString.size() - 2 for x,z,Mh 
                                                       //bc they have 7 bins, and there are 9 bins for qTQ, so vinfoString has length 9
-        zbinv[i].meanZ_h();
+        zbinv[i].meanZ_h(1);
         infoString = vinfoString[i];
         Q2_t = zbinv[i].Q2mean;
-        
-        z_h_t_1 = zbinv[i].z_hmean_1;
-        pT_t_1 = zbinv[i].pTmean_1;
+        x_t = zbinv[i].xmean;
+        pT_t = zbinv[i].pTmean;
+        R2_t = zbinv[i].R2mean;
+//         cout << "z binning #" << i << ": xmean - " << zbinv[i].xmean << ": pTmean - " << zbinv[i].pTmean << "\n";
         t_z_h->Fill();
         }
     for(int i = 0; i < vinfoString.size() - 2; i++) {
-        xbinv[i].meanx();
+        xbinv[i].meanx(1);
         infoString = vinfoString[i];
         Q2_t = xbinv[i].Q2mean;
-        
-        z_h_t_1 = xbinv[i].z_hmean_1;
-        pT_t_1 = xbinv[i].pTmean_1;
+        z_h_t = xbinv[i].z_hmean;
+        pT_t = xbinv[i].pTmean;
+        R2_t = xbinv[i].R2mean;
         t_x->Fill();
         }
-    for(int i = 0; i < vinfoString.size() - 2; i++) {
-        Mhbinv[i].meanmh();
-        infoString = vinfoString[i];
-        x_t = Mhbinv[i].xmean;
-        Q2_t = Mhbinv[i].Q2mean;
-        
-        z_h_t_1 = Mhbinv[i].z_hmean_1;
-        pT_t_1 = Mhbinv[i].pTmean_1;
-        t_Mh->Fill();
-        }
-
-    
     for(int i = 0; i < vinfoString.size() - 1; i++) {
-        Q2binv[i].meanQ2();
+        Q2binv[i].meanQ2(1);
         infoString = vinfoString[i];
         x_t = Q2binv[i].xmean;
         Q2_t = Q2binv[i].Q2mean;
-        
-        z_h_t_1 = Q2binv[i].z_hmean_1;
-        pT_t_1 = Q2binv[i].pTmean_1;
+        z_h_t = Q2binv[i].z_hmean;
+        pT_t = Q2binv[i].pTmean;
+        R2_t = Q2binv[i].R2mean;
         t_Q2->Fill();
         }
     
     for(int i = 0; i < vinfoString.size(); i++) {
-        qTQbinv[i].meanqTQ();
+        qTQbinv[i].meanqTQ(1);
         infoString = vinfoString[i];
         x_t = qTQbinv[i].xmean;
         Q2_t = qTQbinv[i].Q2mean;
         
-        z_h_t_1 = qTQbinv[i].z_hmean_1;
-        pT_t_1 = qTQbinv[i].pTmean_1;
+        z_h_t = qTQbinv[i].z_hmean;
+        pT_t = qTQbinv[i].pTmean;
+        R2_t = qTQbinv[i].R2mean;
         t_qTQ->Fill();
         }
-
+    
+//     for(int i = 0; i < 9; i++) {cout << "qtQcounts[i]: " << qTQcounts[i] << "\n";}
+    tree_maxmin->Fill();
     f->Write();
     delete f;
     return 0;
