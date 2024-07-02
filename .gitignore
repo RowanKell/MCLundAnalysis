@@ -6,3 +6,7 @@ OutputFiles/
 core*
 Analysis/TFAffinity/models_copy/
 venv/
+*.err
+*.out
+Analysis/slurm/error/
+Analysis/slurm/output/

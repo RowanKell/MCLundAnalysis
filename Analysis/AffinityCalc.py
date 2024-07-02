@@ -15,19 +15,30 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf
 
 # simple version for working with CWD
-# file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_14/Run_1_single_pion/"
+# file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/May_15/Run_1_dihadron/"
 # num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
 # file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
 
-# file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/April_14/Run_1_single_pion/"
-file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_21/Run_1_dihadron/"
+# file_dir = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_7/Run_1_single_pion/"
+file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Slurm_Spring_24/May_15/Run_1_single_pion/"
 num_files = 1
-file_names = ["file_0_test.root"]
+file_names = ["file_0.root"]
 
-product = True
-single_pion = False
-
-plot_suffix = "/May_7/TMD_one_file_product.svg"
+product = False
+single_pion = True
+dihadron = False
+if(product):
+    print("starting product affinity calc")
+    plot_naming = "TMD_one_file_product.svg"
+elif(dihadron):
+    print("starting dihadron affinity calc")
+    plot_naming = "TMD_one_file_dihadron.svg"
+elif(single_pion):
+    print("starting single pion affinity calc")
+    plot_naming = "TMD_one_file_single_pion.svg"
+else:
+    print("No flags given, resorting to dihadron")
+plot_suffix = "/May_15/" + plot_naming
 
 tree_MC_list = []
 tree_x_list = []
@@ -39,10 +50,10 @@ tree_qTdivQ_list = []
 
 for i in range(num_files):
     try:
-#         tree_MC_list.append(uproot.open(file_dir + file_names[i]+ ":tree_MC"))
         tree_x_list.append(uproot.open(file_dir + file_names[i]+ ":tree_x_bins"))    
         tree_z_h_list.append(uproot.open(file_dir + file_names[i]+ ":tree_z_h_bins"))    
         if(not single_pion):
+#             print("Loading Mh tree: must not be singlepion")
             tree_Mh_list.append(uproot.open(file_dir + file_names[i]+ ":tree_Mh_bins"))
         tree_qTdivQ_list.append(uproot.open(file_dir + file_names[i]+ ":tree_qTQ_bins"))
     except uproot.exceptions.KeyInFileError as e:
@@ -55,17 +66,20 @@ xarray = np.array([np.array([np.zeros(7)] * 3)] * num_files)
 Mharray = np.array([np.array([np.zeros(7)] * 4)] * num_files)
 qTdivQarray = np.array([np.array([np.zeros(9)] * 4)] * num_files)
 if(product):
-    zarray = np.array([np.array([np.zeros(7)] * 4)] * num_files)#for product, need to include z for pion in array
+    print("initializing product arrays")
+    zarray = np.array([np.array([np.zeros(7)] * 4)] * num_files)#for product, need to include z for pion in array (hence 7x4 not 7x3)
     zarray_2 = np.array([np.array([np.zeros(7)] * 4)] * num_files)
     xarray_2 = np.array([np.array([np.zeros(7)] * 3)] * num_files)
     Mharray_2 = np.array([np.array([np.zeros(7)] * 4)] * num_files)
     qTdivQarray_2 = np.array([np.array([np.zeros(9)] * 4)] * num_files)
 else:
+    print("initializing single_pion or dihadron z array")#Don't need a slot for z as this is defined by the center of the bin
     zarray = np.array([np.array([np.zeros(7)] * 3)] * num_files)
 
 
 
 if(product):
+    print("initializing product kinematics arrays")
     xkinematics = np.array(["z_h_1", "Q2", "pT_1"])
     zkinematics = np.array(["x", "Q2", "pT_1","z_h_1"])
     Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
@@ -76,11 +90,13 @@ if(product):
     Mhkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2"])
     qTdivQkinematics_2 = np.array(["x", "z_h_2", "Q2", "pT_2"])
 elif(single_pion):
-    xkinematics = np.array(["z_h_1", "Q2", "pT_1"])
-    zkinematics = np.array(["x", "Q2", "pT_1"])
+    print("initializing single_pion kinematics arrays")
+    xkinematics = np.array(["z_h", "Q2", "pT"])
+    zkinematics = np.array(["x", "Q2", "pT"])
     #Mhkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
-    qTdivQkinematics = np.array(["x", "z_h_1", "Q2", "pT_1"])
+    qTdivQkinematics = np.array(["x", "z_h", "Q2", "pT"])
 else:#dihadron case
+    print("initializing dihadron kinematics arrays")
     xkinematics = np.array(["z_h", "Q2", "pT"])
     zkinematics = np.array(["x", "Q2", "pT"])
     Mhkinematics = np.array(["x", "z_h", "Q2", "pT"])
@@ -157,7 +173,7 @@ tmd_model = tf.keras.models.load_model(tmd_model_name)
 Mhbins = np.linspace(0.3,1.3,7)
 xbins = np.array([0.1,0.13,0.16,0.19,0.235,0.3,0.5])
 zbins = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
-qTdivQbins = np.array([0.1,0.3,0.5,0.8,1.5,2,2.5,3,4])
+qTdivQbins = np.array([0.1,0.3,0.5,0.8,1.1,1.5,2,2.5,3])
 # qTdivQbins = np.linspace(0.1,0.7,7)
 
 def calculator(array, region, binType, binnedVariable = 0):
@@ -175,8 +191,10 @@ def calculator(array, region, binType, binnedVariable = 0):
         Q2 = array[1]
         pT = array[2] #/ 0.837
         if(product):
+#             print("setting z using data for product")
             z = array[3]
         else:
+#             print("setting z using binning for not product")
             z = binnedVariable
     elif (binType == "Mh") or (binType == "qTdivQ"):
         x = array[0]
@@ -264,6 +282,7 @@ ax32.axhline(y=0, color="gray", lw = 1)
 ax32.set_title("z_h binning")
 ax32.set(xlabel = "z_h")
 ax42.scatter(qTdivQbins, TMDqTdivQaffinity)
+# print(TMDxaffinity)
 ax42.axhline(y=0, color="gray", lw = 1)
 ax42.set_title("q_T/Q binning")
 ax42.set(xlabel = "q_T/Q")

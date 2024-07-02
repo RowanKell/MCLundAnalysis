@@ -1,4 +1,5 @@
 #include "BinVariable.C"
+#include <random>
 #pragma once
 //Constants 
 double electron_beam_energy = 10.6; //(fall2018)
@@ -69,6 +70,7 @@ double R1_m;
 double R1lab;
 double R1breit;
 double R2;
+double R2_adjust;
 
 //Numerator and Denominator for R1
 double R1num;
@@ -124,6 +126,28 @@ TVector2 deltak_gN;
 double ki2;
 double kf2;
 double deltak2;
+
+double M_ki;
+double M_kf;
+double delta_k_T;
+
+double random_mean = 0.93891897 / 2;
+double random_std = 0.93891897 / 2;
+
+double r_M_ki;
+double r_M_kf;
+double r_delta_k_T;
+
+std::default_random_engine generator_M_ki;
+std::normal_distribution<double> distribution_M_ki(random_mean,random_std);
+
+std::default_random_engine generator_M_kf;
+std::normal_distribution<double> distribution_M_kf(random_mean,random_std);
+
+
+std::default_random_engine generator_delta_k_T;
+std::normal_distribution<double> distribution_delta_k_T(random_mean,random_std);
+
 int R0check;
 
 double kTx;
@@ -283,7 +307,7 @@ vector<double> zbins{0.35,0.43,0.49,0.55,0.62,0.7,0.83};
 double z_h_cut_val;
 int j_start; //Used to either run over duplicate pion pairs or to not run over duplicates
 vector<double> Q2bins{1,1.4,2,2.8,4,5.6,7.9,11.1};
-vector<double> qTQbins{0.1,0.3,0.5,0.8,1.5,2,2.5,3,4};
+vector<double> qTQbins{0.1,0.3,0.5,0.8,1.1,1.5,2,2.5,3};
 vector<double> Mhbins{0.4429,0.6357,0.8286,1.0214,1.2143,1.4071,1.6};
 
 
@@ -302,6 +326,14 @@ vector<int> vdiquarklist = {1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303
 vector<int> vhadronlist = {-3122, -211, 111, 211, 1114, 2114, 2212, 2214, 2224, 3112, 3114, 3122, 3214, 3222, 3224, 3312, 3324, -323, -313, -213, 113, 213, 221, 223, 310, 313, 323, 331, 333};
 
 int hash_count = 0;
+
+double R0_min = 9999;
+double R1_min = 9999;
+double R2_min = 9999;
+
+double R0_max = 0;
+double R1_max = 0;
+double R2_max = 0;
 int declarations() {
 //     cout << "qTQbins:\n";
 //     for(int i = 0;i < 9; i++) {

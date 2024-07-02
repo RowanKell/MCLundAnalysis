@@ -9,8 +9,7 @@ int LundAnalysis_single_pion(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_23/for_box_500k.root"
-                                        //single_pion flag also includes events where there are only 1 pion
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_2/file_0.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -74,12 +73,14 @@ int LundAnalysis_single_pion(
     tree_test->Branch("r_M_ki",&r_M_ki);
     tree_test->Branch("r_M_kf",&r_M_kf);
     
-    tree_test->Branch("ki_x",&kix);
-    tree_test->Branch("ki_y",&kiy);
-    tree_test->Branch("ki_z",&kiz);
-    tree_test->Branch("kf_x",&kfx);
-    tree_test->Branch("kf_y",&kfy);
-    tree_test->Branch("kf_z",&kfz);
+//     tree_test->Branch("ki_x",&kix);
+//     tree_test->Branch("ki_y",&kiy);
+//     tree_test->Branch("ki_z",&kiz);
+//     tree_test->Branch("kf_x",&kfx);
+//     tree_test->Branch("kf_y",&kfy);
+//     tree_test->Branch("kf_z",&kfz);
+    
+    int low_R1_count = 0;
     
     int up_count = 0;
     int down_count = 0;
@@ -116,7 +117,7 @@ int LundAnalysis_single_pion(
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-        if(tree_count > 500000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+//         if(tree_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
         //Aesthetics/loading bar
         if(event_count == 1) {
@@ -459,6 +460,9 @@ int LundAnalysis_single_pion(
             delta_k_T = pow(deltak2,0.5);
             
             R1 = R1func(lv_p1_gN, ki_gN, kf_gN);
+            if(R1 < -100) {
+                low_R1_count++;
+            }
             ki_Breit = ki;
             ki_Breit.Boost(BreitBoost);
             kf_Breit = kf;
@@ -570,12 +574,6 @@ int LundAnalysis_single_pion(
                     break;
                 }
             }
-            //if((qTQ_pion > qTQbins[7]) &&(qTQ_pion <= qTQbins[8])) {qTdivQ_count++;}
-            
-            //print out tree count every 100 to give update to user
-            if(tree_count % 100 == 0) {
-        //            cout << "Tree_count: " << tree_count << '\n';
-            }
         }
 	
 
@@ -584,19 +582,8 @@ int LundAnalysis_single_pion(
     cout << "Final event_count:" << event_count << '\n';
     cout << "Final tree_count: " << tree_count << '\n';
     cout << "Final events passed: " << passed_count << '\n';
-    //quark_ratio = up_count / (up_count + down_count);
-    //cout << "#up quarks: " << up_count << " | #down quarks: " << down_count << " | up ratio: " << quark_ratio << "\n";
-//     for (int i = 0; i < 9; i++) {
-//         cout << "\nqTQcount #" << i << ": " << qTQcounts[i] << " | ";
-//     }
+    cout << "low_R1_count " << low_R1_count << '\n';
 
-//     for (int i = 0; i < 7; i++) {
-//         cout << "\nxcount #" << i << ": " << xcounts[i] << " | ";
-//     }
-    
-//     for (int i = 0; i < 7; i++) {
-//         cout << "\nzcount #" << i << ": " << zcounts[i] << " | ";
-//     }
 
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
@@ -693,8 +680,7 @@ int LundAnalysis_single_pion(
         R2_t = qTQbinv[i].R2mean;
         t_qTQ->Fill();
         }
-    
-//     for(int i = 0; i < 9; i++) {cout << "qtQcounts[i]: " << qTQcounts[i] << "\n";}
+
     tree_maxmin->Fill();
     f->Write();
     delete f;

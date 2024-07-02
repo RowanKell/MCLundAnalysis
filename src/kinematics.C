@@ -102,6 +102,11 @@ double R2func(TLorentzVector k, double Q2)
     return abs(k * k) / Q2;
 }
 
+double R2func_adjust(double qT, double Q2)
+{
+    return (qT * qT) / Q2;
+}
+
 double Mxfunc(TLorentzVector q, TLorentzVector target, TLorentzVector hadron1, TLorentzVector hadron2)
 {
     TLorentzVector lv_Mx;

@@ -8,14 +8,13 @@ slurm_output="${workdir}/OutputFiles/Slurm_Spring_24"
 daydir="${slurm_output}/${current_date}"
 #USER SET VALUES
 outputdir="${daydir}/Run_1_single_pion/"
-single_pion_flag=1 #1 = true, bin by single pion values | 0 = false, bin by dihadron values
 
 out_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/output/output${current_date}"
 error_folder="/work/clas12/users/rojokell/MCLundAnalysis/Slurm/error/error${current_date}"
 
 rootname="file_"
 processdir="/work/clas12/users/rojokell/MCLundAnalysis/"
-processcodename="LundAnalysis.C"
+processcodename="LundAnalysis_single_pion.C"
 runJobs="${workdir}/Slurm/runJobs.sh"
 touch $runJobs
 chmod +x $runJobs
@@ -56,7 +55,7 @@ do
     echo "module purge -f" >> $file
     echo "source /u/home/rojokell/.cshrc" >> $file
     echo "cd ${processdir}" >> $file    
-    echo "clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\",${single_pion_flag}\\)" >> $file   
+    echo "clas12root ${processcodename}\\(\\\"${hipofile}\\\",\\\"${outputdir}/${rootname}${i}.root\\\"\\)" >> $file   
     echo "sbatch shells/${rootname}${i}.sh" >> $runJobs
     i=$((i+1))
 done

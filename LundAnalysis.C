@@ -7,7 +7,7 @@ int LundAnalysis(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV//45nA_job_3117_2.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/April_21/Run_1_dihadron/file_0_test.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_14/Run_1_dihadron/file_0.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -23,9 +23,9 @@ int LundAnalysis(
     chain.Add(hipoFile);
     auto config_c12 = chain.GetC12Reader();
     
-    //Pre-select only events with 1 electron and 1 proton | SHOULD CHECK IF THESE SHOULD BE ATLEAST
-    config_c12->addAtLeastPid(11,1);    //exactly 1 electron
-    config_c12->addAtLeastPid(2212,1);    //exactly 1 proton
+    //Pre-select only events with at least 1 proton and electron (necessary for SIDIS events)
+    config_c12->addAtLeastPid(11,1);    //At least 1 electron
+    config_c12->addAtLeastPid(2212,1);    //At least 1 proton
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -176,6 +176,7 @@ int LundAnalysis(
                 diquark.update(id, pid, px, py, pz, daughter, parent, 
                               mass, vz);
             }
+            //Save virtual photon
             else if(pid == 22 && parent == 1){
                 photon.fillParticle(id, pid, px, py, pz, daughter, parent, mass, vz);
                 photon.setVectors();
@@ -222,7 +223,7 @@ int LundAnalysis(
             //Fill first pion particle object
             pi1.fillParticle(pi_v.v_id[i], pi_v.v_pid[i], pi_v.v_px[i], pi_v.v_py[i],pi_v.v_pz[i], pi_v.v_daughter[i], pi_v.v_parent[i], pi_v.v_mass[i], pi_v.v_vz[i]);
             
-            //Consider all pion pairs (including duplicates) if doing single pion to ensure all pions are accounted for
+            //Consider all pion pairs (no duplicates hence start on j = i)
             for(int j = i; j < pi_v.v_id.size(); j++) {
                 if(i == j){
                     //Continue past cases where both pions are the same
@@ -538,7 +539,7 @@ int LundAnalysis(
                 //zbins:
                 for(int i = 0; i < zbins.size(); i++) {
                     if(z_h <= zbins[i]) {
-                        zbinv[i].zFillVectors(x, z_h, Q2, pt_gN,z_h_1,  pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
+                        zbinv[i].zFillVectors(x, Q2, pt_gN,z_h_1,  pt_gN_1,z_h_2, pt_gN_2, R0, R1, R2);
                         break;
                     }
                 }
