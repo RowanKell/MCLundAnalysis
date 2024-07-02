@@ -5,6 +5,9 @@ import pandas as pd
 import params as par
 from tools import save, load, lprint, checkdir
 import time
+import ROOT as root
+from array import array
+
 # xlsxFileName = "xlsx/May23_test"
 # inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_23/for_box_1k.root"
 # outRootFileName = "root_files/May23_test.root"
@@ -34,9 +37,9 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             )
 
     R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-    R2 = np.array([(qT**2) / (Q**2)])
+#     R2 = np.ones(len(R1))*(qT**2) / (Q**2)
 #     print(f"R1: {R1} | R2: {R2} | type(R1): {type(R1)} | type(R2): {type(R2)}")
-#     R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+    R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
 
     R3 = np.abs(rat.get_R3( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
    
@@ -52,7 +55,7 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
     R5 = np.abs(np.log(R2))
 
     
-    size=len(R1)
+    size=len(R1) # Number of iterations for one datapoint (kinematic bin)
 
     partonic_affinity = 0
 
@@ -131,7 +134,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     print("We open file ",fname) # Write what file we open from directory /expdata
     tab = pd.read_excel(fname)
     tab=tab.to_dict(orient='list')
-    npts=len(tab[list(tab.keys())[0]])
+    npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
     
     #Rowan edits
     print(f"npts: {npts}")
@@ -406,47 +409,7 @@ def gen_np_values(params,x,z,level,size=100):
     params['phi_ki']     = np.random.uniform(lower_phi,upper_phi,size)
     
 def main00(rootFileName):
-#     experiment = "rowan_unbinned"
-#     checkdir('data')
 
-#     # EXPERIMENTS TO BE CHOSEN
-#     if experiment == "JLAB":
-        
-#         print('Processing JLab12')
-#         fnames = {'jlab12.xlsx'}
-    
-#     elif experiment == "rowan_test":
-#         print('Processing rowan_test')
-#         fnames = {'../rowan_dev/xlsx/binned_Lund_May22.xlsx'}
-#     elif experiment == "rowan_unbinned":
-#         print('Processing rowan_unbinned')
-#         fnames = {rootFileName}
-    
-#     elif experiment == "JLAB22":
-        
-#         print('Processing JLab22')
-#         #fnames = {'jlab22gridmy.xlsx'}
-#         fnames = {'jlab22_pip.xlsx'}
-         
-#     elif experiment == "EIC": 
-        
-#         print('Processing EIC')
-#         fnames = {'eic.xlsx'}
-        
-#     elif experiment == "COMPASS": 
-        
-#         print('Processing COMPASS')
-#         fnames={'1008.xlsx','1009.xlsx'} #{'compass17.xlsx'} # COMPASS to be verify
-        
-#     elif experiment == "HERMES":  
-        
-#         print('Processing HERMES')
-#         fnames = {'1010.xlsx','1011.xlsx','1012.xlsx','1013.xlsx','1014.xlsx','1015.xlsx','1016.xlsx','1017.xlsx'} # Hermes
-        
-#     else:
-        
-#         print("Usage: main00(experiment), experiment = 'JLAB', 'EIC', 'HERMES', 'COMPASS'")
-#         return 1
     fnames = {rootFileName}
     # The "box" size ~ qT/Q < 0.3 
     R0max = 0.3
@@ -476,3 +439,33 @@ def main00(rootFileName):
         write_affinity_to_excel(tab,output)
         tabs.append(tab)
     return tabs, ratios
+
+def maxmin(rootFilePath, ratios):
+    file = root.TFile.Open(rootFilePath, "UPDATE")
+    tree_max = root.TTree("tree_max","tree_max")
+
+    R0_hist_max = array('d',[0])
+    R1_hist_max = array('d',[0])
+    R2_hist_max = array('d',[0])
+
+    R0_hist_min = array('d',[0])
+    R1_hist_min = array('d',[0])
+    R2_hist_min = array('d',[0])
+
+    tree_max.Branch('R0_hist_max', R0_hist_max,'R0_hist_max/D')
+    tree_max.Branch('R1_hist_max', R1_hist_max,'R1_hist_max/D')
+    tree_max.Branch('R2_hist_max', R2_hist_max,'R2_hist_max/D')
+
+    tree_max.Branch('R0_hist_min', R0_hist_min,'R0_hist_min/D')
+    tree_max.Branch('R1_hist_min', R1_hist_min,'R1_hist_min/D')
+    tree_max.Branch('R2_hist_min', R2_hist_min,'R2_hist_min/D')
+
+    R0_hist_max[0] = max(ratios[0])
+    R1_hist_max[0] = max(ratios[1])
+    R2_hist_max[0] = max(ratios[2])
+
+    R0_hist_min[0] = min(ratios[0])
+    R1_hist_min[0] = min(ratios[1])
+    R2_hist_min[0] = min(ratios[2])
+    tree_max.Fill()
+    tree_max.Write()

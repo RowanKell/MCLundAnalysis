@@ -33,7 +33,7 @@ def check_and_create_directory(directory_path):
 
 
 
-def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName):
+def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,plot_title = ""):
     today = date.today()
     date_dir = today.strftime("%b_%d/")
     dir_prefix = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/"
@@ -81,6 +81,7 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName):
             pTformat = "pT <= {} && pT > {}"
             R0format = "R0 < 0.3"
             R2format = "R2_adjust < 0.3"
+#             R2format = "R2 < 0.3"
             R1format = "R1 < 0.3"
             qdivformat = "qTQ_hadron <= {} && qTQ_hadron > {}"
 
@@ -132,21 +133,36 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName):
     print(f"beginning single pion affinity calculation")
     product_arrs = calculate_Affinity(d)
     print(f"Finished calculating affinity arr for single pion")
-
-    fig2, ((ax42, ax22), (ax32,ax52)) = plot.subplots(2, 2, figsize = (10, 10), dpi=30)
-
-    fig2.suptitle("Single Pion BOX Affinity in the TMD region")
-    ax22.scatter(xbinsno0, product_arrs[0], c = 'r', marker = '+')
+    if(useDriver):
+        marker_color = 'b'
+        marker_shape = 'o'
+    else:
+        marker_color = 'r'
+        marker_shape = '+'
+    fig2, ((ax42, ax22), (ax32,ax52)) = plot.subplots(2, 2, figsize = (10, 10), dpi=50)
+    if(plot_title == ""):
+        fig2.suptitle("Single Pion BOX Affinity in the TMD region")
+    else:
+        fig2.suptitle(plot_title)
+    ax22.scatter(xbinsno0, product_arrs[0], c = marker_color, marker = marker_shape)
     ax22.axhline(y=0, color="gray", lw = 1)
     ax22.set_title("x binning")
     ax22.set(xlabel = "x")
-    ax32.scatter(zbinsno0, product_arrs[1], c = 'r', marker = '+')
+    ax32.scatter(zbinsno0, product_arrs[1], c = marker_color, marker = marker_shape)
     ax32.axhline(y=0, color="gray", lw = 1)
     ax32.set_title("z_h binning")
     ax32.set(xlabel = "z_h")
     ax42.set(ylabel = "Affinity")
-    ax52.scatter(qTQbinsno0, product_arrs[2], c = 'r', marker = "+")
+    ax52.scatter(qTQbinsno0, product_arrs[2], c = marker_color, marker = marker_shape)
     ax52.axhline(y=0, color="gray", lw = 1)
     ax52.set_title("qTdivQ binning")
     ax52.set(xlabel = "qTdivQ")
     plot.savefig(dir_prefix+"Analysis/BoxAffinity/Plots_S24/" + date_dir + plotFileName)
+
+# Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
+# xlsxFileName = "xlsx/May23_test_500k"
+# inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_23/for_box_500k.root"
+# outRootFileName = "/root_files/May23_test.root"
+
+# plotFileName = "driver_test_500k.pdf"
+# CalculateBoxAffinity("Analysis/BoxAffinity" + outRootFileName, True, plotFileName)
