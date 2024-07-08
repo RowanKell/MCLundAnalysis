@@ -11,3 +11,4 @@ venv/
 Analysis/slurm/error/
 Analysis/slurm/output/
 *.xlsx
+*.root

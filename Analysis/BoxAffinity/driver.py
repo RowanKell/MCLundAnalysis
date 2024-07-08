@@ -132,8 +132,9 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     Compute affinity accross kinematics of fname file 
     """
     print("We open file ",fname) # Write what file we open from directory /expdata
-    tab = pd.read_excel(fname)
-    tab=tab.to_dict(orient='list')
+    tab = up.open(fname).array(library="pd")
+#     tab = pd.read_excel(fname)
+#     tab=tab.to_dict(orient='list')
     npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
     
     #Rowan edits
