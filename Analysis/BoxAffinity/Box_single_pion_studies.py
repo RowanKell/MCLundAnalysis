@@ -33,7 +33,7 @@ def check_and_create_directory(directory_path):
 
 
 
-def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,plot_title = ""):
+def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,plot_title = ""):
     today = date.today()
     date_dir = today.strftime("%b_%d/")
     dir_prefix = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/"

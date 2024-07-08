@@ -9,7 +9,7 @@ int LundAnalysis_single_pion(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_2/file_0.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_8/slurm_test.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -53,6 +53,10 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("q_TdivQ",&qTQ);
     tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
     tree_MC->Branch("R2_adjust",&R2_adjust);
+    tree_MC->Branch("qT_calc", &qT_calc);
+    tree_MC->Branch("qT_diff", &qT_diff);
+    tree_MC->Branch("qT_hadron_mag", &qT_hadron_mag);
+    tree_MC->Branch("qTQ_calc", &qTQ_calc);
     
     TTree *tree_maxmin = new TTree("tree_maxmin","Tree with max and min Ri values");
     
@@ -422,7 +426,14 @@ int LundAnalysis_single_pion(
             //q_T / Q for plotting
             qTQ = Ptfunc(q_T) / sqrt(Q2);
 
-
+            //qT from pT/z
+            qT_calc = pt_gN / z_h;
+            qT_hadron_mag = Ptfunc(q_T_hadron);
+            qTQ_calc = qT_calc / sqrt(Q2);
+            
+            // diff between qT calc and qT hadron
+            qT_diff = qT_calc - qT_hadron_mag;
+            
             //ki, k, and delta k
             deltak = kfBreitTran - (-1 * z_N * q_T); 
 

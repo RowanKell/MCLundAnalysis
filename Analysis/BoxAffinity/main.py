@@ -1,3 +1,7 @@
+# EXAMPLE USAGE
+# python3 main.py --no-useArgs
+
+
 from ConvertData import convertData, binnedConvertData
 from driver import main00, maxmin
 from Box_single_pion_studies import CalculateBoxAffinity
@@ -21,6 +25,8 @@ parser.add_argument('--useDriver', action=argparse.BooleanOptionalAction,
                         help='If True, uses driver.py to calculate ratios instead of LundAnalysis.C')
 parser.add_argument('--createMaxMin', action=argparse.BooleanOptionalAction,
                         help='If True, creates maxmin tree for plotting histogram')
+parser.add_argument('--multipleFiles', action=argparse.BooleanOptionalAction,
+                        help='If True, runs with whole directory')
 parser.add_argument('--useArgs', action=argparse.BooleanOptionalAction,
                         help='If True, uses command line arguments to set parameters')
 
@@ -32,24 +38,27 @@ useArgs = args.useArgs
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
-    useDriver = False
-    fileFromLundAnalysis = "Files_Spring_24/May_24/file_0_all_events.root"
+    useDriver = True
+#     fileFromLundAnalysis = "Files_Spring_24/July_7/file_0_new_qT.root"
+    fileFromLundAnalysis = "Slurm_Spring_24/July_08/Testing/" #for multipleFiles
     createMaxMin = True
+    multipleFiles = True
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
-        xlsxFileName = "xlsx/July_2_100_driver_original_R2"
+        xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        outRootFileName = "/root_files/July_2_100_driver_old_R2.root"
-        plotFileName = "driver_july_2_old_R2.pdf"
-        plot_title = "Driver Affinity old R2 in TMD"
+        outRootFileName = "/root_files/July_8_100_driver_old_R2_three_files.root"
+        plotFileName = "driver_july_8_old_R2_3_files.pdf"
+        plot_title = "Driver Affinity old R2 in TMD three files"
     else:
         inRootFileName = "/OutputFiles/" + fileFromLundAnalysis
-        plotFileName = "MC_july_2_new_R2.pdf"
-        plot_title = "MC Box Affinity new R2 in TMD"
+        plotFileName = "MC_july_8_3_files.pdf"
+        plot_title = "MC Box Affinity 3 files test"
 else:
     useDriver = args.useDriver
     fileFromLundAnalysis = args.fileFromLundAnalysis
     createMaxMin = args.createMaxMin
+    multipleFiles = args.multipleFiles
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
         xlsxFileName = args.xlsxFileName
@@ -70,7 +79,7 @@ if(useDriver):
     if(Binned):
         binnedConvertData(xlsxFileName + ".xlsx", inRootFileName)
     else:
-        convertData(xlsxFileName + ".xlsx", inRootFileName)
+        convertData(xlsxFileName + ".xlsx", inRootFileName,multipleFiles)
 
     '''
     STEP 2: Calculate ratios using driver, save them to a root file
@@ -129,4 +138,4 @@ BOX Method
 '''
 
 if not useDriver:
-    CalculateBoxAffinity(inRootFileName, False, plotFileName,plot_title)
+    CalculateBoxAffinity(inRootFileName, False, plotFileName,multipleFiles,plot_title)

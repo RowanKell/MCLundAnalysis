@@ -1,7 +1,8 @@
 import xlsxwriter
 import uproot
+import os
 
-def convertData(xlsxFileName, rootFileName):
+def convertData(xlsxFileName, rootFileName,multipleFiles):
     if(xlsxFileName == ""):
         xlsxFileName = 'xlsx/May23_500k.xlsx'
     if(rootFileName == ""):
@@ -16,33 +17,41 @@ def convertData(xlsxFileName, rootFileName):
     for kin in kinematic_list:
         worksheet.write(global_row_num,column,kin)
         column += 1;
-#     file_dir = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_23/"
-    # num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
-    # file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
-    num_files = 1
-    file_names = [rootFileName]
+    if(multipleFiles):
+        file_dir = rootFileName #should be a directory
+        num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
+        file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
+    else:
+        num_files = 1
+        file_names = [rootFileName]
 #     print(f"fileName: {file_names[0]}")
 
     tree_MC_list = []
     for i in range(num_files):
         try:
-            tree_MC_list.append(uproot.open(file_names[i]+ ":tree_MC"))
+#             print(f"file_name: {file_names[i]}")
+            tree_MC_list.append(uproot.open(file_dir + file_names[i]+ ":tree_MC"))
         except uproot.exceptions.KeyInFileError as e:
             print(f"exception: {e}\nexception for file {file_names[i]}; continuing")
             continue
 
     var_row = []
-
+#     print(f"num_files: {num_files}")
+    file_row_start = 1
     for i in range(num_files):
         j = 1
         for var in kinematic_list_short:
+            print(f"file_row_start: {file_row_start}")
+            row_num = file_row_start
             curr_array = tree_MC_list[i][var].array(library='np')
             for row in range(len(curr_array)):
-                worksheet.write(row + 1,j,curr_array[row])
+                worksheet.write(row_num,j,curr_array[row])
+                row_num += 1
             j += 1
-        for row in range(len(curr_array)):
-            worksheet.write(row+1,6,"pi+")
-            worksheet.write(row+1,7,"proton")
+        for row in range(len(tree_MC_list[0][kinematic_list_short[0]].array(library='np'))):
+            worksheet.write(row_num,6,"pi+")
+            worksheet.write(row_num,7,"proton")
+        file_row_start += len(tree_MC_list[0][kinematic_list_short[0]].array(library='np'))
     workbook.close()
 def binnedConvertData(xlsxFileName, rootFileName):
     if(xlsxFileName == ""):

@@ -244,6 +244,11 @@ TVector2 q_T2;
 TVector2 q_T_lab;
 TVector2 q_T_hadron;
 
+double qT_calc;
+double qT_hadron_mag;
+double qT_diff;
+double qTQ_calc;
+
 //qT variables for single pion affinity qTQ binning
 TLorentzVector pion_frame;
 TVector3 pionBoost;

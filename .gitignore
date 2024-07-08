@@ -10,3 +10,4 @@ venv/
 *.out
 Analysis/slurm/error/
 Analysis/slurm/output/
+*.xlsx

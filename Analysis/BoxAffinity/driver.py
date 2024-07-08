@@ -436,7 +436,7 @@ def main00(rootFileName):
     for fname in fnames:
         tab,ratios=process_kinematics(fname + ".xlsx",R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size)
         output = fname + "_w_affinity.xlsx"
-        write_affinity_to_excel(tab,output)
+        #write_affinity_to_excel(tab,output)
         tabs.append(tab)
     return tabs, ratios
 
