@@ -262,6 +262,39 @@ TVector2 q_T_frac;
 double qTQfrac;
 
 double Qdiff;
+
+//Variables for individual qTQ bins
+double qTQ_low_aff;
+double qTQ_high_aff;
+
+double qTQ_low_tol;
+double qTQ_high_tol;
+
+//qT from zN
+double q_T_zN_val;
+
+//One binnings
+int low_bool;
+int high_bool;
+
+double Q2_low_aff;
+double Q2_low_tol;
+double pT_low_aff;
+double pT_low_tol;
+double x_low_aff;
+double x_low_tol;
+double z_low_aff;
+double z_low_tol;
+
+double Q2_high_aff;
+double Q2_high_tol;
+double pT_high_aff;
+double pT_high_tol;
+double x_high_aff;
+double x_high_tol;
+double z_high_aff;
+double z_high_tol;
+
     // Bin objects for collecting kinematic variables
 
 BinVariable zbin0;

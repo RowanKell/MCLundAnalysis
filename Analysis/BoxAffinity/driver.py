@@ -7,6 +7,9 @@ from tools import save, load, lprint, checkdir
 import time
 import ROOT as root
 from array import array
+import os
+import uproot as up
+from tqdm import tqdm
 
 # xlsxFileName = "xlsx/May23_test"
 # inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/May_23/for_box_1k.root"
@@ -37,9 +40,9 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             )
 
     R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-#     R2 = np.ones(len(R1))*(qT**2) / (Q**2)
+    R2 = np.ones(len(R1))*(qT**2) / (Q**2)
 #     print(f"R1: {R1} | R2: {R2} | type(R1): {type(R1)} | type(R2): {type(R2)}")
-    R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+#     R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
 
     R3 = np.abs(rat.get_R3( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
    
@@ -127,12 +130,28 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             
     return partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf
 
-def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size):
+def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff):
     """
     Compute affinity accross kinematics of fname file 
     """
     print("We open file ",fname) # Write what file we open from directory /expdata
-    tab = up.open(fname).array(library="pd")
+    kinematic_list_short = ["pT","Q2","x","z","R2_adjust"]
+
+    file_dir = fname
+    num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
+    file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
+    if(highAff):
+        tree_ext = ":tree_high"
+    else:
+        tree_ext = ":tree_low"
+    for i in range(num_files):
+        if(i == 0):
+            tab = up.open(file_dir + file_names[i] + tree_ext).arrays(kinematic_list_short,library="pd")
+        else:
+            if(not highAff):
+                if(i > 5):
+                    break
+            tab = pd.concat([tab,up.open(file_dir + file_names[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
 #     tab = pd.read_excel(fname)
 #     tab=tab.to_dict(orient='list')
     npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
@@ -140,57 +159,56 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     #Rowan edits
     print(f"npts: {npts}")
     ratios = np.zeros((3,npts,size))
+    tab['partonicaff']=0.0
+    tab['currentaff']=0.0
 
-    tab['partonicaff']=[]
-    tab['currentaff']=[]
 
+    tab['tmdaff']=0.0
+    tab['tmdnpaff']=0.0
 
-    tab['tmdaff']=[]
-    tab['tmdnpaff']=[]
+    tab['collinearaff']=0.0
+    tab['collinearloworderaff']=0.0
+    tab['collinearhighorderaff']=0.0
+    tab['matchaff']=0.0
+    tab['softaff']=0.0
+    tab['targetaff']=0.0
+    tab['unclassifiedaff']=0.0
 
-    tab['collinearaff']=[]
-    tab['collinearloworderaff']=[]
-    tab['collinearhighorderaff']=[]
-    tab['matchaff']=[]
-    tab['softaff']=[]
-    tab['targetaff']=[]
-    tab['unclassifiedaff']=[]
-
-    tab['R0'] = []
-    tab['R1'] = []
-    tab['R1p'] = []
-    tab['R2'] = []
-    tab['R3'] = []
-    tab['R4'] = []
-    tab['R5'] = []
+    tab['R0'] = 0.0
+    tab['R1'] = 0.0
+    tab['R1p'] = 0.0
+    tab['R2'] = 0.0
+    tab['R3'] = 0.0
+    tab['R4'] = 0.0
+    tab['R5'] = 0.0
      
  
     # Let us modify the data file and add qT, xN, zN:   
-    tab['qT'] = []
-    tab['xN'] = []
-    tab['zN'] = []
-    tab['yp'] = []
-    tab['yh'] = []
-    tab['yhtarget'] = []
-    tab['yi'] = []
-    tab['yf'] = []
+    tab['qT'] = 0.0
+    tab['xN'] = 0.0
+    tab['zN'] = 0.0
+    tab['yp'] = 0.0
+    tab['yh'] = 0.0
+    tab['yhtarget'] = 0.0
+    tab['yi'] = 0.0
+    tab['yf'] = 0.0
     
     #ROWAN EDIT
-    tab['qTQ'] = []
+    tab['qTQ'] = 0.0
 
 
 
 
-    
-    for i in range(npts):
-        tab['qT'].append(tab['pT'][i]/tab['z'][i]) # We will modify it later in this cell line 129
-        tab['xN'].append(tab['x'][i]) # We will modify it later
-        tab['zN'].append(tab['z'][i]) # We will modify it later
-        tab['yp'].append(tab['x'][i]) # We will modify it later
-        tab['yh'].append(tab['x'][i]) # We will modify it later
-        tab['yhtarget'].append(tab['x'][i]) # We will modify it later (this is for target region)
-        #Rowan EDIT - seems they are initializing with garbage
-        tab['qTQ'].append(0)
+    print("starting first loop")
+#     for i in tqdm(range(npts)):
+#         tab.loc[i,'qT'] = tab['pT'][i]/tab['z'][i] # We will modify it later in this cell line 129
+#         tab.loc[i,'xN'] = tab['x'][i] # We will modify it later
+#         tab.loc[i,'zN'] = tab['z'][i] # We will modify it later
+#         tab.loc[i,'yp'] = tab['x'][i] # We will modify it later
+#         tab.loc[i,'yh'] = tab['x'][i] # We will modify it later
+#         tab.loc[i,'yhtarget'] = tab['x'][i] # We will modify it later (this is for target region)
+#         #Rowan EDIT - seems they are initializing with garbage
+#         tab.loc[i,'qTQ'] = 0
 
 
 
@@ -199,8 +217,8 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     # Rapidities yi, yf depend on external partonic variables
 
 
-
-    for i in range(npts):
+    print("starting second loop")
+    for i in tqdm(range(npts)):
         lprint('%d/%d'%(i,npts))        
         x   = tab['x'][i]
         z   = tab['z'][i]
@@ -209,10 +227,17 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         if 'pT' in tab.keys(): 
             pT  = tab['pT'][i]           
         Q2  = tab['Q2'][i]
-        tar = tab['target'][i]
-        had = tab['hadron'][i]
+        
+        # Rowan Edit: only working with pi+/pi- and proton
+#         tar = tab['target'][i]
+#         had = tab['hadron'][i]
+        tar = "pi+"
+        had = "proton"
 
         params={}
+        
+        params['M'] = par.M
+        params['M_h'] = par.Mpip
 
         params['x_bj'] = x
         params['z_h']  = z
@@ -275,13 +300,13 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         phi       = 0
         phi_ki       = 0
         #xN,zN, and qT do not depend on partonic variables, let us add them here
-        tab['qT'][i] = np.sqrt( rat.get_qT2( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki) ) 
-        tab['xN'][i] = rat.get_xN( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
-        tab['zN'][i] = rat.get_zN( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
-        tab['yp'][i] = rat.get_yp( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
-        tab['yh'][i] = rat.get_yh( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
-        tab['yhtarget'][i] = rat.get_yh_target( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
-        tab['qTQ'][i] = tab['qT'][i] / Q
+        tab.loc[i,'qT'] = np.sqrt( rat.get_qT2( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki) ) 
+        tab.loc[i,'xN'] = rat.get_xN( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
+        tab.loc[i,'zN'] = rat.get_zN( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
+        tab.loc[i,'yp'] = rat.get_yp( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
+        tab.loc[i,'yh'] = rat.get_yh( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
+        tab.loc[i,'yhtarget'] = rat.get_yh_target( M,M_h,x,z,Q,qT,xi,zeta,dkT,ki,kit,kf,phi_i,phi,phi_ki)  
+        tab.loc[i,'qTQ'] = tab['qT'][i] / Q
 
 
 
@@ -294,8 +319,8 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
         partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf = get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin)
 
-        tab['yi'].append(np.mean(yi))
-        tab['yf'].append(np.mean(yf))
+        tab.loc[i,'yi'] = np.mean(yi)
+        tab.loc[i,'yf'] = np.mean(yf)
 
         ratios[0,i] = R0
         ratios[1,i] = R1
@@ -329,25 +354,25 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
             if R1p< R1PMIN: R1PMIN = R1p
 
  # Let us also save values for Rs here, we will save mean values of Rs obtained in Monte Carlo:
-        tab['R0'].append(np.mean(R0))
-        tab['R1'].append(np.mean(R1))
-        tab['R1p'].append(np.mean(R1p))
-        tab['R2'].append(np.mean(R2))
-        tab['R3'].append(np.mean(R3))
-        tab['R4'].append(np.mean(R4))
-        tab['R5'].append(np.abs(np.log(np.mean(R4))))
+        tab.loc[i,'R0'] = np.mean(R0)
+        tab.loc[i,'R1'] = np.mean(R1)
+        tab.loc[i,'R1p'] = np.mean(R1p)
+        tab.loc[i,'R2'] = np.mean(R2)
+        tab.loc[i,'R3'] = np.mean(R3)
+        tab.loc[i,'R4'] = np.mean(R4)
+        tab.loc[i,'R5'] = np.abs(np.log(np.mean(R4)))
 
-        tab['partonicaff'].append(partonic_affinity)
-        tab['currentaff'].append(current_affinity)     
-        tab['tmdaff'].append(tmd_affinity)
-        tab['tmdnpaff'].append(tmd_np_affinity)
-        tab['collinearaff'].append(collinear_affinity)
-        tab['collinearloworderaff'].append(collinear_loworder_affinity)
-        tab['collinearhighorderaff'].append(collinear_highorder_affinity)
-        tab['matchaff'].append(matching_affinity)
-        tab['softaff'].append(soft_affinity)
-        tab['targetaff'].append(target_affinity)
-        tab['unclassifiedaff'].append(unclassified_affinity)
+        tab.loc[i,'partonicaff'] = partonic_affinity
+        tab.loc[i,'currentaff'] = current_affinity     
+        tab.loc[i,'tmdaff'] = tmd_affinity
+        tab.loc[i,'tmdnpaff'] = tmd_np_affinity
+        tab.loc[i,'collinearaff'] = collinear_affinity
+        tab.loc[i,'collinearloworderaff'] = collinear_loworder_affinity
+        tab.loc[i,'collinearhighorderaff'] = collinear_highorder_affinity
+        tab.loc[i,'matchaff'] = matching_affinity
+        tab.loc[i,'softaff'] = soft_affinity
+        tab.loc[i,'targetaff'] = target_affinity
+        tab.loc[i,'unclassifiedaff'] = unclassified_affinity
         
         #ROWAN EDIT
         #Add qT/Q
@@ -409,7 +434,7 @@ def gen_np_values(params,x,z,level,size=100):
     params['phi_i']     = np.random.uniform(lower_phi,upper_phi,size)
     params['phi_ki']     = np.random.uniform(lower_phi,upper_phi,size)
     
-def main00(rootFileName):
+def main00(rootFileName,highAff):
 
     fnames = {rootFileName}
     # The "box" size ~ qT/Q < 0.3 
@@ -435,8 +460,8 @@ def main00(rootFileName):
     size=1
     tabs = []
     for fname in fnames:
-        tab,ratios=process_kinematics(fname + ".xlsx",R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size)
-        output = fname + "_w_affinity.xlsx"
+        tab,ratios=process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff)
+#         output = fname + "_w_affinity.xlsx"
         #write_affinity_to_excel(tab,output)
         tabs.append(tab)
     return tabs, ratios

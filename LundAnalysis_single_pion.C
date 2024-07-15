@@ -9,7 +9,7 @@ int LundAnalysis_single_pion(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_8/slurm_test.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_15/low_high_run_2.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -57,6 +57,7 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("qT_diff", &qT_diff);
     tree_MC->Branch("qT_hadron_mag", &qT_hadron_mag);
     tree_MC->Branch("qTQ_calc", &qTQ_calc);
+    tree_MC->Branch("q_T_zN", &q_T_zN_val);
     
     TTree *tree_maxmin = new TTree("tree_maxmin","Tree with max and min Ri values");
     
@@ -68,21 +69,64 @@ int LundAnalysis_single_pion(
     tree_maxmin->Branch("R1_min",&R1_min); //Measured in gN frame
     tree_maxmin->Branch("R2_min",&R2_min);
     
-    TTree *tree_test = new TTree("tree_test","Tree with kinematics for viewing distributions");
-    tree_test->Branch("delta_k_T",&delta_k_T);
-    tree_test->Branch("M_ki",&M_ki);
-    tree_test->Branch("M_kf",&M_kf);
+//     TTree *tree_test = new TTree("tree_test","Tree with kinematics for viewing distributions");
+//     tree_test->Branch("delta_k_T",&delta_k_T);
+//     tree_test->Branch("M_ki",&M_ki);
+//     tree_test->Branch("M_kf",&M_kf);
     
-    tree_test->Branch("r_delta_k_T",&r_delta_k_T);
-    tree_test->Branch("r_M_ki",&r_M_ki);
-    tree_test->Branch("r_M_kf",&r_M_kf);
+//     tree_test->Branch("r_delta_k_T",&r_delta_k_T);
+//     tree_test->Branch("r_M_ki",&r_M_ki);
+//     tree_test->Branch("r_M_kf",&r_M_kf);
     
-//     tree_test->Branch("ki_x",&kix);
-//     tree_test->Branch("ki_y",&kiy);
-//     tree_test->Branch("ki_z",&kiz);
-//     tree_test->Branch("kf_x",&kfx);
-//     tree_test->Branch("kf_y",&kfy);
-//     tree_test->Branch("kf_z",&kfz);
+    qTQ_low_aff = 1.102616;
+    qTQ_low_tol = 0.11;
+    qTQ_high_aff = 0.15;
+    qTQ_high_tol = 0.015;
+    
+    Q2_low_aff = 3;
+    Q2_low_tol = 0.6;
+    pT_low_aff = 0.3;
+    pT_low_tol = 0.3;
+    x_low_aff = 0.15;
+    x_low_tol = 0.15;
+    z_low_aff = 0.3;
+    z_low_tol = 0.3;
+    
+    Q2_high_aff = 3;
+    Q2_high_tol = 0.6;
+    pT_high_aff = 0.1;
+    pT_high_tol = 0.1;
+    x_high_aff = 0.15;
+    x_high_tol = 0.15;
+    z_high_aff = 0.3;
+    z_high_tol = 0.3;
+    
+    
+    TTree *tree_low = new TTree("tree_low","Tree with kinematics for lower TMD affinity bin only");
+    tree_low->Branch("pT",&pt_gN);
+    tree_low->Branch("x",&x);
+    tree_low->Branch("z",&z_h);
+    tree_low->Branch("Q2",&Q2);
+    tree_low->Branch("R0",&R0); //initial parton momentum
+    tree_low->Branch("R1",&R1); //Measured in gN frame
+    tree_low->Branch("R2",&R2);
+    tree_low->Branch("q_TdivQ",&qTQ);
+    tree_low->Branch("qTQ_hadron",&qTQ_hadron);
+    tree_low->Branch("R2_adjust",&R2_adjust);
+    tree_low->Branch("qTQ_calc", &qTQ_calc);
+
+    TTree *tree_high = new TTree("tree_high","Tree with kinematics for higher TMD affinity bin only");
+    tree_high->Branch("pT",&pt_gN);
+    tree_high->Branch("x",&x);
+    tree_high->Branch("z",&z_h);
+    tree_high->Branch("Q2",&Q2);
+    tree_high->Branch("R0",&R0); //initial parton momentum
+    tree_high->Branch("R1",&R1); //Measured in gN frame
+    tree_high->Branch("R2",&R2);
+    tree_high->Branch("q_TdivQ",&qTQ);
+    tree_high->Branch("qTQ_hadron",&qTQ_hadron);
+    tree_high->Branch("R2_adjust",&R2_adjust);
+    tree_high->Branch("qTQ_calc", &qTQ_calc);
     
     int low_R1_count = 0;
     
@@ -104,6 +148,10 @@ int LundAnalysis_single_pion(
     double zcut_min = 0.43;
     double zcut_max = 0.49;
     
+    double xb[4] = {0.3,0.35,0.25,0.3};
+    double zb[4] = {0.42,0.48,0.48,0.54};
+    double pTb[4] = {0.26,0.39,0.26,0.39};
+    double Q2b[4] = {1.8,2.6,1.8,2.6};
 
     
     //prints this text, but just aesthetic
@@ -425,6 +473,7 @@ int LundAnalysis_single_pion(
 
             //q_T / Q for plotting
             qTQ = Ptfunc(q_T) / sqrt(Q2);
+            q_T_zN_val = Ptfunc(q_T);
 
             //qT from pT/z
             qT_calc = pt_gN / z_h;
@@ -551,7 +600,31 @@ int LundAnalysis_single_pion(
             
             tree_count += 1;
             tree_MC->Fill();
-            tree_test->Fill();
+//             tree_test->Fill();
+//             low_bool = (
+//                 (qTQ_calc > qTQ_low_aff - qTQ_low_tol) && (qTQ_calc < qTQ_low_aff + qTQ_low_tol) && 
+//                 (x > x_low_aff - x_low_tol) && (x < x_low_aff + x_low_tol) && 
+//                 (Q2 > Q2_low_aff - Q2_low_tol) && (Q2 < Q2_low_aff + Q2_low_tol) && 
+//                 (z_h > z_low_aff - z_low_tol) && (z_h < z_low_aff + z_low_tol) && 
+//                 (pt_gN > pT_low_aff - pT_low_tol) && (pt_gN < pT_low_aff + pT_low_tol)
+//                        );
+//             high_bool = (
+//                 (qTQ_calc > qTQ_high_aff - qTQ_high_tol) && (qTQ_calc < qTQ_high_aff + qTQ_high_tol) && 
+//                 (x > x_high_aff - x_high_tol) && (x < x_high_aff + x_high_tol) && 
+//                 (Q2 > Q2_high_aff - Q2_high_tol) && (Q2 < Q2_high_aff + Q2_high_tol) && 
+//                 (z_h > z_high_aff - z_high_tol) && (z_h < z_high_aff + z_high_tol) && 
+//                 (pt_gN > pT_high_aff - pT_high_tol) && (pt_gN < pT_high_aff + pT_high_tol)
+//                        );
+            low_bool = ((x > xb[0]) && (x < xb[1]) && (z_h > zb[0]) && (z_h < zb[1]) && (pt_gN > pTb[0]) && (pt_gN < pTb[1]) && (Q2 > Q2b[0]) && (Q2 < Q2b[1]));
+            high_bool = ((x > xb[2]) && (x < xb[3]) && (z_h > zb[2]) && (z_h < zb[3]) && (pt_gN > pTb[2]) && (pt_gN < pTb[3]) && (Q2 > Q2b[2]) && (Q2 < Q2b[3]));
+            if(low_bool) {
+                tree_low->Fill();
+            }
+            if(high_bool) {
+                tree_high->Fill();
+            }
+            
+            
             //zbins:
             for(int i = 0; i < zbins.size(); i++) {
                 if(z_h <= zbins[i]) {

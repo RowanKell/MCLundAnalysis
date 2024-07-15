@@ -38,22 +38,24 @@ useArgs = args.useArgs
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
-    useDriver = True
+    useDriver = False
 #     fileFromLundAnalysis = "Files_Spring_24/July_7/file_0_new_qT.root"
-    fileFromLundAnalysis = "Slurm_Spring_24/July_08/Testing/" #for multipleFiles
-    createMaxMin = True
+    fileFromLundAnalysis = "Slurm_Spring_24/July_09/Run_1_single_pion/" #for multipleFiles
+    createMaxMin = False
     multipleFiles = True
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
         xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        outRootFileName = "/root_files/July_8_100_driver_old_R2_three_files.root"
-        plotFileName = "driver_july_8_old_R2_3_files.pdf"
-        plot_title = "Driver Affinity old R2 in TMD three files"
+        outRootFileName = "/root_files/July_9_new_R2_driver_all_files_high.root"
+        plotFileName = "driver_july_8_old_R2_6_files.pdf"
+        plot_title = "Driver Affinity old R2 in TMD six files"
+        calcAff = False
+        highAff = True
     else:
         inRootFileName = "/OutputFiles/" + fileFromLundAnalysis
-        plotFileName = "MC_july_8_3_files.pdf"
-        plot_title = "MC Box Affinity 3 files test"
+        plotFileName = "driver_july_8_all_files_low.pdf"
+        plot_title = "driver Affinity all files low TMD aff binning"
 else:
     useDriver = args.useDriver
     fileFromLundAnalysis = args.fileFromLundAnalysis
@@ -74,18 +76,19 @@ DRIVER METHOD
 '''
 if(useDriver):
     '''
+    UPDATE JULY 8: removing xlsx step bc they can only have 1m rows which is too few. Now just use root files
     STEP 1: Create xlsx file with kinematics from MC
     '''
-    if(Binned):
-        binnedConvertData(xlsxFileName + ".xlsx", inRootFileName)
-    else:
-        convertData(xlsxFileName + ".xlsx", inRootFileName,multipleFiles)
+#     if(Binned):
+#         binnedConvertData(xlsxFileName + ".xlsx", inRootFileName)
+#     else:
+#         convertData(xlsxFileName + ".xlsx", inRootFileName,multipleFiles)
 
     '''
     STEP 2: Calculate ratios using driver, save them to a root file
     '''
 
-    tabs,ratios = main00(xlsxFileName)
+    tabs,ratios = main00(inRootFileName,highAff)
     tab = tabs[0]
 
     print(f"creating root file with kinematics needed to run Box.py")
@@ -130,8 +133,8 @@ if(useDriver):
     if(createMaxMin):#create maxmin tree and write to same root file
         maxmin("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/BoxAffinity" + outRootFileName, ratios)
 
-
-    CalculateBoxAffinity("Analysis/BoxAffinity" + outRootFileName, True, plotFileName,plot_title)
+    if(calcAff):
+        CalculateBoxAffinity("Analysis/BoxAffinity" + outRootFileName, True, plotFileName,plot_title)
     
 '''
 BOX Method
