@@ -40,9 +40,9 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             )
 
     R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-    R2 = np.ones(len(R1))*(qT**2) / (Q**2)
+#     R2 = np.ones(len(R1))*(qT**2) / (Q**2)
 #     print(f"R1: {R1} | R2: {R2} | type(R1): {type(R1)} | type(R2): {type(R2)}")
-#     R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+    R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
 
     R3 = np.abs(rat.get_R3( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
    
@@ -130,12 +130,13 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             
     return partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf
 
-def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff):
+def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff,useMCNP):
     """
     Compute affinity accross kinematics of fname file 
     """
     print("We open file ",fname) # Write what file we open from directory /expdata
     kinematic_list_short = ["pT","Q2","x","z","R2_adjust"]
+    np_list = ["M_ki","M_kf","delta_k_T","ki_T"]
 
     file_dir = fname
     num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
@@ -146,12 +147,17 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         tree_ext = ":tree_low"
     for i in range(num_files):
         if(i == 0):
-            tab = up.open(file_dir + file_names[i] + tree_ext).arrays(kinematic_list_short,library="pd")
+#             print(f"file_name: {file_names[i]}")
+            uproot_df = up.open(file_dir + file_names[i] + tree_ext)
+            tab = uproot_df.arrays(kinematic_list_short,library="pd")
+            np_MC = uproot_df.arrays(np_list,library="pd")
         else:
             if(not highAff):
-                if(i > 5):
+                if(i > 6):
                     break
             tab = pd.concat([tab,up.open(file_dir + file_names[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
+            np_MC = pd.concat([np_MC,up.open(file_dir + file_names[i] + tree_ext).arrays(np_list,library="pd")],ignore_index = True)
+            print(f"file name: {file_names[i]}")
 #     tab = pd.read_excel(fname)
 #     tab=tab.to_dict(orient='list')
     npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
@@ -310,13 +316,17 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
 
 
-
-
+        if(useMCNP):
+            params['delta_k_t'] = np.array([np_MC['delta_k_T'].values[0]])
+            params['k_i_t']     = np.array([np_MC['ki_T'].values[0]])
+            params['M_ki']      = np.array([np_MC['M_ki'].values[0]])
+            params['M_kf']      = np.array([np_MC['M_kf'].values[0]])
+#         print(f"type of np_MC: {type(np.array([np_MC['delta_k_T'].values[0]]))}")
+#         print(f"value of np_MC: {np.array([np_MC['delta_k_T'].values[0]])}")
                
         
         #gen_np_values(params,x,z,0,size=size)  # test here
-        gen_np_values(params,x,z,2,size=size) # Main level=2
-
+        gen_np_values(params,x,z,2,useMCNP,size=size) # Main level=2
         partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf = get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin)
 
         tab.loc[i,'yi'] = np.mean(yi)
@@ -390,7 +400,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 def write_affinity_to_excel(tab,output):
     print("We write output into a file ",output) # Write what file we write output into directory /data
     tab.to_excel(output)      
-def gen_np_values(params,x,z,level,size=100):
+def gen_np_values(params,x,z,level,useMCNP,size=100):
     #params['xi']   = np.random.uniform(x,x+0.1,size) # Should we generate partonic variable in a narrow interval?
     #params['zeta'] = np.random.uniform(z,z+0.1,size)
 
@@ -421,10 +431,14 @@ def gen_np_values(params,x,z,level,size=100):
     #elif level== 2: lower,upper=0.25,0.75
     elif level== 3: lower,upper=0.01,0.05
 
-    params['delta_k_t'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
-    params['k_i_t']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
-    params['M_ki']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
-    params['M_kf']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+#     print(f"type of random: {type(np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)))}")
+#     print(f"value of random: {np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))}")
+        
+    if(not useMCNP):
+        params['delta_k_t'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+        params['k_i_t']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+        params['M_ki']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
+        params['M_kf']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
 
 
     
@@ -434,7 +448,7 @@ def gen_np_values(params,x,z,level,size=100):
     params['phi_i']     = np.random.uniform(lower_phi,upper_phi,size)
     params['phi_ki']     = np.random.uniform(lower_phi,upper_phi,size)
     
-def main00(rootFileName,highAff):
+def main00(rootFileName,highAff,useMCNP):
 
     fnames = {rootFileName}
     # The "box" size ~ qT/Q < 0.3 
@@ -460,7 +474,7 @@ def main00(rootFileName,highAff):
     size=1
     tabs = []
     for fname in fnames:
-        tab,ratios=process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff)
+        tab,ratios=process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff,useMCNP)
 #         output = fname + "_w_affinity.xlsx"
         #write_affinity_to_excel(tab,output)
         tabs.append(tab)

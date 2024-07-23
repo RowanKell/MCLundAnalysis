@@ -9,7 +9,7 @@ int LundAnalysis_single_pion(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_15/low_high_run_2.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_17/partonic.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -114,6 +114,10 @@ int LundAnalysis_single_pion(
     tree_low->Branch("qTQ_hadron",&qTQ_hadron);
     tree_low->Branch("R2_adjust",&R2_adjust);
     tree_low->Branch("qTQ_calc", &qTQ_calc);
+    tree_low->Branch("M_ki",&M_ki);
+    tree_low->Branch("M_kf",&M_kf);
+    tree_low->Branch("delta_k_T",&delta_k_T);
+    tree_low->Branch("ki_T",&ki_T);
 
     TTree *tree_high = new TTree("tree_high","Tree with kinematics for higher TMD affinity bin only");
     tree_high->Branch("pT",&pt_gN);
@@ -127,6 +131,10 @@ int LundAnalysis_single_pion(
     tree_high->Branch("qTQ_hadron",&qTQ_hadron);
     tree_high->Branch("R2_adjust",&R2_adjust);
     tree_high->Branch("qTQ_calc", &qTQ_calc);
+    tree_high->Branch("M_ki",&M_ki);
+    tree_high->Branch("M_kf",&M_kf);
+    tree_high->Branch("delta_k_T",&delta_k_T);
+    tree_high->Branch("ki_T",&ki_T);
     
     int low_R1_count = 0;
     
@@ -148,11 +156,17 @@ int LundAnalysis_single_pion(
     double zcut_min = 0.43;
     double zcut_max = 0.49;
     
-    double xb[4] = {0.3,0.35,0.25,0.3};
-    double zb[4] = {0.42,0.48,0.48,0.54};
-    double pTb[4] = {0.26,0.39,0.26,0.39};
-    double Q2b[4] = {1.8,2.6,1.8,2.6};
-
+    //My bins
+//     double xb[4] = {0.3,0.35,0.25,0.3};
+//     double zb[4] = {0.42,0.48,0.48,0.54};
+//     double pTb[4] = {0.26,0.39,0.26,0.39};
+//     double Q2b[4] = {1.8,2.6,1.8,2.6};
+    
+    //Tetiana Bins
+    double xb[4] = {0.1,0.15,0.5,0.6};
+    double zb[4] = {0.3,0.36,0.4,0.8};
+    double pTb[4] = {0.13,0.26,0,0};
+    double Q2b[4] = {1.0,1.8,9,12};
     
     //prints this text, but just aesthetic
     cout << "Start Event Loop" << endl;
@@ -519,6 +533,8 @@ int LundAnalysis_single_pion(
             M_kf = pow(kf2,0.5);
             delta_k_T = pow(deltak2,0.5);
             
+            ki_T = Ptfunc(ki_gN);
+            
             R1 = R1func(lv_p1_gN, ki_gN, kf_gN);
             if(R1 < -100) {
                 low_R1_count++;
@@ -615,8 +631,8 @@ int LundAnalysis_single_pion(
 //                 (z_h > z_high_aff - z_high_tol) && (z_h < z_high_aff + z_high_tol) && 
 //                 (pt_gN > pT_high_aff - pT_high_tol) && (pt_gN < pT_high_aff + pT_high_tol)
 //                        );
-            low_bool = ((x > xb[0]) && (x < xb[1]) && (z_h > zb[0]) && (z_h < zb[1]) && (pt_gN > pTb[0]) && (pt_gN < pTb[1]) && (Q2 > Q2b[0]) && (Q2 < Q2b[1]));
-            high_bool = ((x > xb[2]) && (x < xb[3]) && (z_h > zb[2]) && (z_h < zb[3]) && (pt_gN > pTb[2]) && (pt_gN < pTb[3]) && (Q2 > Q2b[2]) && (Q2 < Q2b[3]));
+            low_bool = ((x > xb[0]) && (x < xb[1]) && (z_h > zb[0]) && (z_h < zb[1]) && (Q2 > Q2b[0]) && (Q2 < Q2b[1])&& (pt_gN > pTb[0]) && (pt_gN < pTb[1]));
+            high_bool = ((x > xb[2]) && (x < xb[3]) && (z_h > zb[2]) && (z_h < zb[3]) && (qTQ_calc < 0.2) && (Q2 > Q2b[2]) && (Q2 < Q2b[3]));
             if(low_bool) {
                 tree_low->Fill();
             }

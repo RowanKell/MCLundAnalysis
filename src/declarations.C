@@ -130,6 +130,7 @@ double deltak2;
 double M_ki;
 double M_kf;
 double delta_k_T;
+double ki_T;
 
 double random_mean = 0.93891897 / 2;
 double random_std = 0.93891897 / 2;

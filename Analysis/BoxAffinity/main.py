@@ -38,20 +38,21 @@ useArgs = args.useArgs
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
-    useDriver = False
+    useDriver = True
 #     fileFromLundAnalysis = "Files_Spring_24/July_7/file_0_new_qT.root"
-    fileFromLundAnalysis = "Slurm_Spring_24/July_09/Run_1_single_pion/" #for multipleFiles
+    fileFromLundAnalysis = "Slurm_Spring_24/July_17/Run_2_single_pion/" #for multipleFiles
     createMaxMin = False
     multipleFiles = True
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
         xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        outRootFileName = "/root_files/July_9_new_R2_driver_all_files_high.root"
+        outRootFileName = "/root_files/July_17_old_R2_driver_MCNP_high.root"
         plotFileName = "driver_july_8_old_R2_6_files.pdf"
-        plot_title = "Driver Affinity old R2 in TMD six files"
+        plot_title = "Driver Affinity old R2 high affinity bin"
         calcAff = False
         highAff = True
+        useMCNP = True
     else:
         inRootFileName = "/OutputFiles/" + fileFromLundAnalysis
         plotFileName = "driver_july_8_all_files_low.pdf"
@@ -88,7 +89,7 @@ if(useDriver):
     STEP 2: Calculate ratios using driver, save them to a root file
     '''
 
-    tabs,ratios = main00(inRootFileName,highAff)
+    tabs,ratios = main00(inRootFileName,highAff,useMCNP)
     tab = tabs[0]
 
     print(f"creating root file with kinematics needed to run Box.py")
