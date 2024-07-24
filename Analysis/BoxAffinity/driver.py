@@ -317,10 +317,10 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
 
         if(useMCNP):
-            params['delta_k_t'] = np.array([np_MC['delta_k_T'].values[0]])
-            params['k_i_t']     = np.array([np_MC['ki_T'].values[0]])
-            params['M_ki']      = np.array([np_MC['M_ki'].values[0]])
-            params['M_kf']      = np.array([np_MC['M_kf'].values[0]])
+            params['delta_k_t'] = np.array([np_MC['delta_k_T'].values[i]])
+            params['k_i_t']     = np.array([np_MC['ki_T'].values[i]])
+            params['M_ki']      = np.array([np_MC['M_ki'].values[i]])
+            params['M_kf']      = np.array([np_MC['M_kf'].values[i]])
 #         print(f"type of np_MC: {type(np.array([np_MC['delta_k_T'].values[0]]))}")
 #         print(f"value of np_MC: {np.array([np_MC['delta_k_T'].values[0]])}")
                
@@ -422,6 +422,7 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
     
     params['xi']   = np.random.uniform(x,deltax,size) # Should we generate partonic variable in a wide interval?
     params['zeta'] = np.random.uniform(z,deltaz,size)
+
 
 
 

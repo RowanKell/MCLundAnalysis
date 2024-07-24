@@ -47,7 +47,7 @@ if not useArgs:
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
         xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        outRootFileName = "/root_files/July_17_old_R2_driver_MCNP_high.root"
+        outRootFileName = "/root_files/July_24_old_R2_driver_MCNP_high.root"
         plotFileName = "driver_july_8_old_R2_6_files.pdf"
         plot_title = "Driver Affinity old R2 high affinity bin"
         calcAff = False
