@@ -141,6 +141,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     file_dir = fname
     num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
     file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
+    file_names_low = ["file_0.root","file_1.root","file_2.root","file_3.root","file_4.root","file_5.root","file_6.root"]
     if(highAff):
         tree_ext = ":tree_high"
     else:
@@ -150,17 +151,24 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 #             print(f"file_name: {file_names[i]}")
             uproot_df = up.open(file_dir + file_names[i] + tree_ext)
             tab = uproot_df.arrays(kinematic_list_short,library="pd")
-            np_MC = uproot_df.arrays(np_list,library="pd")
+#             np_MC = uproot_df.arrays(np_list,library="pd")
         else:
             if(not highAff):
                 if(i > 6):
                     break
-            tab = pd.concat([tab,up.open(file_dir + file_names[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
-            np_MC = pd.concat([np_MC,up.open(file_dir + file_names[i] + tree_ext).arrays(np_list,library="pd")],ignore_index = True)
-            print(f"file name: {file_names[i]}")
+            tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
+#             np_MC = pd.concat([np_MC,up.open(file_dir + file_names[i] + tree_ext).arrays(np_list,library="pd")],ignore_index = True)
+            print(f"file name: {file_names_low[i]}")
 #     tab = pd.read_excel(fname)
 #     tab=tab.to_dict(orient='list')
-    npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
+    if(highAff):
+        np_MC = pd.read_excel("xlsx/np/August_13_high.xlsx")
+    else:
+        np_MC = pd.read_excel("xlsx/np/August_13_low.xlsx")
+        print(f"len of np_MC: {len(np_MC)}")
+
+#     npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
+    npts = min(len(np_MC),len(tab[list(tab.keys())[0]]))
     
     #Rowan edits
     print(f"npts: {npts}")
@@ -317,10 +325,15 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
 
         if(useMCNP):
-            params['delta_k_t'] = np.array([np_MC['delta_k_T'].values[i]])
-            params['k_i_t']     = np.array([np_MC['ki_T'].values[i]])
-            params['M_ki']      = np.array([np_MC['M_ki'].values[i]])
-            params['M_kf']      = np.array([np_MC['M_kf'].values[i]])
+            params['delta_k_t'] = np.array([np_MC['delta_k_T'][i]])
+            params['k_i_t']     = np.array([np_MC['ki_T'][i]])
+            params['M_ki']      = np.array([np_MC['M_ki'][i]])
+            params['M_kf']      = np.array([np_MC['M_kf'][i]])
+            params['zeta']      = np.array([np_MC['zeta'][i]])
+            params['xi']      = np.array([np_MC['xi'][i]])
+            params['phi_ki']      = np.array([np_MC['theta_ki'][i]])
+            params['phi_i']      = np.array([np_MC['theta_H'][i]])
+            params['phi']      = np.array([np_MC['theta_deltak'][i]])
 #         print(f"type of np_MC: {type(np.array([np_MC['delta_k_T'].values[0]]))}")
 #         print(f"value of np_MC: {np.array([np_MC['delta_k_T'].values[0]])}")
                
@@ -386,6 +399,14 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         
         #ROWAN EDIT
         #Add qT/Q
+#       np_list = ["M_ki","M_kf","delta_k_T","ki_T"]
+        for np_idx in range(len(np_list)):
+            tab.loc[i,np_list[np_idx]] = np_MC[np_list[np_idx]][i]
+        tab.loc[i,"zeta"] = params["zeta"]
+        tab.loc[i,"xi"] = params["xi"]
+        tab.loc[i,"phi_ki"] = params['phi_ki']
+        tab.loc[i,"phi_i"] = params['phi_i'] 
+        tab.loc[i,"phi"] = params['phi']   
       
     print("\n R0max = %s, R0min = %s"%(R0MAX, R0MIN))
     print("\n R1max = %s, R1min = %s"%(R1MAX, R1MIN))
@@ -417,15 +438,6 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
     if deltaz >= 1:
         deltaz = 1
 
-    
-
-    
-    params['xi']   = np.random.uniform(x,deltax,size) # Should we generate partonic variable in a wide interval?
-    params['zeta'] = np.random.uniform(z,deltaz,size)
-
-
-
-
     if   level== 0: lower,upper=0.,0.225
     elif level== 1: lower,upper=0.0,0.25
     elif level== 2: lower,upper=0.0,par.M 
@@ -440,14 +452,13 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
         params['k_i_t']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['M_ki']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
         params['M_kf']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
-
-
-    
-    lower_phi = 0
-    upper_phi = 2*np.pi
-    params['phi']       = np.random.uniform(lower_phi,upper_phi,size)
-    params['phi_i']     = np.random.uniform(lower_phi,upper_phi,size)
-    params['phi_ki']     = np.random.uniform(lower_phi,upper_phi,size)
+        params['xi']   = np.random.uniform(x,deltax,size) # Should we generate partonic variable in a wide interval?
+        params['zeta'] = np.random.uniform(z,deltaz,size)
+        lower_phi = 0
+        upper_phi = 2*np.pi
+        params['phi']       = np.random.uniform(lower_phi,upper_phi,size)
+        params['phi_i']     = np.random.uniform(lower_phi,upper_phi,size)
+        params['phi_ki']     = np.random.uniform(lower_phi,upper_phi,size)
     
 def main00(rootFileName,highAff,useMCNP):
 

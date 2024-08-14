@@ -159,3 +159,9 @@ double meanfunc(vector<double> v)
     }
     return sum / v.size();
 }
+
+double xNfunc(double x_Bj, double M, double Q2) {
+    double num = 2 * x_Bj;
+    double denom = 1 + pow((1 + (4 * pow(x_Bj,2)*pow(M,2)) / Q2),0.5);
+    return num / denom;
+}

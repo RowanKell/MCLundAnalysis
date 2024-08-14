@@ -9,7 +9,7 @@ int LundAnalysis_single_pion(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/July_17/partonic.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/August_13/np_stuff_w_phi.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -58,6 +58,8 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("qT_hadron_mag", &qT_hadron_mag);
     tree_MC->Branch("qTQ_calc", &qTQ_calc);
     tree_MC->Branch("q_T_zN", &q_T_zN_val);
+    tree_MC->Branch("zeta", &zeta);
+    tree_MC->Branch("xi", &xi);
     
     TTree *tree_maxmin = new TTree("tree_maxmin","Tree with max and min Ri values");
     
@@ -118,6 +120,11 @@ int LundAnalysis_single_pion(
     tree_low->Branch("M_kf",&M_kf);
     tree_low->Branch("delta_k_T",&delta_k_T);
     tree_low->Branch("ki_T",&ki_T);
+    tree_low->Branch("xi",&xi);
+    tree_low->Branch("zeta",&zeta);
+    tree_low->Branch("theta_ki",&theta_ki);
+    tree_low->Branch("theta_H",&theta_H);
+    tree_low->Branch("theta_deltak",&theta_deltak);
 
     TTree *tree_high = new TTree("tree_high","Tree with kinematics for higher TMD affinity bin only");
     tree_high->Branch("pT",&pt_gN);
@@ -135,6 +142,11 @@ int LundAnalysis_single_pion(
     tree_high->Branch("M_kf",&M_kf);
     tree_high->Branch("delta_k_T",&delta_k_T);
     tree_high->Branch("ki_T",&ki_T);
+    tree_high->Branch("xi",&xi);
+    tree_high->Branch("zeta",&zeta);
+    tree_high->Branch("theta_ki",&theta_ki);
+    tree_high->Branch("theta_H",&theta_H);
+    tree_high->Branch("theta_deltak",&theta_deltak);
     
     int low_R1_count = 0;
     
@@ -478,6 +490,7 @@ int LundAnalysis_single_pion(
             
             //z_N and q_T
             z_N = PF1Minus / qPFMinus;
+            x_N =  xNfunc(x,init_target.M(),Q2);
             
             q_T = -1 * BreitTran1 / z_N;
 
@@ -549,7 +562,15 @@ int LundAnalysis_single_pion(
             R2 = R2func(k_gN, Q2);
             R2_adjust = R2func_adjust(Ptfunc(q_T_hadron), Q2);
             xF = xFpi1;
-
+            
+            //np params
+            zeta = (z_N * q_Breit.Minus()) / kf_Breit.Minus();
+            xi = (-1 * x_N * ki_Breit.Plus()) / q_Breit.Plus();
+            
+            //phi values
+            theta_ki = ki_Breit.Phi();
+            theta_H = Breit1.Phi();
+            theta_deltak = deltak.Phi();
 
             //Missing mass
             if(Mx <= 1.5) {

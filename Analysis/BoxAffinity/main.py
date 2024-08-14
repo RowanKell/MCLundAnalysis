@@ -9,7 +9,14 @@ from Box_single_pion_studies import CalculateBoxAffinity
 import ROOT as root
 import numpy as np
 from array import array
+import os
+def checkdir(path):
+    if not os.path.exists(path): 
+        os.makedirs(path)
+import datetime
 
+x = datetime.datetime.now()
+today = x.strftime("%B_%d")
 import argparse
 parser = argparse.ArgumentParser(description='Affinity Calculation Program')
 
@@ -34,25 +41,30 @@ parser.add_argument('--useArgs', action=argparse.BooleanOptionalAction,
 args = parser.parse_args()
 useArgs = args.useArgs
 
+
 '''
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
     useDriver = True
 #     fileFromLundAnalysis = "Files_Spring_24/July_7/file_0_new_qT.root"
-    fileFromLundAnalysis = "Slurm_Spring_24/July_17/Run_2_single_pion/" #for multipleFiles
+    fileFromLundAnalysis = "Slurm_Spring_24/August_13/Run_2_single_pion/" #for multipleFiles
     createMaxMin = False
     multipleFiles = True
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
         xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        outRootFileName = "/root_files/July_24_old_R2_driver_MCNP_high.root"
+        outDayDir ="root_files/" + today + "/"
+        checkdir(outDayDir)
+        outRootFileName = "/" + outDayDir + "old_R2_driver_MCNP_all_low.root"
+#         outRootFileName = "/" + outDayDir + "old_R2_driver_low.root"
         plotFileName = "driver_july_8_old_R2_6_files.pdf"
         plot_title = "Driver Affinity old R2 high affinity bin"
         calcAff = False
-        highAff = True
+        highAff = False
         useMCNP = True
+#         useMCNP = False
     else:
         inRootFileName = "/OutputFiles/" + fileFromLundAnalysis
         plotFileName = "driver_july_8_all_files_low.pdf"
@@ -104,10 +116,21 @@ if(useDriver):
     Q2_t = array('d',[0])
     z_t = array('d',[0])
     x_t = array('d',[0])
+    zeta_t = array('d',[0])
+    xi_t = array('d',[0])
     qTQ_hadron_t = array('d',[0])
     pT_t = array('d',[0])
     tmdaff_t = array('d',[0])
-
+    
+    M_ki_t  = array('d',[0])
+    M_kf_t  = array('d',[0])
+    delta_k_T_t  = array('d',[0])
+    ki_T_t  = array('d',[0])
+    
+    phi_t  = array('d',[0])
+    phi_i_t  = array('d',[0])
+    phi_ki_t  = array('d',[0])
+    
     tree.Branch('R0', R0_t,'R0_t/D')
     tree.Branch('R1', R1_t,'R1_t/D')
     tree.Branch('R2', R2_t,'R2_t/D')
@@ -117,6 +140,20 @@ if(useDriver):
     tree.Branch('z', z_t,'z_t/D')
     tree.Branch('qTQ_hadron', qTQ_hadron_t,'qTQ_hadron_t/D')
     tree.Branch('tmdaff', tmdaff_t,'tmdaff_t/D')
+    
+    #["M_ki","M_kf","delta_k_T","ki_T"]
+    tree.Branch('M_ki', M_ki_t,'M_kf_t/D')
+    tree.Branch('M_kf', M_kf_t,'M_kf_t/D')
+    tree.Branch('delta_k_T', delta_k_T_t,'delta_k_T_t/D')
+    tree.Branch('ki_T', ki_T_t,'ki_T_t/D')
+    
+    tree.Branch('xi', xi_t,'xi_t/D')
+    tree.Branch('zeta', zeta_t,'zeta_t/D')
+    
+    tree.Branch('theta_ki', phi_ki_t,'phi_ki/D')
+    tree.Branch('theta_H', phi_i_t,'phi_i/D')
+    tree.Branch('theta_deltak', phi_t,'phi/D')
+    
     for i in range(tab.shape[0]): #iterate over each event
         R0_t[0] = tab['R0'][i]
         R1_t[0] = tab['R1'][i]
@@ -125,8 +162,20 @@ if(useDriver):
         pT_t[0] = tab['pT'][i]
         z_t[0] = tab['z'][i]
         x_t[0] = tab['x'][i]
+        zeta_t[0] = tab['zeta'][i]
+        xi_t[0] = tab['xi'][i]
         qTQ_hadron_t[0] = tab['qTQ'][i]
         tmdaff_t[0] = tab['tmdaff'][i]
+        
+        M_ki_t[0] = tab['M_ki'][i]
+        M_kf_t[0] = tab['M_kf'][i]
+        delta_k_T_t[0] = tab['delta_k_T'][i]
+        ki_T_t[0] = tab['ki_T'][i]
+        
+        phi_ki_t[0] = tab['phi_ki'][i]
+        phi_i_t[0] = tab['phi_i'][i]
+        phi_t[0] = tab['phi'][i]
+        
         tree.Fill()
         
     tree.Write()

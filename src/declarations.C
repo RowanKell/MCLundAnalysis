@@ -236,6 +236,7 @@ double PF1Minus;
 double PF2Minus;
 
 double z_N;
+double x_N;
 double z_N1;
 double z_N2;
 
@@ -273,6 +274,14 @@ double qTQ_high_tol;
 
 //qT from zN
 double q_T_zN_val;
+
+//sidis regions stuff
+double xi;
+double zeta;
+
+double theta_ki;
+double theta_H;
+double theta_deltak;
 
 //One binnings
 int low_bool;
