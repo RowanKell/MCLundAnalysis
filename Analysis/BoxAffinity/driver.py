@@ -25,8 +25,8 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
     qT        = params['q_t']
     xi        = params['xi']
     zeta      = params['zeta']
-    dkT       = params['delta_k_t']
-    kit       = params['k_i_t']
+    dkT       = params['delta_k_T']
+    kit       = params['ki_T']
     ki        = params['M_ki']
     kf        = params['M_kf']
     phi_i     = params['phi_i']
@@ -135,8 +135,8 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     Compute affinity accross kinematics of fname file 
     """
     print("We open file ",fname) # Write what file we open from directory /expdata
-    kinematic_list_short = ["pT","Q2","x","z","R2_adjust"]
-    np_list = ["M_ki","M_kf","delta_k_T","ki_T"]
+    kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_T","ki_T","theta_deltak","theta_H","theta_ki","xi","zeta"]
+    kinematic_list_short_driver = ["pT_BF","Q2","x","z"]
 
     file_dir = fname
     num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
@@ -148,27 +148,31 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         tree_ext = ":tree_low"
     for i in range(num_files):
         if(i == 0):
-#             print(f"file_name: {file_names[i]}")
-            uproot_df = up.open(file_dir + file_names[i] + tree_ext)
-            tab = uproot_df.arrays(kinematic_list_short,library="pd")
-#             np_MC = uproot_df.arrays(np_list,library="pd")
+            uproot_df = up.open(file_dir + file_names_low[i] + tree_ext)
+            if(useMCNP):
+                tab = uproot_df.arrays(kinematic_list_short,library="pd")
+            else:
+                tab = uproot_df.arrays(kinematic_list_short_driver,library="pd")
+            print(f"file name: {file_names_low[i]}")
         else:
             if(not highAff):
                 if(i > 6):
                     break
-            tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
-#             np_MC = pd.concat([np_MC,up.open(file_dir + file_names[i] + tree_ext).arrays(np_list,library="pd")],ignore_index = True)
+            if(useMCNP):
+                tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
+            else:
+                tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short_driver,library="pd")],ignore_index = True)
             print(f"file name: {file_names_low[i]}")
 #     tab = pd.read_excel(fname)
 #     tab=tab.to_dict(orient='list')
-    if(highAff):
-        np_MC = pd.read_excel("xlsx/np/August_13_high.xlsx")
-    else:
-        np_MC = pd.read_excel("xlsx/np/August_13_low.xlsx")
-        print(f"len of np_MC: {len(np_MC)}")
+#     if(highAff):
+#         np_MC = pd.read_excel("xlsx/np/August_13_high.xlsx")
+#     else:
+#         np_MC = pd.read_excel("xlsx/np/August_13_low.xlsx")
+#         print(f"len of np_MC: {len(np_MC)}")
 
 #     npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
-    npts = min(len(np_MC),len(tab[list(tab.keys())[0]]))
+    npts = len(tab[list(tab.keys())[0]])
     
     #Rowan edits
     print(f"npts: {npts}")
@@ -236,10 +240,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         lprint('%d/%d'%(i,npts))        
         x   = tab['x'][i]
         z   = tab['z'][i]
-        if 'pT' not in tab.keys(): 
-            pT  = tab['pT2'][i]**0.5
-        if 'pT' in tab.keys(): 
-            pT  = tab['pT'][i]           
+        pT  = tab['pT_BF'][i]           
         Q2  = tab['Q2'][i]
         
         # Rowan Edit: only working with pi+/pi- and proton
@@ -325,15 +326,15 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
 
         if(useMCNP):
-            params['delta_k_t'] = np.array([np_MC['delta_k_T'][i]])
-            params['k_i_t']     = np.array([np_MC['ki_T'][i]])
-            params['M_ki']      = np.array([np_MC['M_ki'][i]])
-            params['M_kf']      = np.array([np_MC['M_kf'][i]])
-            params['zeta']      = np.array([np_MC['zeta'][i]])
-            params['xi']      = np.array([np_MC['xi'][i]])
-            params['phi_ki']      = np.array([np_MC['theta_ki'][i]])
-            params['phi_i']      = np.array([np_MC['theta_H'][i]])
-            params['phi']      = np.array([np_MC['theta_deltak'][i]])
+            params['delta_k_T'] = np.array([tab['delta_k_T'][i]])
+            params['ki_T']     = np.array([tab['ki_T'][i]])
+            params['M_ki']      = np.array([tab['M_ki'][i]])
+            params['M_kf']      = np.array([tab['M_kf'][i]])
+            params['zeta']      = np.array([tab['zeta'][i]])
+            params['xi']      = np.array([tab['xi'][i]])
+            params['phi_ki']      = np.array([tab['theta_ki'][i]])
+            params['phi_i']      = np.array([tab['theta_H'][i]])
+            params['phi']      = np.array([tab['theta_deltak'][i]])
 #         print(f"type of np_MC: {type(np.array([np_MC['delta_k_T'].values[0]]))}")
 #         print(f"value of np_MC: {np.array([np_MC['delta_k_T'].values[0]])}")
                
@@ -399,14 +400,14 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         
         #ROWAN EDIT
         #Add qT/Q
-#       np_list = ["M_ki","M_kf","delta_k_T","ki_T"]
+        np_list = ["M_ki","M_kf","delta_k_T","ki_T"]
         for np_idx in range(len(np_list)):
-            tab.loc[i,np_list[np_idx]] = np_MC[np_list[np_idx]][i]
+            tab.loc[i,np_list[np_idx]] = params[np_list[np_idx]]
         tab.loc[i,"zeta"] = params["zeta"]
         tab.loc[i,"xi"] = params["xi"]
-        tab.loc[i,"phi_ki"] = params['phi_ki']
-        tab.loc[i,"phi_i"] = params['phi_i'] 
-        tab.loc[i,"phi"] = params['phi']   
+        tab.loc[i,"theta_ki"] = params['phi_ki']
+        tab.loc[i,"theta_H"] = params['phi_i'] 
+        tab.loc[i,"theta_deltak"] = params['phi']   
       
     print("\n R0max = %s, R0min = %s"%(R0MAX, R0MIN))
     print("\n R1max = %s, R1min = %s"%(R1MAX, R1MIN))
@@ -448,8 +449,9 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
 #     print(f"value of random: {np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))}")
         
     if(not useMCNP):
-        params['delta_k_t'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
-        params['k_i_t']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+#         print("using random NP values")
+        params['delta_k_T'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+        params['ki_T']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['M_ki']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
         params['M_kf']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['xi']   = np.random.uniform(x,deltax,size) # Should we generate partonic variable in a wide interval?

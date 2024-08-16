@@ -47,8 +47,8 @@ USER SET FLAGS AND PATHS
 '''
 if not useArgs:
     useDriver = True
-#     fileFromLundAnalysis = "Files_Spring_24/July_7/file_0_new_qT.root"
-    fileFromLundAnalysis = "Slurm_Spring_24/August_13/Run_2_single_pion/" #for multipleFiles
+#     fileFromLundAnalysis = "Files_Spring_24/August_15/"
+    fileFromLundAnalysis = "Slurm_Spring_24/August_15/Run_1_single_pion/" #for multipleFiles
     createMaxMin = False
     multipleFiles = True
     if(useDriver):
@@ -57,14 +57,14 @@ if not useArgs:
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
         outDayDir ="root_files/" + today + "/"
         checkdir(outDayDir)
-        outRootFileName = "/" + outDayDir + "old_R2_driver_MCNP_all_low.root"
-#         outRootFileName = "/" + outDayDir + "old_R2_driver_low.root"
+#         outRootFileName = "/" + outDayDir + "old_R2_driver_MCNP_all_low.root"
+        outRootFileName = "/" + outDayDir + "old_R2_driver_low.root"
         plotFileName = "driver_july_8_old_R2_6_files.pdf"
         plot_title = "Driver Affinity old R2 high affinity bin"
         calcAff = False
         highAff = False
-        useMCNP = True
 #         useMCNP = False
+        useMCNP = False
     else:
         inRootFileName = "/OutputFiles/" + fileFromLundAnalysis
         plotFileName = "driver_july_8_all_files_low.pdf"
@@ -119,7 +119,7 @@ if(useDriver):
     zeta_t = array('d',[0])
     xi_t = array('d',[0])
     qTQ_hadron_t = array('d',[0])
-    pT_t = array('d',[0])
+    pT_BF_t = array('d',[0])
     tmdaff_t = array('d',[0])
     
     M_ki_t  = array('d',[0])
@@ -127,16 +127,16 @@ if(useDriver):
     delta_k_T_t  = array('d',[0])
     ki_T_t  = array('d',[0])
     
-    phi_t  = array('d',[0])
-    phi_i_t  = array('d',[0])
-    phi_ki_t  = array('d',[0])
+    theta_deltak_t  = array('d',[0])
+    theta_H_t  = array('d',[0])
+    theta_ki_t  = array('d',[0])
     
     tree.Branch('R0', R0_t,'R0_t/D')
     tree.Branch('R1', R1_t,'R1_t/D')
     tree.Branch('R2', R2_t,'R2_t/D')
     tree.Branch('x', x_t,'x_t/D')
     tree.Branch('Q2', Q2_t,'Q2_t/D')
-    tree.Branch('pT', pT_t,'pT_t/D')
+    tree.Branch('pT_BF', pT_BF_t,'pT_BF_t/D')
     tree.Branch('z', z_t,'z_t/D')
     tree.Branch('qTQ_hadron', qTQ_hadron_t,'qTQ_hadron_t/D')
     tree.Branch('tmdaff', tmdaff_t,'tmdaff_t/D')
@@ -150,16 +150,16 @@ if(useDriver):
     tree.Branch('xi', xi_t,'xi_t/D')
     tree.Branch('zeta', zeta_t,'zeta_t/D')
     
-    tree.Branch('theta_ki', phi_ki_t,'phi_ki/D')
-    tree.Branch('theta_H', phi_i_t,'phi_i/D')
-    tree.Branch('theta_deltak', phi_t,'phi/D')
+    tree.Branch('theta_ki', theta_ki_t,'theta_ki/D')
+    tree.Branch('theta_H', theta_H_t,'theta_H/D')
+    tree.Branch('theta_deltak', theta_deltak_t,'theta_deltak/D')
     
     for i in range(tab.shape[0]): #iterate over each event
         R0_t[0] = tab['R0'][i]
         R1_t[0] = tab['R1'][i]
         R2_t[0] = tab['R2'][i]
         Q2_t[0] = tab['Q2'][i]
-        pT_t[0] = tab['pT'][i]
+        pT_BF_t[0] = tab['pT_BF'][i]
         z_t[0] = tab['z'][i]
         x_t[0] = tab['x'][i]
         zeta_t[0] = tab['zeta'][i]
@@ -172,9 +172,9 @@ if(useDriver):
         delta_k_T_t[0] = tab['delta_k_T'][i]
         ki_T_t[0] = tab['ki_T'][i]
         
-        phi_ki_t[0] = tab['phi_ki'][i]
-        phi_i_t[0] = tab['phi_i'][i]
-        phi_t[0] = tab['phi'][i]
+        theta_ki_t[0] = tab['theta_ki'][i]
+        theta_H_t[0] = tab['theta_H'][i]
+        theta_deltak_t[0] = tab['theta_deltak'][i]
         
         tree.Fill()
         

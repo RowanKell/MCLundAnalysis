@@ -7,9 +7,9 @@
 int LundAnalysis_single_pion(
 
                     // hipoFile is the file we read in
-                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3051_0.hipo",
+                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3052_3.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/August_13/np_stuff_w_phi.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/August_15/file_8.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -45,19 +45,18 @@ int LundAnalysis_single_pion(
     //These are the kinematics/Ratios we need to bin and calculate affinity BOX style
     tree_MC->Branch("z",&z_h);
     tree_MC->Branch("x",&x);
-    tree_MC->Branch("pT",&pt_gN);
+    tree_MC->Branch("pT_BF",&pT_BF);
     tree_MC->Branch("Q2",&Q2);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
     tree_MC->Branch("R2",&R2);
-    tree_MC->Branch("q_TdivQ",&qTQ);
-    tree_MC->Branch("qTQ_hadron",&qTQ_hadron);
     tree_MC->Branch("R2_adjust",&R2_adjust);
-    tree_MC->Branch("qT_calc", &qT_calc);
-    tree_MC->Branch("qT_diff", &qT_diff);
-    tree_MC->Branch("qT_hadron_mag", &qT_hadron_mag);
-    tree_MC->Branch("qTQ_calc", &qTQ_calc);
-    tree_MC->Branch("q_T_zN", &q_T_zN_val);
+    tree_MC->Branch("qTQ_HF",&qTQ_HF);
+    tree_MC->Branch("qT_HF",&qT_HF);
+    tree_MC->Branch("qT_from_pT_HF_z",&qT_from_pT_HF_z);
+    tree_MC->Branch("qT_from_pT_PF_z",&qT_from_pT_PF_z);
+    tree_MC->Branch("qT_from_pT_BF",&qT_from_pT_BF);
+    tree_MC->Branch("qT_from_zN",&qT_from_zN);
     tree_MC->Branch("zeta", &zeta);
     tree_MC->Branch("xi", &xi);
     
@@ -105,17 +104,18 @@ int LundAnalysis_single_pion(
     
     
     TTree *tree_low = new TTree("tree_low","Tree with kinematics for lower TMD affinity bin only");
-    tree_low->Branch("pT",&pt_gN);
+    tree_low->Branch("M",&M);
+    tree_low->Branch("M_h",&m_1);
+    tree_low->Branch("pT_BF",&pT_BF);
     tree_low->Branch("x",&x);
     tree_low->Branch("z",&z_h);
     tree_low->Branch("Q2",&Q2);
     tree_low->Branch("R0",&R0); //initial parton momentum
     tree_low->Branch("R1",&R1); //Measured in gN frame
     tree_low->Branch("R2",&R2);
-    tree_low->Branch("q_TdivQ",&qTQ);
-    tree_low->Branch("qTQ_hadron",&qTQ_hadron);
     tree_low->Branch("R2_adjust",&R2_adjust);
-    tree_low->Branch("qTQ_calc", &qTQ_calc);
+    tree_low->Branch("qTQ_HF",&qTQ_HF);
+    tree_low->Branch("qT_HF",&qT_HF);
     tree_low->Branch("M_ki",&M_ki);
     tree_low->Branch("M_kf",&M_kf);
     tree_low->Branch("delta_k_T",&delta_k_T);
@@ -127,17 +127,18 @@ int LundAnalysis_single_pion(
     tree_low->Branch("theta_deltak",&theta_deltak);
 
     TTree *tree_high = new TTree("tree_high","Tree with kinematics for higher TMD affinity bin only");
-    tree_high->Branch("pT",&pt_gN);
+    tree_high->Branch("M",&M);
+    tree_high->Branch("M_h",&m_1);
+    tree_high->Branch("pT_BF",&pT_BF);
     tree_high->Branch("x",&x);
     tree_high->Branch("z",&z_h);
     tree_high->Branch("Q2",&Q2);
     tree_high->Branch("R0",&R0); //initial parton momentum
     tree_high->Branch("R1",&R1); //Measured in gN frame
     tree_high->Branch("R2",&R2);
-    tree_high->Branch("q_TdivQ",&qTQ);
-    tree_high->Branch("qTQ_hadron",&qTQ_hadron);
     tree_high->Branch("R2_adjust",&R2_adjust);
-    tree_high->Branch("qTQ_calc", &qTQ_calc);
+    tree_high->Branch("qTQ_HF",&qTQ_HF);
+    tree_high->Branch("qT_HF",&qT_HF);
     tree_high->Branch("M_ki",&M_ki);
     tree_high->Branch("M_kf",&M_kf);
     tree_high->Branch("delta_k_T",&delta_k_T);
@@ -195,7 +196,7 @@ int LundAnalysis_single_pion(
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-//         if(tree_count > 1000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+//         if(tree_count > 10) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
         //Aesthetics/loading bar
         if(event_count == 1) {
@@ -342,7 +343,9 @@ int LundAnalysis_single_pion(
 
         //Loop over all combinations of pion pairs
         for(int i = 0; i < pi_v.v_id.size(); i++) {
-            //Fill first pion particle object
+            //
+            // Set vectors from MC bank and beam/target knowledge
+            //
             pi1.fillParticle(pi_v.v_id[i], pi_v.v_pid[i], pi_v.v_px[i], pi_v.v_py[i],pi_v.v_pz[i], pi_v.v_daughter[i], pi_v.v_parent[i], pi_v.v_mass[i], pi_v.v_vz[i]); 
             pi1.setVectors();
 
@@ -350,26 +353,18 @@ int LundAnalysis_single_pion(
             quark.fillParticle(quark.v_id[quark.final_id], quark.v_pid[quark.final_id], quark.v_px[quark.final_id], quark.v_py[quark.final_id], quark.v_pz[quark.final_id], quark.v_daughter[quark.final_id], quark.v_parent[quark.final_id], quark.v_mass[quark.final_id], quark.v_vz[quark.final_id]);
             quark.setVectors();
             
-            //Setting inital beam and target particles
             init_electron.SetPxPyPzE(0, 0, sqrt(electron_beam_energy * electron_beam_energy - electronMass * electronMass), electron_beam_energy);
             init_target.SetPxPyPzE(0, 0, 0, proton.E);
 
+            //
+            // SIDIS Kinematics in lab frame (invariants)
+            //
+            
             m_1 = pi1.mass;
             
             q = photon.lv;
             q_calc = init_electron - electron.lv;
-            qx = q_calc.Px();
-            qy = q_calc.Py();
-            qz = q_calc.Pz();
-            qE = q_calc.E();
 
-            photonx = photon.lv.Px();
-            photony = photon.lv.Py();
-            photonz = photon.lv.Pz();
-            photonE = photon.lv.E();
-
-
-            //Missing mass
             Mx = Mxfunc(q, init_target, pi1.lv);
 
             cth = cthfunc(electron.px,electron.py,electron.pz);
@@ -379,157 +374,178 @@ int LundAnalysis_single_pion(
             z_h = (init_target * pi1.lv) / (init_target * q);
             s = sfunc(protonMass, electronMass, electron_beam_energy);
             y = yfunc(electron_beam_energy,electron.E);
-            x = Q2/s/y; // Bjorken x
-
-            kf = quark.lv;
-            ki = kf - q;
-            //Cut Kinematics
-
-            gN = q;
-            gN += init_target;
-            gNBoost = gN.BoostVector();
-            gNBoostNeg = -gNBoost;
-
-            lv_p1_gN = pi1.lv;
-            lv_p1_gN.Boost(gNBoostNeg);
-
-            lv_q_gN = q;
-            lv_q_gN.Boost(gNBoostNeg);
-
-            //Need pion pt in gN frame
-            pt_gN = Ptfunc(lv_p1_gN);
+            x = Q2/s/y;
             
-            target_gN = init_target;
-            target_gN.Boost(gNBoostNeg);
-
-            //Need partonic in gN
-            ki_gN = ki;
-            ki_gN.Boost(gNBoostNeg);
-
-            kf_gN = kf;
-            kf_gN.Boost(gNBoostNeg);
-
-            //nu and W
             nu = nufunc(electron_beam_energy,electron.E);
             W = Wfunc(Q2,protonMass,nu);
-
-            //Feynman x
-            xFpi1 = xFfunc(lv_p1_gN,lv_q_gN,W);
-
-            // Breit Frame Kinematics for delta k
-            Breit = q;
-            Breit_target.SetPxPyPzE(0,0,0,2 * x *protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
-            Breit += Breit_target;
-            BreitBoost = Breit.BoostVector();
-            BreitBoost = -1 * BreitBoost;
-
-            //Setting up delta k variables
-            kfBreit = kf;
-            kfBreit.Boost(BreitBoost);
-            kfBreitTran = PtVectfunc(kfBreit); //breit frame boostkfbT in delta k calculation - needs to be a transverse light cone vector of form (V_x, V_y)
-
-            q_Breit = q;
-            q_Breit.Boost(BreitBoost);
-            proton_Breit = proton.lv;
-            proton_Breit.Boost(BreitBoost);
-
-            Breit1 = pi1.lv;
-            Breit1.Boost(BreitBoost);
-            BreitTran1 = PtVectfunc(Breit1);
             
-            PFFrame = q + init_target;
-            PFBoost = PFFrame.BoostVector();
-            PFBoost = -1 * PFBoost;
-            qPF = q;
-            qPF.Boost(PFBoost);
-            qPFVect = qPF.Vect();
-            qPFVectUnit = qPFVect.Unit();
-            PFAngle = qPFVectUnit.Angle(zAxis);
-            PFAxis = qPFVectUnit.Cross(zAxis);
-            //To rotate -> vector.Rotate(PFAngle,PFAxis);
+            
+            kf = quark.lv;
+            ki = kf - q;
 
-            //Hadron frame kinematics for q_T
-            //Note: hadron frame here refers to frame where the target proton and outgoing hadron are back to back
-            //and the target proton has the same four momentum as it has in the breit frame
-            Hadron_frame = pi1.lv;
-            Hadron_frame += Breit_target;
-            HadronBoost = Hadron_frame.BoostVector();
-            HadronBoost = -1 * HadronBoost;
-            q_hadron = q;
-            q_hadron.Boost(HadronBoost);
-            q_T_hadron = PtVectfunc(q_hadron);
+            
+            
+            //
+            // Breit Frame Kinematics
+            //
+            
+            //Boost stuff
+            BF = q;
+            BF_target.SetPxPyPzE(0,0,0,2 * x *protonMass); // E^2 = M^2 + P^2 --> P = 0 so E = M = 2 * x * protonmass
+            BF += BF_target;
+            BFBoost = BF.BoostVector();
+            BFBoost = -1 * BFBoost;
+            
+            //Rotation
+            q_BF_no_rot = q;
+            q_BF_no_rot.Boost(BFBoost);
+            q_BF_no_rot_VectUnit = q_BF_no_rot.Vect().Unit();
+            BFAngle = q_BF_no_rot_VectUnit.Angle(zAxis);
+            BFAxis = q_BF_no_rot_VectUnit.Cross(zAxis);
+            
+            //virtual photon
+            q_BF = q;
+            q_BF.Boost(BFBoost);
+            q_BF.Rotate(BFAngle,BFAxis);
+            
+            //proton target
+            proton_BF = init_target;
+            proton_BF.Boost(BFBoost);
+            proton_BF.Rotate(BFAngle,BFAxis);
+            proton_BF_no_rot = init_target;
+            proton_BF_no_rot.Boost(BFBoost);
+            
+            //partons
+            kf_BF = kf;
+            kf_BF.Boost(BFBoost);
+            kfT_BF_vect = PtVectfunc(kf_BF); //BF frame boostkfbT in delta k calculation 
+            kfT_BF = Ptfunc(kf_BF);
 
-            q_T_lab = PtVectfunc(q);
 
-            qTQ_lab = Ptfunc(q_T_lab) / sqrt(Q2);
-            qTQ_hadron = Ptfunc(q_T_hadron) / sqrt(Q2);
-
-            //Hadron frame kinematics for q_T of pi_1
-            pion_frame = pi1.lv;
-            pion_frame += Breit_target;
-            pionBoost = pion_frame.BoostVector();
-            pionBoost = -1 * pionBoost;
-            q_pion = q;
-            q_pion.Boost(pionBoost);
-            q_T_pion = PtVectfunc(q_pion);
-            qTQ_pion = Ptfunc(q_T_pion) / sqrt(Q2);
-
-
+            M = proton_BF.M();
+            
+            //hadron (P_h)
+            pi1_BF = pi1.lv;
+            pi1_BF.Boost(BFBoost);
+            pT_BF_vect = PtVectfunc(pi1_BF);
+            pT_BF = Ptfunc(pi1_BF);
+            
             //
             //Photon Frame
             //
-
-            PF1 = pi1.lv;
-            PF1.Boost(PFBoost);
-            PF1.Rotate(PFAngle,PFAxis);
-            PF1Minus = LightConeMinus(PF1);
             
-            //Virtual Photon
-            qPF.Rotate(PFAngle,PFAxis);
-            qPFMinus = LightConeMinus(qPF);
+            //Boosting
+            PFFrame = q + init_target;
+            PFBoost = PFFrame.BoostVector();
+            PFBoost = -1 * PFBoost;
             
-            //z_N and q_T
-            z_N = PF1Minus / qPFMinus;
-            x_N =  xNfunc(x,init_target.M(),Q2);
+            //Rotation
+            q_PF_no_rot = q;
+            q_PF_no_rot.Boost(PFBoost);
+            q_PF_no_rot_VectUnit = q_PF_no_rot.Vect().Unit();
+            PFAngle = q_PF_no_rot_VectUnit.Angle(zAxis);
+            PFAxis = q_PF_no_rot_VectUnit.Cross(zAxis);
             
-            q_T = -1 * BreitTran1 / z_N;
+            //proton, q, pion
+            P_PF = init_target;
+            q_PF = q;
+            pi1_PF = pi1.lv;
+            P_PF.Boost(PFBoost);
+            q_PF.Boost(PFBoost);
+            pi1_PF.Boost(PFBoost);
+            P_PF.Rotate(PFAngle,PFAxis);
+            q_PF.Rotate(PFAngle,PFAxis);
+            pi1_PF.Rotate(PFAngle,PFAxis);
+            
+            //pT
+            pT_PF = Ptfunc(pi1_PF);
+            
+            //partons
+            ki_PF = ki;
+            kf_PF = kf;
+            ki_PF.Boost(PFBoost);
+            kf_PF.Boost(PFBoost);
+            ki_PF.Rotate(PFAngle,PFAxis);
+            kf_PF.Rotate(PFAngle,PFAxis);
+            
+            //misc:
+            xFpi1 = xFfunc(pi1_PF,q_PF,W);
+            
+            
+            //
+            //Hadron frame 
+            //
+            
+            //Boosting
+            Hadron_frame = pi1.lv;
+            Hadron_frame += BF_target;
+            HadronBoost = Hadron_frame.BoostVector();
+            HadronBoost = -1 * HadronBoost;
+            
+            //rotation
+            pi1_HF_no_rot = pi1.lv;
+            pi1_HF_no_rot.Boost(HadronBoost);
+            pi1_HF_no_rot_VectUnit = pi1_HF_no_rot.Vect().Unit();
+            HFAngle = pi1_HF_no_rot_VectUnit.Angle(zAxis);
+            HFAxis = pi1_HF_no_rot_VectUnit.Cross(zAxis);
+            
+            //outgoing hadron
+            pi1_HF = pi1.lv;
+            pi1_HF.Boost(HadronBoost);
+            pi1_HF.Rotate(HFAngle,HFAxis);
+            
+            pT_HF = Ptfunc(pi1_HF);
+            
+            //virtual photon
+            q_HF = q;
+            q_HF.Boost(HadronBoost);
+            q_HF.Rotate(HFAngle,HFAxis);
+                
+            qT_HF = Ptfunc(q_HF);
+            qTQ_HF = qT_HF / pow(Q2,0.5);
+            
+            qT_from_pT_PF_z = pT_PF / z_h;
+            
 
-            q_T_frac = BreitTran1 / z_h;
-            qTQfrac = Ptfunc(q_T_frac) / sqrt(Q2);
+
+            //
+            // z_N x_N calcs
+            //
+            
+            //z_N = P_B,b minus / q_b minus
+            P_B_b_minus = pi1_BF.Minus();
+            q_b_minus = q_BF.Minus();
+            z_N = P_B_b_minus / q_b_minus;
+            x_N_kin =  (2 * x) / (1 + pow(1 + (4 * pow(x,2) * pow(M,2) / Q2),0.5));
+            x_N = -1 * q_PF.Plus() / P_PF.Plus();
+
+            
+            qT_from_zN_vect = -1 * pT_BF_vect / z_N;
+
+            qT_from_pT_BF_vect = pT_BF_vect / z_h;
+            qT_from_pT_BF = Ptfunc(qT_from_pT_BF_vect);
+            qTQ_from_pT_BF = qT_from_pT_BF / sqrt(Q2);
 
 
-            //q_T / Q for plotting
-            qTQ = Ptfunc(q_T) / sqrt(Q2);
-            q_T_zN_val = Ptfunc(q_T);
+            //qT / Q for plotting
+            qT_from_zN = Ptfunc(qT_from_zN_vect);
 
             //qT from pT/z
-            qT_calc = pt_gN / z_h;
-            qT_hadron_mag = Ptfunc(q_T_hadron);
-            qTQ_calc = qT_calc / sqrt(Q2);
-            
-            // diff between qT calc and qT hadron
-            qT_diff = qT_calc - qT_hadron_mag;
+            qT_from_pT_HF_z = pT_HF / z_h;
             
             //ki, k, and delta k
-            deltak = kfBreitTran - (-1 * z_N * q_T); 
+            deltak = kfT_BF_vect - (-1 * z_N * qT_from_zN_vect); 
 
             k = kf - q;
-            k_gN = k;
-            k_gN.Boost(gNBoostNeg);
+            k_PF = k;
+            k_PF.Boost(PFBoost);
 
-            //Ratios in gN frame
-            R0 = R0func(ki_gN, kf_gN, deltak, Q2);
+            //Ratios in PF frame
+            R0 = R0func(ki_PF, kf_PF, deltak, Q2);
             
-            ki2 = abs(ki_gN * ki_gN);
-            kf2 = abs(kf_gN * kf_gN);
+            ki2 = abs(ki_PF * ki_PF);
+            kf2 = abs(kf_PF * kf_PF);
             deltak2 = abs(deltak * deltak);
-            
-            kix = ki_gN.Px();
-            kiy = ki_gN.Py();
-            kiz = ki_gN.Pz();
-            kfx = kf_gN.Px();
-            kfy = kf_gN.Py();
-            kfz = kf_gN.Pz();
             
             if(deltak2 > ki2 && deltak2 > kf2) {
                 R0check = 0;//DeltaK is biggest
@@ -546,30 +562,30 @@ int LundAnalysis_single_pion(
             M_kf = pow(kf2,0.5);
             delta_k_T = pow(deltak2,0.5);
             
-            ki_T = Ptfunc(ki_gN);
+            ki_T = Ptfunc(ki_PF);
             
-            R1 = R1func(lv_p1_gN, ki_gN, kf_gN);
+            R1 = R1func(pi1_PF, ki_PF, kf_PF);
             if(R1 < -100) {
                 low_R1_count++;
             }
-            ki_Breit = ki;
-            ki_Breit.Boost(BreitBoost);
-            kf_Breit = kf;
-            kf_Breit.Boost(BreitBoost);
-            k_Breit = k;
-            k_Breit.Boost(BreitBoost);
+            ki_BF = ki;
+            ki_BF.Boost(BFBoost);
+            kf_BF = kf;
+            kf_BF.Boost(BFBoost);
+            k_BF = k;
+            k_BF.Boost(BFBoost);
 
-            R2 = R2func(k_gN, Q2);
-            R2_adjust = R2func_adjust(Ptfunc(q_T_hadron), Q2);
+            R2 = R2func(k_PF, Q2);
+            R2_adjust = R2func_adjust(qT_HF, Q2);
             xF = xFpi1;
             
             //np params
-            zeta = (z_N * q_Breit.Minus()) / kf_Breit.Minus();
-            xi = (-1 * x_N * ki_Breit.Plus()) / q_Breit.Plus();
+            zeta = (z_N * q_BF.Minus()) / kf_BF.Minus();
+            xi = (-1 * x_N * ki_BF.Plus()) / q_BF.Plus();
             
             //phi values
-            theta_ki = ki_Breit.Phi();
-            theta_H = Breit1.Phi();
+            theta_ki = ki_BF.Phi();
+            theta_H = pi1_BF.Phi();
             theta_deltak = deltak.Phi();
 
             //Missing mass
@@ -613,7 +629,7 @@ int LundAnalysis_single_pion(
             if(one_bin) {
                 if(x < xcut_min || x > xcut_max){continue;}
                 if(z_h < zcut_min || z_h > zcut_max){continue;}
-                if(qTQ_pion < qTQcut_min || qTQ_pion > qTQcut_max){continue;}
+                if(qTQ_HF < qTQcut_min || qTQ_HF > qTQcut_max){continue;}
             }
             if(i == 0){passed_count++;}
             
@@ -637,23 +653,8 @@ int LundAnalysis_single_pion(
             
             tree_count += 1;
             tree_MC->Fill();
-//             tree_test->Fill();
-//             low_bool = (
-//                 (qTQ_calc > qTQ_low_aff - qTQ_low_tol) && (qTQ_calc < qTQ_low_aff + qTQ_low_tol) && 
-//                 (x > x_low_aff - x_low_tol) && (x < x_low_aff + x_low_tol) && 
-//                 (Q2 > Q2_low_aff - Q2_low_tol) && (Q2 < Q2_low_aff + Q2_low_tol) && 
-//                 (z_h > z_low_aff - z_low_tol) && (z_h < z_low_aff + z_low_tol) && 
-//                 (pt_gN > pT_low_aff - pT_low_tol) && (pt_gN < pT_low_aff + pT_low_tol)
-//                        );
-//             high_bool = (
-//                 (qTQ_calc > qTQ_high_aff - qTQ_high_tol) && (qTQ_calc < qTQ_high_aff + qTQ_high_tol) && 
-//                 (x > x_high_aff - x_high_tol) && (x < x_high_aff + x_high_tol) && 
-//                 (Q2 > Q2_high_aff - Q2_high_tol) && (Q2 < Q2_high_aff + Q2_high_tol) && 
-//                 (z_h > z_high_aff - z_high_tol) && (z_h < z_high_aff + z_high_tol) && 
-//                 (pt_gN > pT_high_aff - pT_high_tol) && (pt_gN < pT_high_aff + pT_high_tol)
-//                        );
-            low_bool = ((x > xb[0]) && (x < xb[1]) && (z_h > zb[0]) && (z_h < zb[1]) && (Q2 > Q2b[0]) && (Q2 < Q2b[1])&& (pt_gN > pTb[0]) && (pt_gN < pTb[1]));
-            high_bool = ((x > xb[2]) && (x < xb[3]) && (z_h > zb[2]) && (z_h < zb[3]) && (qTQ_calc < 0.2) && (Q2 > Q2b[2]) && (Q2 < Q2b[3]));
+            low_bool = ((x > xb[0]) && (x < xb[1]) && (z_h > zb[0]) && (z_h < zb[1]) && (Q2 > Q2b[0]) && (Q2 < Q2b[1])&& (pT_PF > pTb[0]) && (pT_PF < pTb[1]));
+            high_bool = ((x > xb[2]) && (x < xb[3]) && (z_h > zb[2]) && (z_h < zb[3]) && (qTQ_HF < 0.2) && (Q2 > Q2b[2]) && (Q2 < Q2b[3]));
             if(low_bool) {
                 tree_low->Fill();
             }
@@ -661,12 +662,12 @@ int LundAnalysis_single_pion(
                 tree_high->Fill();
             }
             
-            
+            /*
             //zbins:
             for(int i = 0; i < zbins.size(); i++) {
                 if(z_h <= zbins[i]) {
-                    zbinv[i].zFillVectors(x, Q2, pt_gN, R0, R1, R2_adjust);
-//                     cout << "filling z_h bin #" << i << " with: x - " << x << " | pt_gN: " << pt_gN << "\n";
+                    zbinv[i].zFillVectors(x, Q2, pT_gN, R0, R1, R2_adjust);
+//                     cout << "filling z_h bin #" << i << " with: x - " << x << " | pT_gN: " << pT_gN << "\n";
                     zcounts[i] += 1;
                     break;
                 }
@@ -674,7 +675,7 @@ int LundAnalysis_single_pion(
             //x bins
             for(int i = 0; i < xbins.size(); i++) {
                 if(x <= xbins[i]) {
-                    xbinv[i].xFillVectors(z_h, Q2, pt_gN, R0, R1, R2_adjust);
+                    xbinv[i].xFillVectors(z_h, Q2, pT_gN, R0, R1, R2_adjust);
                     xcounts[i] += 1;
                     break;
                 }
@@ -682,7 +683,7 @@ int LundAnalysis_single_pion(
             //Q2 bins
             for(int i = 0; i < Q2bins.size(); i++) {
                 if(Q2 <= Q2bins[i]) {
-                    Q2binv[i].Q2FillVectors(x, z_h, pt_gN, R0, R1, R2_adjust);
+                    Q2binv[i].Q2FillVectors(x, z_h, pT_gN, R0, R1, R2_adjust);
                     break;
                 }
             }
@@ -690,11 +691,11 @@ int LundAnalysis_single_pion(
             //qTQ bins
             for(int i = 0; i < qTQbins.size(); i++) {
                 if(qTQ_pion <= qTQbins[i]) {
-                    qTQbinv[i].qTQFillVectors(x, z_h, Q2, pt_gN, R0, R1, R2_adjust);
+                    qTQbinv[i].qTQFillVectors(x, z_h, Q2, pT_gN, R0, R1, R2_adjust);
                     qTQcounts[i] += 1;
                     break;
                 }
-            }
+            }*/
         }
 	
 
@@ -705,7 +706,7 @@ int LundAnalysis_single_pion(
     cout << "Final events passed: " << passed_count << '\n';
     cout << "low_R1_count " << low_R1_count << '\n';
 
-
+/*
     //Making new Affinity trees
     TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
     TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
@@ -801,7 +802,7 @@ int LundAnalysis_single_pion(
         R2_t = qTQbinv[i].R2mean;
         t_qTQ->Fill();
         }
-
+    */
     tree_maxmin->Fill();
     f->Write();
     delete f;

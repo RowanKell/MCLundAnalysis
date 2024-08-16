@@ -72,13 +72,6 @@ double R1breit;
 double R2;
 double R2_adjust;
 
-//Numerator and Denominator for R1
-double R1num;
-double R1denom;
-double R1num_lab;
-double R1denom_lab;
-double R1num_Breit;
-double R1denom_Breit;
 
 int qparent;
 int diparent;
@@ -98,20 +91,6 @@ double E;
 //Initializing particle vectors
 TLorentzVector q;
 TLorentzVector q_calc;
-double qx;
-double qy;
-double qz;
-double qE;
-
-double q_gNx;
-double q_gNy;
-double q_gNz;
-double q_gNE;
-
-double photonx;
-double photony;
-double photonz;
-double photonE;
 
 TLorentzVector init_electron;
 TLorentzVector init_target;
@@ -151,81 +130,124 @@ std::normal_distribution<double> distribution_delta_k_T(random_mean,random_std);
 
 int R0check;
 
-double kTx;
-double kTy;
-double kTz;
-double kTE;
 
-double kix;
-double kiy;
-double kiz;
-double kiE;
+//
 
-double kfx;
-double kfy;
-double kfz;
-double kfE;
 
-//gNframe
-TLorentzVector lv_p1_gN;
-TLorentzVector lv_p2_gN;
-TLorentzVector dihadron_gN;
-
-TLorentzVector lv_q_gN;
-
-TLorentzVector target_gN;
-
-TLorentzVector ki_gN;
-TLorentzVector kf_gN;
-TLorentzVector k_gN;
-
-TLorentzVector ki_Breit;
-TLorentzVector kf_Breit;
-TLorentzVector k_Breit;
-TLorentzVector q_Breit;
-TLorentzVector proton_Breit;
-
-double pt_gN;
-
-double pt_gN_1;
-double pt_gN_2;
-
-TLorentzVector gN;
-TVector3 gNBoost;
-TVector3 gNBoostNeg;
-//For checking momentum conservation / if the lundstring contains momentum for all hadrons
-//    TLorentzVector diquark;
 TLorentzVector lundstring;
-//    TLorentzVector photon;
-//    TLorentzVector proton;
 
+
+//
 //Breit frame variables
-TLorentzVector Breit;
-TLorentzVector Breit_target;
-TVector3 BreitBoost;
-TLorentzVector kfBreit;
-TVector2 kfBreitTran;
-TLorentzVector dihadronBreit;
-TLorentzVector Breit1;
-TLorentzVector Breit2;
-TVector2 dihadronBreitTran;
-TVector2 BreitTran1;
-TVector2 BreitTran2;
+//
 
+//SIDIS
+TLorentzVector q_BF;
+TLorentzVector proton_BF;
+TLorentzVector pi1_BF;
+
+//pT stuff
+TVector2 pT_BF_vect;
+double pT_BF;
+
+//partons
+TLorentzVector ki_BF;
+TLorentzVector kf_BF;
+TLorentzVector k_BF;
+TVector2 kfT_BF_vect;
+double kfT_BF;
+
+//Boosting
+TLorentzVector BF;
+TLorentzVector BF_target;
+TVector3 BFBoost;
+
+//rotation
+TLorentzVector q_BF_no_rot;
+TVector3 q_BF_no_rot_VectUnit;
+double BFAngle;
+TVector3 BFAxis;
+
+//misc
+TLorentzVector proton_BF_no_rot;
+
+
+//
 //Hadron Frame Variables
-TLorentzVector q_hadron;
+//
+
+//SIDIS
+TLorentzVector pi1_HF;
+TLorentzVector q_HF;
+
+double pT_HF;
+
+//qT stuff
+double qT_HF;
+double qTQ_HF;
+
+//partons
+TLorentzVector k_HF;
+TLorentzVector ki_HF;
+TLorentzVector kf_HF;
+
+//Boosting
 TLorentzVector Hadron_frame;
 TVector3 HadronBoost;
 
+//Rotation
+TLorentzVector pi1_HF_no_rot;
+TVector3 pi1_HF_no_rot_VectUnit;
+double HFAngle;
+TVector3 HFAxis;
+
+//
 //Photon Frame variables
+//
+
+//SIDIS Stuff
+TLorentzVector P_PF;
+TLorentzVector q_PF;
+TLorentzVector pi1_PF;
+double pT_PF;
+
+//Boost
 TLorentzVector PFFrame;
 TVector3 PFBoost;
-TLorentzVector qPF;
-TVector3 qPFVect;
+
+//Rotation
 TVector3 qPFVectUnit;
 TVector3 zAxis(0,0,1);
 double PFAngle;
 TVector3 PFAxis;
+TLorentzVector q_PF_no_rot;
+TVector3 q_PF_no_rot_VectUnit;
+
+//Partons
+TLorentzVector ki_PF;
+TLorentzVector kf_PF;
+TLorentzVector k_PF;
+
+//
+//other qTs
+//
+
+TVector2 qT_from_zN_vect;
+double qT_from_zN;
+
+TVector2 qT_from_pT_BF_vect;
+double qT_from_pT_BF;
+
+TVector2 qT_from_pT_PF_z_vect;
+double qT_from_pT_PF_z;
+
+TVector2 qT_from_pT_HF_z_vect;
+double qT_from_pT_HF_z;
+
+double qTQ_from_pT_BF;
+
+
+
 
 double qPFMinus;
 TLorentzVector dihadronPF;
@@ -237,31 +259,15 @@ double PF2Minus;
 
 double z_N;
 double x_N;
-double z_N1;
-double z_N2;
 
-TVector2 q_T;
-TVector2 q_T1;
-TVector2 q_T2;
-TVector2 q_T_lab;
-TVector2 q_T_hadron;
-
-double qT_calc;
-double qT_hadron_mag;
-double qT_diff;
-double qTQ_calc;
 
 //qT variables for single pion affinity qTQ binning
 TLorentzVector pion_frame;
 TVector3 pionBoost;
 TLorentzVector q_pion;
-TVector2 q_T_pion;
-double qTQ_pion;
-double qTQ_cut_val;
 
 
 TVector2 q_T_frac;
-double qTQfrac;
 
 double Qdiff;
 
@@ -282,6 +288,16 @@ double zeta;
 double theta_ki;
 double theta_H;
 double theta_deltak;
+
+double M;
+
+double x_N_kin;
+TLorentzVector PPF;
+double P_B_b_minus;
+double q_b_minus;
+
+double qPF_T;
+double PPF_T;
 
 //One binnings
 int low_bool;
