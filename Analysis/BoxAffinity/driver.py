@@ -25,20 +25,50 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
     qT        = params['q_t']
     xi        = params['xi']
     zeta      = params['zeta']
-    dkT       = params['delta_k_T']
-    kit       = params['ki_T']
+    dkT       = params['delta_k_t']
+    kit       = params['ki_t']
     ki        = params['M_ki']
     kf        = params['M_kf']
     phi_i     = params['phi_i']
     phi       = params['phi']
     phi_ki       = params['phi_ki']
 
+    R0_12 = np.maximum(
+            np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)),
+            np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+            )
+    R0 = np.maximum(
+            R0_12,
+            np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+            )
+    ''' ORIGINAL
     R0 = np.maximum(
             np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)),
             np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)),
             np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
             )
+    '''
+#     R01 = np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+#     R02 = np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+#     R03 = np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+#     print(f"R01, R02, R03: ({R01},{R02},{R03})")
+#     print(f"R0: {R0}")
+    
+#     if(np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)) > np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))):
+#         if(np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)) > np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))):
+#             R0check = 1
+#         else:
+#             R0check = 3
+#     else:
+#         if(np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)) > np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))):
+#             R0check = 2
+#         else:
+#             R0check = 3
+#     print(f"R0check: {R0check}")
 
+        
+        
+        
     R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
 #     R2 = np.ones(len(R1))*(qT**2) / (Q**2)
 #     print(f"R1: {R1} | R2: {R2} | type(R1): {type(R1)} | type(R2): {type(R2)}")
@@ -135,9 +165,9 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     Compute affinity accross kinematics of fname file 
     """
     print("We open file ",fname) # Write what file we open from directory /expdata
-    kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_T","ki_T","theta_deltak","theta_H","theta_ki","xi","zeta"]
+    kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_t","ki_t","theta_deltak","theta_H","theta_ki","xi","zeta"]
     kinematic_list_short_driver = ["pT_BF","Q2","x","z"]
-
+    '''
     file_dir = fname
     num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
     file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
@@ -163,15 +193,9 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
             else:
                 tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short_driver,library="pd")],ignore_index = True)
             print(f"file name: {file_names_low[i]}")
-#     tab = pd.read_excel(fname)
-#     tab=tab.to_dict(orient='list')
-#     if(highAff):
-#         np_MC = pd.read_excel("xlsx/np/August_13_high.xlsx")
-#     else:
-#         np_MC = pd.read_excel("xlsx/np/August_13_low.xlsx")
-#         print(f"len of np_MC: {len(np_MC)}")
-
-#     npts=len(tab[list(tab.keys())[0]]) #npts is the number of datapoints in the xlsx file
+'''
+    tab = up.open("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/August_25/short.root:tree_low").arrays(kinematic_list_short,library="pd")
+            
     npts = len(tab[list(tab.keys())[0]])
     
     #Rowan edits
@@ -326,8 +350,8 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
 
         if(useMCNP):
-            params['delta_k_T'] = np.array([tab['delta_k_T'][i]])
-            params['ki_T']     = np.array([tab['ki_T'][i]])
+            params['delta_k_t'] = np.array([tab['delta_k_t'][i]])
+            params['ki_t']     = np.array([tab['ki_t'][i]])
             params['M_ki']      = np.array([tab['M_ki'][i]])
             params['M_kf']      = np.array([tab['M_kf'][i]])
             params['zeta']      = np.array([tab['zeta'][i]])
@@ -342,7 +366,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         #gen_np_values(params,x,z,0,size=size)  # test here
         gen_np_values(params,x,z,2,useMCNP,size=size) # Main level=2
         partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf = get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin)
-
+        
         tab.loc[i,'yi'] = np.mean(yi)
         tab.loc[i,'yf'] = np.mean(yf)
 
@@ -400,7 +424,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         
         #ROWAN EDIT
         #Add qT/Q
-        np_list = ["M_ki","M_kf","delta_k_T","ki_T"]
+        np_list = ["M_ki","M_kf","delta_k_t","ki_t"]
         for np_idx in range(len(np_list)):
             tab.loc[i,np_list[np_idx]] = params[np_list[np_idx]]
         tab.loc[i,"zeta"] = params["zeta"]
@@ -450,8 +474,8 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
         
     if(not useMCNP):
 #         print("using random NP values")
-        params['delta_k_T'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
-        params['ki_T']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+        params['delta_k_t'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
+        params['ki_t']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['M_ki']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
         params['M_kf']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['xi']   = np.random.uniform(x,deltax,size) # Should we generate partonic variable in a wide interval?

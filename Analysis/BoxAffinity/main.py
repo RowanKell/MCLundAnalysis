@@ -46,29 +46,31 @@ useArgs = args.useArgs
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
-    useDriver = True
+    useDriver = False
 #     fileFromLundAnalysis = "Files_Spring_24/August_15/"
-    fileFromLundAnalysis = "Slurm_Spring_24/August_15/Run_1_single_pion/" #for multipleFiles
+    fileFromLundAnalysis = "Slurm_Spring_24/August_16/Run_3_single_pion/" #for multipleFiles
     createMaxMin = False
     multipleFiles = True
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
-        xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
+#         xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
         outDayDir ="root_files/" + today + "/"
         checkdir(outDayDir)
-#         outRootFileName = "/" + outDayDir + "old_R2_driver_MCNP_all_low.root"
-        outRootFileName = "/" + outDayDir + "old_R2_driver_low.root"
+#         useMCNP = False
+        useMCNP = True
+        if(useMCNP):
+            outRootFileName = "/" + outDayDir + "old_R2_driver_MCNP_all_low.root"
+        else:
+            outRootFileName = "/" + outDayDir + "old_R2_driver_low.root"
         plotFileName = "driver_july_8_old_R2_6_files.pdf"
         plot_title = "Driver Affinity old R2 high affinity bin"
         calcAff = False
         highAff = False
-#         useMCNP = False
-        useMCNP = False
     else:
-        inRootFileName = "/OutputFiles/" + fileFromLundAnalysis
-        plotFileName = "driver_july_8_all_files_low.pdf"
-        plot_title = "driver Affinity all files low TMD aff binning"
+        inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
+        plotFileName = "MC_september_16_all_low.pdf"
+        plot_title = "MC Affinity low TMD aff binning"
 else:
     useDriver = args.useDriver
     fileFromLundAnalysis = args.fileFromLundAnalysis
@@ -124,8 +126,8 @@ if(useDriver):
     
     M_ki_t  = array('d',[0])
     M_kf_t  = array('d',[0])
-    delta_k_T_t  = array('d',[0])
-    ki_T_t  = array('d',[0])
+    delta_k_t_t  = array('d',[0])
+    ki_t_t  = array('d',[0])
     
     theta_deltak_t  = array('d',[0])
     theta_H_t  = array('d',[0])
@@ -144,8 +146,8 @@ if(useDriver):
     #["M_ki","M_kf","delta_k_T","ki_T"]
     tree.Branch('M_ki', M_ki_t,'M_kf_t/D')
     tree.Branch('M_kf', M_kf_t,'M_kf_t/D')
-    tree.Branch('delta_k_T', delta_k_T_t,'delta_k_T_t/D')
-    tree.Branch('ki_T', ki_T_t,'ki_T_t/D')
+    tree.Branch('delta_k_t', delta_k_t_t,'delta_k_t_t/D')
+    tree.Branch('ki_t', ki_t_t,'ki_t_t/D')
     
     tree.Branch('xi', xi_t,'xi_t/D')
     tree.Branch('zeta', zeta_t,'zeta_t/D')
@@ -169,8 +171,8 @@ if(useDriver):
         
         M_ki_t[0] = tab['M_ki'][i]
         M_kf_t[0] = tab['M_kf'][i]
-        delta_k_T_t[0] = tab['delta_k_T'][i]
-        ki_T_t[0] = tab['ki_T'][i]
+        delta_k_t_t[0] = tab['delta_k_t'][i]
+        ki_t_t[0] = tab['ki_t'][i]
         
         theta_ki_t[0] = tab['theta_ki'][i]
         theta_H_t[0] = tab['theta_H'][i]

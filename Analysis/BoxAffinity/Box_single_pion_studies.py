@@ -40,12 +40,9 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
     check_and_create_directory(dir_prefix + "Analysis/BoxAffinity/Plots_S24/" +date_dir)
 
     print("calculating single pion box affinity")
-
-    treeName = "tree_driver" if useDriver else "tree_driver"
-#     d = RDataFrame(treeName,dir_prefix + inRootFilePath + "*.root") #from LundAnalysis_single_pion.C
-    useDriver = True
-    d = RDataFrame(treeName,dir_prefix + "Analysis/BoxAffinity/root_files/July_9_old_R2_driver_6_files_low.root") #from LundAnalysis_single_pion.C
-    # d = RDataFrame("tree_driver",dir_prefix + "../sidisregions/rowan_dev/root_files/driver_ratios_May23_500k.root") #from driver.py
+    
+    treeName = "tree_driver" if useDriver else "tree_MC"
+    d = RDataFrame(treeName,inRootFilePath + "*.root") #from LundAnalysis_single_pion.C
     pTbins = np.linspace(0.1,0.8,8)
     xbins = np.array([0,0.1,0.13,0.16,0.19,0.235,0.3,0.5])
     zbins = np.array([0,0.35,0.43,0.49,0.55,0.62,0.7,0.83])
@@ -56,7 +53,7 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
     zbinsno0 = np.array([0.35,0.43,0.49,0.55,0.62,0.7,0.83])
     qTQbinsno0 = np.array([0.1,0.3,0.5,0.8,1.1,1.5,2,2.5,3])
 
-    varName = np.array(["x", "z", "Q2", "pT", "R0", "R1", "R2"])
+    varName = np.array(["x", "z", "Q2", "pT_BF", "R0", "R1", "R2"])
 
     
     def calculate_Affinity(d):
@@ -73,7 +70,7 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
         if(useDriver):#if using driver, branch names are diff
             xformat = "x.x_t <= {} && x.x_t > {}"
             zformat = "z.z_t <= {} && z.z_t > {}"
-            pTformat = "pT.pT_t <= {} && pT.pT_t > {}"
+            pTformat = "pT_BF.pT_BF_t <= {} && pT_BF.pT_BF_t > {}"
             R0format = "R0.R0_t < 0.3"
             R2format = "R2.R2_t < 0.3"
             R1format = "R1.R1_t < 0.3"
@@ -81,12 +78,12 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
         else:
             xformat = "x <= {} && x > {}"
             zformat = "z <= {} && z > {}"
-            pTformat = "pT <= {} && pT > {}"
+            pTformat = "pT_BF <= {} && pT_BF > {}"
             R0format = "R0 < 0.3"
             R2format = "R2_adjust < 0.3"
 #             R2format = "R2 < 0.3"
             R1format = "R1 < 0.3"
-            qdivformat = "qTQ_calc <= {} && qTQ_calc > {}"
+            qdivformat = "qTQ_HF <= {} && qTQ_HF > {}"
 
         for i in range(7):
             pxcut[i] = d.Filter(xformat.format(xbins[i + 1],xbins[i])).Filter(R2format).Filter(R1format).Filter(R0format).Count()
