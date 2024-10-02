@@ -1,6 +1,7 @@
 # EXAMPLE USAGE
 # python3 main.py --no-useArgs
-
+import warnings
+warnings.filterwarnings('ignore')
 
 from ConvertData import convertData, binnedConvertData
 from driver import main00, maxmin
@@ -46,31 +47,31 @@ useArgs = args.useArgs
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
-    useDriver = False
+    useDriver = True
 #     fileFromLundAnalysis = "Files_Spring_24/August_15/"
-    fileFromLundAnalysis = "Slurm_Spring_24/August_16/Run_3_single_pion/" #for multipleFiles
+    # fileFromLundAnalysis = "Slurm_Spring_24/August_16/Run_3_single_pion/" #for multipleFiles
+    fileFromLundAnalysis = "Files_Spring_24/September_24/run_1_100kevents.root" #for multipleFiles
     createMaxMin = False
-    multipleFiles = True
+    multipleFiles = False
     if(useDriver):
         Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py
 #         xlsxFileName = "xlsx/July_8_100_driver_original_R2_three_files"
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
         outDayDir ="root_files/" + today + "/"
         checkdir(outDayDir)
-#         useMCNP = False
-        useMCNP = True
+        useMCNP = False
+        AffType = "All"
         if(useMCNP):
-            outRootFileName = "/" + outDayDir + "old_R2_driver_MCNP_all_low.root"
+            outRootFileName = "/" + outDayDir + f"old_R2_driver_MCNP_all_{AffType}.root"
         else:
-            outRootFileName = "/" + outDayDir + "old_R2_driver_low.root"
-        plotFileName = "driver_july_8_old_R2_6_files.pdf"
-        plot_title = "Driver Affinity old R2 high affinity bin"
-        calcAff = False
-        highAff = False
+            outRootFileName = "/" + outDayDir + f"old_R2_driver_{AffType}.root"
+        plotFileName = "driver_september_25_100k_events.pdf"
+        plot_title = "Driver Affinity old R2"
+        calcAff = True
     else:
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        plotFileName = "MC_september_16_all_low.pdf"
-        plot_title = "MC Affinity low TMD aff binning"
+        plotFileName = "MC_september_25_100k_events.pdf"
+        plot_title = "MC Affinity"
 else:
     useDriver = args.useDriver
     fileFromLundAnalysis = args.fileFromLundAnalysis
@@ -103,7 +104,7 @@ if(useDriver):
     STEP 2: Calculate ratios using driver, save them to a root file
     '''
 
-    tabs,ratios = main00(inRootFileName,highAff,useMCNP)
+    tabs,ratios = main00(inRootFileName,AffType,useMCNP)
     tab = tabs[0]
 
     print(f"creating root file with kinematics needed to run Box.py")
@@ -120,6 +121,9 @@ if(useDriver):
     x_t = array('d',[0])
     zeta_t = array('d',[0])
     xi_t = array('d',[0])
+    
+    x_N_t = array('d',[0])
+    z_N_t = array('d',[0])
     qTQ_hadron_t = array('d',[0])
     pT_BF_t = array('d',[0])
     tmdaff_t = array('d',[0])
@@ -151,6 +155,8 @@ if(useDriver):
     
     tree.Branch('xi', xi_t,'xi_t/D')
     tree.Branch('zeta', zeta_t,'zeta_t/D')
+    tree.Branch('x_N', x_N_t,'x_N_t/D')
+    tree.Branch('z_N', z_N_t,'z_N_t/D')
     
     tree.Branch('theta_ki', theta_ki_t,'theta_ki/D')
     tree.Branch('theta_H', theta_H_t,'theta_H/D')
@@ -166,6 +172,8 @@ if(useDriver):
         x_t[0] = tab['x'][i]
         zeta_t[0] = tab['zeta'][i]
         xi_t[0] = tab['xi'][i]
+        x_N_t[0] = tab['xN'][i]
+        z_N_t[0] = tab['zN'][i]
         qTQ_hadron_t[0] = tab['qTQ'][i]
         tmdaff_t[0] = tab['tmdaff'][i]
         
@@ -186,7 +194,7 @@ if(useDriver):
         maxmin("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/BoxAffinity" + outRootFileName, ratios)
 
     if(calcAff):
-        CalculateBoxAffinity("Analysis/BoxAffinity" + outRootFileName, True, plotFileName,plot_title)
+        CalculateBoxAffinity("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/Analysis/BoxAffinity" + outRootFileName, True, plotFileName,plot_title)
     
 '''
 BOX Method

@@ -2,6 +2,8 @@
 #include <random>
 #pragma once
 //Constants 
+double pi = 3.14159265358979323846;
+
 double electron_beam_energy = 10.6; //(fall2018)
 double electronMass = 0.000511;
 double protonMass = 0.938272;
@@ -38,6 +40,7 @@ double vz;
 //Calculated SIDIS kinematics
 double cth;
 double Q2;
+double Q;
 double Q2_calc;
 double x;
 double pt_lab;
@@ -72,6 +75,10 @@ double R1breit;
 double R2;
 double R2_adjust;
 
+double R01;
+double R02;
+double R03;
+
 
 int qparent;
 int diparent;
@@ -99,7 +106,7 @@ TLorentzVector dihadron;
 TLorentzVector k;
 TLorentzVector kf;
 TLorentzVector ki;
-TVector2 deltak; // Transverse light cone vector - (V_x,V_y)
+TVector2 deltak_T_vect; // Transverse light cone vector - (V_x,V_y)
 TVector2 deltak_gN;
 
 double ki2;
@@ -108,8 +115,8 @@ double deltak2;
 
 double M_ki;
 double M_kf;
-double delta_k_T;
-double ki_T;
+double delta_k_t;
+double ki_t;
 
 double random_mean = 0.93891897 / 2;
 double random_std = 0.93891897 / 2;
@@ -155,6 +162,7 @@ TLorentzVector ki_BF;
 TLorentzVector kf_BF;
 TLorentzVector k_BF;
 TVector2 kfT_BF_vect;
+TVector2 kiT_BF_vect;
 double kfT_BF;
 
 //Boosting
@@ -184,6 +192,8 @@ double pT_HF;
 
 //qT stuff
 double qT_HF;
+TVector2 qT_HF_vect;
+
 double qTQ_HF;
 
 //partons
@@ -259,6 +269,9 @@ double PF2Minus;
 
 double z_N;
 double x_N;
+
+double x_N_hat;
+double z_N_hat;
 
 
 //qT variables for single pion affinity qTQ binning

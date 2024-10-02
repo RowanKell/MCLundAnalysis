@@ -72,6 +72,9 @@ double sfunc(double M1,double M2,double E) //proton mass is M1, electron mass is
 {
     return M1 * M1 + M2 * M2 + 2 * M1 * E;
 }
+double xfunc(double Q2, double s, double y){
+  return Q2/(s-0.938272*0.938272)/y;
+}
 
 double R0func(TLorentzVector ki, TLorentzVector kf, TVector2 deltak, double Q2)
 {

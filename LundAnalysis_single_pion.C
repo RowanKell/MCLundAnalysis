@@ -9,7 +9,7 @@ int LundAnalysis_single_pion(
                     // hipoFile is the file we read in
                    const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3052_3.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/August_15/file_8.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/September_24/run_1_100kevents.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -43,9 +43,11 @@ int LundAnalysis_single_pion(
     TTree *tree_MC = new TTree("tree_MC","Tree with MC data from dihadron");
     
     //These are the kinematics/Ratios we need to bin and calculate affinity BOX style
-    tree_MC->Branch("z",&z_h);
-    tree_MC->Branch("x",&x);
+    tree_MC->Branch("M",&M);
+    tree_MC->Branch("M_h",&m_1);
     tree_MC->Branch("pT_BF",&pT_BF);
+    tree_MC->Branch("x",&x);
+    tree_MC->Branch("z",&z_h);
     tree_MC->Branch("Q2",&Q2);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
@@ -53,12 +55,20 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("R2_adjust",&R2_adjust);
     tree_MC->Branch("qTQ_HF",&qTQ_HF);
     tree_MC->Branch("qT_HF",&qT_HF);
-    tree_MC->Branch("qT_from_pT_HF_z",&qT_from_pT_HF_z);
-    tree_MC->Branch("qT_from_pT_PF_z",&qT_from_pT_PF_z);
-    tree_MC->Branch("qT_from_pT_BF",&qT_from_pT_BF);
-    tree_MC->Branch("qT_from_zN",&qT_from_zN);
-    tree_MC->Branch("zeta", &zeta);
-    tree_MC->Branch("xi", &xi);
+    tree_MC->Branch("M_ki",&M_ki);
+    tree_MC->Branch("M_kf",&M_kf);
+    tree_MC->Branch("R01",&R01);
+    tree_MC->Branch("R02",&R02);
+    tree_MC->Branch("R03",&R03);
+    tree_MC->Branch("delta_k_t",&delta_k_t);
+    tree_MC->Branch("ki_t",&ki_t);
+    tree_MC->Branch("xi",&xi);
+    tree_MC->Branch("zeta",&zeta);
+    tree_MC->Branch("z_N",&z_N);
+    tree_MC->Branch("x_N",&x_N);
+    tree_MC->Branch("theta_ki",&theta_ki);
+    tree_MC->Branch("theta_H",&theta_H);
+    tree_MC->Branch("theta_deltak",&theta_deltak);
     
     TTree *tree_maxmin = new TTree("tree_maxmin","Tree with max and min Ri values");
     
@@ -118,10 +128,15 @@ int LundAnalysis_single_pion(
     tree_low->Branch("qT_HF",&qT_HF);
     tree_low->Branch("M_ki",&M_ki);
     tree_low->Branch("M_kf",&M_kf);
-    tree_low->Branch("delta_k_T",&delta_k_T);
-    tree_low->Branch("ki_T",&ki_T);
+    tree_low->Branch("R01",&R01);
+    tree_low->Branch("R02",&R02);
+    tree_low->Branch("R03",&R03);
+    tree_low->Branch("delta_k_t",&delta_k_t);
+    tree_low->Branch("ki_t",&ki_t);
     tree_low->Branch("xi",&xi);
     tree_low->Branch("zeta",&zeta);
+    tree_low->Branch("z_N",&z_N);
+    tree_low->Branch("x_N",&x_N);
     tree_low->Branch("theta_ki",&theta_ki);
     tree_low->Branch("theta_H",&theta_H);
     tree_low->Branch("theta_deltak",&theta_deltak);
@@ -141,9 +156,11 @@ int LundAnalysis_single_pion(
     tree_high->Branch("qT_HF",&qT_HF);
     tree_high->Branch("M_ki",&M_ki);
     tree_high->Branch("M_kf",&M_kf);
-    tree_high->Branch("delta_k_T",&delta_k_T);
-    tree_high->Branch("ki_T",&ki_T);
+    tree_high->Branch("delta_k_t",&delta_k_t);
+    tree_high->Branch("ki_t",&ki_t);
     tree_high->Branch("xi",&xi);
+    tree_high->Branch("z_N",&z_N);
+    tree_high->Branch("x_N",&x_N);
     tree_high->Branch("zeta",&zeta);
     tree_high->Branch("theta_ki",&theta_ki);
     tree_high->Branch("theta_H",&theta_H);
@@ -185,6 +202,7 @@ int LundAnalysis_single_pion(
     cout << "Start Event Loop" << endl;
     int tree_count = 0;
     int passed_count = 0;
+    int diff_count = 0;
     
     //now get reference to (unique)ptr for accessing data in loop
     //this will point to the correct place when file changes
@@ -196,8 +214,9 @@ int LundAnalysis_single_pion(
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-//         if(tree_count > 10) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+        if(tree_count > 100000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
+        // cout << "\nstarting event #" << event_count << "\n";
         //Aesthetics/loading bar
         if(event_count == 1) {
             cout << '\n';
@@ -359,6 +378,7 @@ int LundAnalysis_single_pion(
             //
             // SIDIS Kinematics in lab frame (invariants)
             //
+            M = init_target.M();
             
             m_1 = pi1.mass;
             
@@ -369,12 +389,13 @@ int LundAnalysis_single_pion(
 
             cth = cthfunc(electron.px,electron.py,electron.pz);
             Q2 = -(q * q);
+            Q = pow(Q2,0.5);
             Q2_calc = Q2func(electron_beam_energy,electron.E,cth); //Momentum transfer
 
             z_h = (init_target * pi1.lv) / (init_target * q);
             s = sfunc(protonMass, electronMass, electron_beam_energy);
             y = yfunc(electron_beam_energy,electron.E);
-            x = Q2/s/y;
+            x = xfunc(Q2,s,y);
             
             nu = nufunc(electron_beam_energy,electron.E);
             W = Wfunc(Q2,protonMass,nu);
@@ -382,12 +403,14 @@ int LundAnalysis_single_pion(
             
             kf = quark.lv;
             ki = kf - q;
+            k = kf - q;
 
             
             
             //
-            // Breit Frame Kinematics
+            //// Breit Frame Kinematics
             //
+            
             
             //Boost stuff
             BF = q;
@@ -400,38 +423,52 @@ int LundAnalysis_single_pion(
             q_BF_no_rot = q;
             q_BF_no_rot.Boost(BFBoost);
             q_BF_no_rot_VectUnit = q_BF_no_rot.Vect().Unit();
-            BFAngle = q_BF_no_rot_VectUnit.Angle(zAxis);
+            BFAngle = q_BF_no_rot_VectUnit.Angle(zAxis) - pi;
             BFAxis = q_BF_no_rot_VectUnit.Cross(zAxis);
             
             //virtual photon
             q_BF = q;
             q_BF.Boost(BFBoost);
             q_BF.Rotate(BFAngle,BFAxis);
-            
+
             //proton target
             proton_BF = init_target;
             proton_BF.Boost(BFBoost);
             proton_BF.Rotate(BFAngle,BFAxis);
             proton_BF_no_rot = init_target;
             proton_BF_no_rot.Boost(BFBoost);
-            
-            //partons
-            kf_BF = kf;
-            kf_BF.Boost(BFBoost);
-            kfT_BF_vect = PtVectfunc(kf_BF); //BF frame boostkfbT in delta k calculation 
-            kfT_BF = Ptfunc(kf_BF);
-
-
-            M = proton_BF.M();
-            
+             
             //hadron (P_h)
             pi1_BF = pi1.lv;
             pi1_BF.Boost(BFBoost);
+            pi1_BF.Rotate(BFAngle,BFAxis);
+            
             pT_BF_vect = PtVectfunc(pi1_BF);
             pT_BF = Ptfunc(pi1_BF);
             
+            //partons
+            ki_BF = ki;
+            kf_BF = kf;
+            k_BF = k;
+            
+            ki_BF.Boost(BFBoost);
+            kf_BF.Boost(BFBoost);
+            k_BF.Boost(BFBoost);
+            
+            ki_BF.Rotate(BFAngle,BFAxis);
+            kf_BF.Rotate(BFAngle,BFAxis);
+            k_BF.Rotate(BFAngle,BFAxis);
+            
+            kiT_BF_vect = PtVectfunc(ki_BF); 
+            kfT_BF_vect = PtVectfunc(kf_BF); //BF frame boostkfbT in delta k calculation 
+            kfT_BF = Ptfunc(kf_BF);
+           
+
+            
+            
+            
             //
-            //Photon Frame
+            //// Photon Frame
             //
             
             //Boosting
@@ -443,7 +480,7 @@ int LundAnalysis_single_pion(
             q_PF_no_rot = q;
             q_PF_no_rot.Boost(PFBoost);
             q_PF_no_rot_VectUnit = q_PF_no_rot.Vect().Unit();
-            PFAngle = q_PF_no_rot_VectUnit.Angle(zAxis);
+            PFAngle = q_PF_no_rot_VectUnit.Angle(zAxis) - pi;
             PFAxis = q_PF_no_rot_VectUnit.Cross(zAxis);
             
             //proton, q, pion
@@ -463,10 +500,13 @@ int LundAnalysis_single_pion(
             //partons
             ki_PF = ki;
             kf_PF = kf;
+            k_PF = k;
             ki_PF.Boost(PFBoost);
             kf_PF.Boost(PFBoost);
+            k_PF.Boost(PFBoost);
             ki_PF.Rotate(PFAngle,PFAxis);
             kf_PF.Rotate(PFAngle,PFAxis);
+            k_PF.Rotate(PFAngle,PFAxis);
             
             //misc:
             xFpi1 = xFfunc(pi1_PF,q_PF,W);
@@ -486,7 +526,7 @@ int LundAnalysis_single_pion(
             pi1_HF_no_rot = pi1.lv;
             pi1_HF_no_rot.Boost(HadronBoost);
             pi1_HF_no_rot_VectUnit = pi1_HF_no_rot.Vect().Unit();
-            HFAngle = pi1_HF_no_rot_VectUnit.Angle(zAxis);
+            HFAngle = pi1_HF_no_rot_VectUnit.Angle(zAxis) - pi;
             HFAxis = pi1_HF_no_rot_VectUnit.Cross(zAxis);
             
             //outgoing hadron
@@ -502,6 +542,7 @@ int LundAnalysis_single_pion(
             q_HF.Rotate(HFAngle,HFAxis);
                 
             qT_HF = Ptfunc(q_HF);
+            qT_HF_vect = PtVectfunc(q_HF);
             qTQ_HF = qT_HF / pow(Q2,0.5);
             
             qT_from_pT_PF_z = pT_PF / z_h;
@@ -516,9 +557,16 @@ int LundAnalysis_single_pion(
             P_B_b_minus = pi1_BF.Minus();
             q_b_minus = q_BF.Minus();
             z_N = P_B_b_minus / q_b_minus;
+            
             x_N_kin =  (2 * x) / (1 + pow(1 + (4 * pow(x,2) * pow(M,2) / Q2),0.5));
             x_N = -1 * q_PF.Plus() / P_PF.Plus();
-
+            
+            //np params
+            zeta = pi1_BF.Minus()/ kf_BF.Minus();
+            xi = ki_BF.Plus() / proton_BF.Plus();
+            
+            x_N_hat = x_N / xi;
+            z_N_hat = z_N / zeta;
             
             qT_from_zN_vect = -1 * pT_BF_vect / z_N;
 
@@ -532,20 +580,15 @@ int LundAnalysis_single_pion(
 
             //qT from pT/z
             qT_from_pT_HF_z = pT_HF / z_h;
-            
             //ki, k, and delta k
-            deltak = kfT_BF_vect - (-1 * z_N * qT_from_zN_vect); 
-
-            k = kf - q;
-            k_PF = k;
-            k_PF.Boost(PFBoost);
+            deltak_T_vect = kfT_BF_vect - (-1 * z_N_hat * qT_from_zN_vect); 
+            
 
             //Ratios in PF frame
-            R0 = R0func(ki_PF, kf_PF, deltak, Q2);
             
-            ki2 = abs(ki_PF * ki_PF);
-            kf2 = abs(kf_PF * kf_PF);
-            deltak2 = abs(deltak * deltak);
+            ki2 = abs(ki_BF * ki_BF);
+            kf2 = abs(kf_BF * kf_BF);
+            deltak2 = abs(deltak_T_vect * deltak_T_vect);
             
             if(deltak2 > ki2 && deltak2 > kf2) {
                 R0check = 0;//DeltaK is biggest
@@ -560,34 +603,229 @@ int LundAnalysis_single_pion(
             //Checking parton distributions
             M_ki = pow(ki2,0.5);
             M_kf = pow(kf2,0.5);
-            delta_k_T = pow(deltak2,0.5);
+            delta_k_t = pow(deltak2,0.5);
             
-            ki_T = Ptfunc(ki_PF);
+            ki_t = Ptfunc(ki_BF);
             
-            R1 = R1func(pi1_PF, ki_PF, kf_PF);
+
+
+            R0 = R0func(ki_BF, kf_BF, deltak_T_vect, Q2);
+            R1 = R1func(pi1_BF, ki_BF, kf_BF);
+            R2 = R2func(k_BF, Q2);
+            /*
+            cout << "\nR2: " << R2 << "\n";
+            cout << "k^2: " << k_BF * k_BF << "\n";
+            cout << "Q2: " << Q2 << "\n";
+            k_BF.Print();
+            */
+            
+            R2_adjust = R2func_adjust(qT_HF, Q2);
+            
+            R01 = abs((ki_BF * ki_BF) / Q2);
+            R02 = abs((kf_BF * kf_BF) / Q2);
+            R03 = abs((deltak_T_vect * deltak_T_vect) / Q2);
+            
             if(R1 < -100) {
                 low_R1_count++;
             }
-            ki_BF = ki;
-            ki_BF.Boost(BFBoost);
-            kf_BF = kf;
-            kf_BF.Boost(BFBoost);
-            k_BF = k;
-            k_BF.Boost(BFBoost);
-
-            R2 = R2func(k_PF, Q2);
-            R2_adjust = R2func_adjust(qT_HF, Q2);
             xF = xFpi1;
             
-            //np params
-            zeta = (z_N * q_BF.Minus()) / kf_BF.Minus();
-            xi = (-1 * x_N * ki_BF.Plus()) / q_BF.Plus();
             
             //phi values
-            theta_ki = ki_BF.Phi();
-            theta_H = pi1_BF.Phi();
-            theta_deltak = deltak.Phi();
+            // theta_ki = ki_BF.Phi();
+            // theta_H = pi1_BF.Phi();
+            // theta_deltak = deltak_T_vect.Phi();
 
+            //phi values diff
+            // theta_ki = atan(ki_BF.Py() / ki_BF.Px());
+            // theta_H = atan(pi1_BF.Py() / pi1_BF.Px());
+            // theta_deltak = atan(deltak_T_vect.Py() / deltak_T_vect.Px());
+            
+            //phi values diff
+            theta_ki = atan2(ki_BF.Py() , ki_BF.Px());
+            theta_H = atan2(qT_from_zN_vect.Py() , qT_from_zN_vect.Px());
+            theta_deltak = atan2(deltak_T_vect.Py() , deltak_T_vect.Px());
+
+            // cout << "theta_H, theta_qT: " << theta_H << ", " << theta_qT << "\n";
+/*
+            //thetaki
+            double ki_BF_quad_1 = atan(abs(ki_BF.Py()) / abs(ki_BF.Px()));
+            if(ki_BF.Px() < 0){
+                if(ki_BF.Py() < 0){
+                    theta_ki = ki_BF_quad_1 + pi;
+                        }
+                else {
+                        theta_ki = pi - ki_BF_quad_1;
+                }
+            }
+            else if (ki_BF.Py() < 0){
+                theta_ki = 2 * pi - ki_BF_quad_1;
+            }
+            else {
+                theta_ki = ki_BF_quad_1;
+            }
+
+            //theta_H
+            double pi1_BF_quad_1 = atan(abs(pi1_BF.Py()) / abs(pi1_BF.Px()));
+            if(pi1_BF.Px() < 0){
+                if(pi1_BF.Py() < 0){
+                    theta_H = pi1_BF_quad_1 + pi;
+                        }
+                else {
+                        theta_H = pi - pi1_BF_quad_1;
+                }
+            }
+            else if (pi1_BF.Py() < 0){
+                theta_H = 2 * pi - pi1_BF_quad_1;
+            }
+            else {
+                theta_H = pi1_BF_quad_1;
+            }
+            
+
+            //theta_deltak
+            double deltak_T_vect_quad_1 = atan(abs(deltak_T_vect.Py()) / abs(deltak_T_vect.Px()));
+            if(deltak_T_vect.Px() < 0){
+                if(deltak_T_vect.Py() < 0){
+                    theta_deltak = deltak_T_vect_quad_1 + pi;
+                        }
+                else {
+                        theta_deltak = pi - deltak_T_vect_quad_1;
+                }
+            }
+            else if (deltak_T_vect.Py() < 0){
+                theta_deltak = 2 * pi - deltak_T_vect_quad_1;
+            }
+            else {
+                theta_deltak = deltak_T_vect_quad_1;
+            }
+            */
+            /*
+            cout << "\n\ndeltak_T_vect: "; deltak_T_vect.Print();
+            cout << "(delta_k_t, theta_deltak): "<< delta_k_t << ", "<< theta_deltak << "\n";
+            cout << "deltak_T_vect.Phi(): "<< deltak_T_vect.Phi() << "\n";
+            cout << "Px, Py from theta: (" << delta_k_t * cos(theta_deltak) << ", " << delta_k_t * sin(theta_deltak) << ")\n";
+            cout << "sin(pi),sin(180): " << sin(pi) << ", " << sin(180) << "\n";
+
+            cout << "\n\n qT_from_zN_vect: "; qT_from_zN_vect.Print();
+            cout << "(qT_from_zN,theta_H): ("<<qT_from_zN << ", "<< theta_H << ")\n";
+            cout << "qT_from_zN_vect.Phi(): "<< qT_from_zN_vect.Phi() << "\n";
+            cout << "Px, Py from theta: (" << qT_from_zN * cos(theta_deltak) << ", " << qT_from_zN * sin(theta_deltak) << ")\n";
+            cout << "sin(pi),sin(180): " << sin(pi) << ", " << sin(180) << "\n";
+            */
+            
+            //                                              //
+            ////                                          ////
+            ////// BEGIN checking light cone components //////
+            ////                                          ////
+            //                                              //
+            // cout << "\n starting pion #" << i << "\n";
+/*
+            //CHECKING LIGHT CONE FOR Q
+            cout << "q_BF: " << "\n";
+            q_BF.Print();
+            cout << "\nq in Breit Frame (not rotated) LC variables: (+,-) = (" << q_BF_no_rot.Plus()/ pow(2,0.5) << ", " << q_BF_no_rot.Minus()/ pow(2,0.5) << ")\n";
+            
+            cout << "q in Breit Frame, rotated, LC variables: (+,-) = (" << q_BF.Plus()/ pow(2,0.5) << ", " << q_BF.Minus()/ pow(2,0.5) << ")\n";
+            cout << "Q/root(2): " << pow(Q2,0.5) / pow(2,0.5) << '\n';
+*/
+            //CHECKING LIGHT CONE FOR PROTON
+/*
+            cout << "\nproton_BF: " << "\n";
+            proton_BF.Print();
+            cout << "proton in Breit Frame (not rotated) LC variables: (+,-) = (" << proton_BF_no_rot.Plus()/ pow(2,0.5) << ", " << proton_BF_no_rot.Minus()/ pow(2,0.5) << ")\n";
+            
+            cout << "proton in Breit Frame, rotated, LC variables: (+,-) = (" << proton_BF.Plus()/ pow(2,0.5) << ", " << proton_BF.Minus()/ pow(2,0.5) << ")\n";
+            cout << "Plus: Q/(x_N * root(2)): " << pow(Q2,0.5) / (x_N * pow(2,0.5)) << '\n';
+            cout << "Minus: (x_N * M^2)/(root(2) * Q): " << (x_N * pow(M,2)) / (pow(Q2,0.5) * pow(2,0.5)) << '\n';
+*/
+/*
+            //CHECKING LIGHT CONE FOR PION
+
+            //use qT_from_zN_vect for qT when paper uses bold q_T
+            double M_B2 = pow(m_1,2);
+            double theory_pi_BF_plus = (M_B2 + pow(z_N,2) *(qT_from_zN_vect * qT_from_zN_vect)) / (pow(2,0.5) * z_N * Q);
+
+            
+            double theory_pi_BF_plus_angles = pow(2,0.5) * (M_B2 / 2 + pow(z_N,2) *(qT_from_zN_vect * qT_from_zN_vect) * sin(theta_H) * sin(theta_H) / 2 + pow(z_N,2) *(qT_from_zN_vect * qT_from_zN_vect) * cos(theta_H) * cos(theta_H) / 2) / (z_N * Q);
+
+            
+            double theory_pi_BF_minus = ((z_N * Q) / (pow(2,0.5)) );
+            TVector2 theory_pi_BF_T = -z_N * qT_from_zN_vect;
+            double theory_pi_BF_x_angles = -z_N * qT_from_zN * cos(theta_H);
+            double theory_pi_BF_y_angles = -z_N * qT_from_zN * sin(theta_H);
+            cout << "pion in Breit Frame, rotated, LC variables: (+,-) = (" << pi1_BF.Plus()/ pow(2,0.5) << ", " << pi1_BF.Minus()/ pow(2,0.5) << ")\n";
+            cout << "pion breit frame transverse momentum: (x,y): (" << pi1_BF.Px() << ", " << pi1_BF.Py() << ")\n";
+            cout << "Theory (plus,minus,x,y) (" <<theory_pi_BF_plus_angles << ", " << theory_pi_BF_minus << ", " <<  theory_pi_BF_x_angles << ", " << theory_pi_BF_y_angles << ")\n";
+*/
+/*
+            //CHECKING LIGHT CONE FOR ki - note - angles not used for ki
+            double theory_ki_BF_Plus = Q / (x_N_hat * pow(2,0.5));
+            double theory_ki_BF_Minus = (x_N_hat * ((ki_BF * ki_BF) + (kiT_BF_vect * kiT_BF_vect))) / (pow(2,0.5) * Q);
+            
+            cout << "ki in Breit Frame, rotated, LC variables: (+,-) = (" << ki_BF.Plus()/ pow(2,0.5) << ", " << ki_BF.Minus()/ pow(2,0.5) << ")\n";
+            cout << "ki theory (plus,minus) (" <<theory_ki_BF_Plus << ", " << theory_ki_BF_Minus << ")\n";
+*/
+         /*  
+            //CHECKING LIGHT CONE FOR kf
+
+
+            double theory_kf_BF_Plus = (((kf_BF * kf_BF) + (kfT_BF_vect * kfT_BF_vect))) / (z_N_hat * pow(2,0.5) * Q);
+            double theory_kf_BF_Plus_w_phi = (1 / (z_N_hat * pow(2,0.5) * Q)) * ((kf_BF * kf_BF) + pow((qT_from_zN * z_N_hat * sin(theta_H) - delta_k_t * sin(theta_deltak)),2) + pow((qT_from_zN * z_N_hat * cos(theta_H) - delta_k_t * cos(theta_deltak)),2));
+            double theory_kf_BF_Plus_new_phi = (1 / (z_N_hat * pow(2,0.5) * Q)) * ((kf_BF * kf_BF) + pow((qT_from_zN_vect.Py() * z_N_hat - deltak_T_vect.Py()),2) + pow((qT_from_zN_vect.Px() * z_N_hat - deltak_T_vect.Px()),2));
+            double theory_kf_BF_Minus = (z_N_hat * Q) / pow(2,0.5); //same with or without angles
+            // cout << "\n\n pion #" << i << "\n";
+            // cout << "kf in Breit Frame, rotated, LC variables: (+,-) = (" << kf_BF.Plus()/ pow(2,0.5) << ", " << kf_BF.Minus()/ pow(2,0.5) << ")\n";
+            // cout << "kf theory (plus,minus) (" <<theory_kf_BF_Plus << ", " << theory_kf_BF_Minus << ")\n";
+            // cout << "kf theory w phi (plus,minus) (" <<theory_kf_BF_Plus_w_phi << ", " << theory_kf_BF_Minus << ")\n";
+            
+            
+                cout << "\n\n pion #" << i << "\n";
+                cout << "kf in Breit Frame, rotated, LC variables: (+,-) = (" << kf_BF.Plus()/ pow(2,0.5) << ", " << kf_BF.Minus()/ pow(2,0.5) << ")\n";
+                // cout << "kf theory (plus,minus) (" <<theory_kf_BF_Plus << ", " << theory_kf_BF_Minus << ")\n";
+                cout << "kf theory w phi (plus,minus) (" <<theory_kf_BF_Plus_w_phi << ", " << theory_kf_BF_Minus << ")\n";
+                // cout << "theta_H: " << theta_H << "\n";
+                // cout << "theta_deltak: " << theta_deltak << "\n";
+            */
+            
+/*
+            //CHECKING LIGHT CONE FOR k (k = kf - q)
+            cout << "\n\n";
+            double theory_k_BF_x = -qT_from_zN * z_N_hat * cos(theta_H) + delta_k_t * cos(theta_deltak);
+            double theory_k_BF_y = -qT_from_zN * z_N_hat * sin(theta_H) + delta_k_t * sin(theta_deltak);
+            double theory_k_BF_Plus = (pow(2,0.5) / 2) * Q + pow(2,0.5) * (pow(M_kf,2) + pow((theory_k_BF_y),2) + pow((theory_k_BF_x),2)) / (2 * Q * z_N_hat);
+            double theory_k_BF_Minus = pow(2,0.5) * Q * (z_N_hat - 1) / 2;
+            cout << "k in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << k_BF.Plus()/ pow(2,0.5) << ", " << k_BF.Minus()/ pow(2,0.5) << ", " << k_BF.Px() << ", "<<k_BF.Py()<<  ")\n";
+            cout << "k theory (plus,minus,x,y) (" <<theory_k_BF_Plus << ", " << theory_k_BF_Minus << ", " <<theory_k_BF_x << ", " << theory_k_BF_y <<")\n";
+*/
+            /*
+            //CHECKING LIGHT CONE FOR k based on affinity paper kf (k = kf - q)
+            cout << "\n\n";
+
+            double theory_kf_BF_plus = (1 / (pow(2,0.5) * Q * z_N_hat)) * ((kf_BF * kf_BF) + pow((qT_from_zN * z_N_hat * sin(theta_H) - (delta_k_t * sin(theta_deltak))),2) + pow((qT_from_zN * z_N_hat * cos(theta_H) - delta_k_t * cos(theta_deltak)),2));
+            double theory_k_BF_x = -qT_from_zN * z_N_hat * cos(theta_H) + delta_k_t * cos(theta_deltak);
+            double theory_k_BF_y = -qT_from_zN * z_N_hat * sin(theta_H) + delta_k_t * sin(theta_deltak);
+            double theory_k_BF_Plus_kf_q = theory_kf_BF_plus - q_BF.Plus();
+            double theory_k_BF_Plus = (pow(2,0.5) / 2) * Q + pow(2,0.5) * (pow(M_kf,2) + pow((theory_k_BF_y),2) + pow((theory_k_BF_x),2)) / (2 * Q * z_N_hat);
+            // double theory_k_BF_Minus = pow(2,0.5) * Q * (z_N_hat - 1) / 2;
+            // cout << "k in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << k_BF.Plus()/ pow(2,0.5) << ", " << k_BF.Minus()/ pow(2,0.5) << ", " << k_BF.Px() << ", "<<k_BF.Py()<<  ")\n";
+            // cout << "k theory (plus,minus,x,y) (" <<theory_k_BF_Plus << ", " << theory_k_BF_Minus << ", " <<theory_k_BF_x << ", " << theory_k_BF_y <<")\n";
+            cout << "kf_T: " << Ptfunc(kf_BF) << "\n";
+            cout << "hadron #" << i << " delta_k_t - qTz_N_hat: " <<  Ptfunc(deltak_T_vect -  qT_from_zN_vect * z_N_hat)<< "\n";
+*/
+            
+            /*
+            //CHECKING R2 against theory
+            double R2_theory = (pow(M_kf,2) - z_N_hat * (pow(M_kf,2) + Q2 * z_N_hat - Q2 - pow(qT_from_zN,2) * z_N_hat + 2 * qT_from_zN * delta_k_t * cos(theta_H - theta_deltak)) + pow(delta_k_t,2)) / (Q2 * z_N_hat);
+            cout << "R2 from dot product: " << R2 << "\nR2 from theory: " << R2_theory << "\n";
+*/
+            //                                            //
+            ////                                        ////
+            ////// END checking light cone components //////
+            ////                                        ////
+            //   
+            
+            
             //Missing mass
             if(Mx <= 1.5) {
                 continue;
@@ -662,40 +900,7 @@ int LundAnalysis_single_pion(
                 tree_high->Fill();
             }
             
-            /*
-            //zbins:
-            for(int i = 0; i < zbins.size(); i++) {
-                if(z_h <= zbins[i]) {
-                    zbinv[i].zFillVectors(x, Q2, pT_gN, R0, R1, R2_adjust);
-//                     cout << "filling z_h bin #" << i << " with: x - " << x << " | pT_gN: " << pT_gN << "\n";
-                    zcounts[i] += 1;
-                    break;
-                }
-            }
-            //x bins
-            for(int i = 0; i < xbins.size(); i++) {
-                if(x <= xbins[i]) {
-                    xbinv[i].xFillVectors(z_h, Q2, pT_gN, R0, R1, R2_adjust);
-                    xcounts[i] += 1;
-                    break;
-                }
-            }
-            //Q2 bins
-            for(int i = 0; i < Q2bins.size(); i++) {
-                if(Q2 <= Q2bins[i]) {
-                    Q2binv[i].Q2FillVectors(x, z_h, pT_gN, R0, R1, R2_adjust);
-                    break;
-                }
-            }
-            if(qTQ_pion > qTQmax){qTQmax = qTQ_pion;}
-            //qTQ bins
-            for(int i = 0; i < qTQbins.size(); i++) {
-                if(qTQ_pion <= qTQbins[i]) {
-                    qTQbinv[i].qTQFillVectors(x, z_h, Q2, pT_gN, R0, R1, R2_adjust);
-                    qTQcounts[i] += 1;
-                    break;
-                }
-            }*/
+//         break;
         }
 	
 
@@ -705,104 +910,6 @@ int LundAnalysis_single_pion(
     cout << "Final tree_count: " << tree_count << '\n';
     cout << "Final events passed: " << passed_count << '\n';
     cout << "low_R1_count " << low_R1_count << '\n';
-
-/*
-    //Making new Affinity trees
-    TTree *t_z_h = new TTree("tree_z_h_bins","Tree with mean values binned by z_h affinity calculations");
-    TTree *t_x = new TTree("tree_x_bins","Tree with mean values binned by x affinity calculations");
-    TTree *t_Q2 = new TTree("tree_Q2_bins","Tree with mean values binned by Q2 affinity calculations");
-    TTree *t_qTQ = new TTree("tree_qTQ_bins","Tree with mean values binned by Q2 affinity calculations");
-    
-    
-    string infoString;
-    Double_t z_h_t;
-    Double_t x_t;
-    Double_t Q2_t;
-    Double_t pT_t;
-    
-    Double_t z_h_t_1;
-    Double_t pT_t_1;
-    
-    Double_t z_h_t_2;
-    Double_t pT_t_2;
-    
-    Double_t R2_t; //R2 calculated as qT^2 / Q^2
-    //z branch
-    t_z_h->Branch("Name",&infoString);
-    t_z_h->Branch("x", &x_t);
-    t_z_h->Branch("Q2", &Q2_t);
-    t_z_h->Branch("pT", &pT_t);
-    t_z_h->Branch("R2", &R2_t);
-    
-    //x branch
-    t_x->Branch("Name",&infoString);
-    t_x->Branch("Q2", &Q2_t);
-    
-    t_x->Branch("z_h", &z_h_t);
-    t_x->Branch("pT", &pT_t);
-    t_x->Branch("R2", &R2_t);
-    
-    //Q2 branch
-    t_Q2->Branch("Name",&infoString);
-    t_Q2->Branch("x", &x_t);
-
-    t_Q2->Branch("z_h", &z_h_t);
-    t_Q2->Branch("pT", &pT_t);
-    t_Q2->Branch("R2", &R2_t);
-    
-    //qTQ branch
-    t_qTQ->Branch("Name",&infoString);
-    t_qTQ->Branch("x", &x_t);
-    t_qTQ->Branch("Q2", &Q2_t);
-    
-    t_qTQ->Branch("z_h", &z_h_t);
-    t_qTQ->Branch("pT", &pT_t);
-    t_qTQ->Branch("R2", &R2_t);
-    //Calculating means
-    //Setting zbin means
-    for(int i = 0; i < vinfoString.size() - 2; i++) { //Note: we use i < vinfoString.size() - 2 for x,z,Mh 
-                                                      //bc they have 7 bins, and there are 9 bins for qTQ, so vinfoString has length 9
-        zbinv[i].meanZ_h(1);
-        infoString = vinfoString[i];
-        Q2_t = zbinv[i].Q2mean;
-        x_t = zbinv[i].xmean;
-        pT_t = zbinv[i].pTmean;
-        R2_t = zbinv[i].R2mean;
-//         cout << "z binning #" << i << ": xmean - " << zbinv[i].xmean << ": pTmean - " << zbinv[i].pTmean << "\n";
-        t_z_h->Fill();
-        }
-    for(int i = 0; i < vinfoString.size() - 2; i++) {
-        xbinv[i].meanx(1);
-        infoString = vinfoString[i];
-        Q2_t = xbinv[i].Q2mean;
-        z_h_t = xbinv[i].z_hmean;
-        pT_t = xbinv[i].pTmean;
-        R2_t = xbinv[i].R2mean;
-        t_x->Fill();
-        }
-    for(int i = 0; i < vinfoString.size() - 1; i++) {
-        Q2binv[i].meanQ2(1);
-        infoString = vinfoString[i];
-        x_t = Q2binv[i].xmean;
-        Q2_t = Q2binv[i].Q2mean;
-        z_h_t = Q2binv[i].z_hmean;
-        pT_t = Q2binv[i].pTmean;
-        R2_t = Q2binv[i].R2mean;
-        t_Q2->Fill();
-        }
-    
-    for(int i = 0; i < vinfoString.size(); i++) {
-        qTQbinv[i].meanqTQ(1);
-        infoString = vinfoString[i];
-        x_t = qTQbinv[i].xmean;
-        Q2_t = qTQbinv[i].Q2mean;
-        
-        z_h_t = qTQbinv[i].z_hmean;
-        pT_t = qTQbinv[i].pTmean;
-        R2_t = qTQbinv[i].R2mean;
-        t_qTQ->Fill();
-        }
-    */
     tree_maxmin->Fill();
     f->Write();
     delete f;

@@ -42,7 +42,32 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
     print("calculating single pion box affinity")
     
     treeName = "tree_driver" if useDriver else "tree_MC"
-    d = RDataFrame(treeName,inRootFilePath + "*.root") #from LundAnalysis_single_pion.C
+    # print(f"\n\npath: {inRootFilePath}\n\n")
+    if os.path.isdir(inRootFilePath):
+        d = RDataFrame(treeName,inRootFilePath + "*.root") #from LundAnalysis_single_pion.C
+        
+    elif os.path.isfile(inRootFilePath):
+        d = RDataFrame(treeName,inRootFilePath) #from LundAnalysis_single_pion.C
+    else:
+        print("error: not a file or directory")
+        exit()
+
+    #closure test
+    # up_file = uproot.open(inRootFilePath + ":" + treeName).arrays(library = "pandas")
+    # R0 = np.array(up_file['z'])
+    # R1 = np.array(up_file['x'])
+    # R2 = np.array(up_file['qTQ_hadron'])
+    # fig_test, ax_test = plot.subplots(1,3,figsize = (10,3))
+    # ax_test[0].hist(R0,bins = 100);
+    # ax_test[1].hist(R1,bins = 100);
+    # ax_test[2].hist(R2,bins = 100);
+    # fig_test.tight_layout()
+    # if(useDriver):
+    #     fig_test.savefig("Plots_S24/Sep_18/closure_driver_kinematics.pdf")
+    # else:
+    #     fig_test.savefig("Plots_S24/Sep_18/closure_MC_kinematics.pdf")
+
+    
     pTbins = np.linspace(0.1,0.8,8)
     xbins = np.array([0,0.1,0.13,0.16,0.19,0.235,0.3,0.5])
     zbins = np.array([0,0.35,0.43,0.49,0.55,0.62,0.7,0.83])
@@ -74,14 +99,14 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
             R0format = "R0.R0_t < 0.3"
             R2format = "R2.R2_t < 0.3"
             R1format = "R1.R1_t < 0.3"
-            qdivformat = "qTQ_calc.qTQ_calc_t <= {} && qTQ_calc.qTQ_calc_t > {}"
+            qdivformat = "qTQ_hadron.qTQ_hadron_t <= {} && qTQ_hadron.qTQ_hadron_t > {}"
         else:
             xformat = "x <= {} && x > {}"
             zformat = "z <= {} && z > {}"
             pTformat = "pT_BF <= {} && pT_BF > {}"
             R0format = "R0 < 0.3"
-            R2format = "R2_adjust < 0.3"
-#             R2format = "R2 < 0.3"
+            # R2format = "R2_adjust < 0.3"
+            R2format = "R2 < 0.3"
             R1format = "R1 < 0.3"
             qdivformat = "qTQ_HF <= {} && qTQ_HF > {}"
 
@@ -135,28 +160,31 @@ def CalculateBoxAffinity(inRootFilePath, useDriver, plotFileName,multipleFiles,p
     print(f"Finished calculating affinity arr for single pion")
     if(useDriver):
         marker_color = 'b'
-        marker_shape = 'o'
+        marker_shape = 'D'
+        marker_size = 40
     else:
         marker_color = 'r'
-        marker_shape = '+'
-    fig2, ((ax42, ax22), (ax32,ax52)) = plot.subplots(2, 2, figsize = (10, 10), dpi=50)
-    if(plot_title == ""):
-        fig2.suptitle("Single Pion BOX Affinity in the TMD region")
-    else:
-        fig2.suptitle(plot_title)
-    ax22.scatter(xbinsno0, product_arrs[0], c = marker_color, marker = marker_shape)
-    ax22.axhline(y=0, color="gray", lw = 1)
-    ax22.set_title("x binning")
-    ax22.set(xlabel = "x")
-    ax32.scatter(zbinsno0, product_arrs[1], c = marker_color, marker = marker_shape)
-    ax32.axhline(y=0, color="gray", lw = 1)
-    ax32.set_title("z_h binning")
-    ax32.set(xlabel = "z_h")
-    ax42.set(ylabel = "Affinity")
-    ax52.scatter(qTQbinsno0, product_arrs[2], c = marker_color, marker = marker_shape)
-    ax52.axhline(y=0, color="gray", lw = 1)
-    ax52.set_title("qTdivQ binning")
-    ax52.set(xlabel = "qTdivQ")
+        marker_shape = '*'
+        marker_size = 70
+    fig2, axs2 = plot.subplots(1, 3, figsize = (10, 3.5))
+#     if(plot_title == ""):
+#         fig2.suptitle("Single Pion BOX Affinity in the TMD region")
+#     else:
+#         fig2.suptitle(plot_title)
+    axs2[0].scatter(xbinsno0, product_arrs[0],marker_size, c = marker_color, marker = marker_shape)
+    axs2[0].axhline(y=0, color="gray", lw = 1)
+#     axs2[0].set_title("x binning")
+    axs2[0].set_xlabel("$x_{Bj}$", fontsize=14)
+    axs2[0].set_ylabel("Affinity", fontsize=14)
+    axs2[1].scatter(zbinsno0, product_arrs[1],marker_size, c = marker_color, marker = marker_shape)
+    axs2[1].axhline(y=0, color="gray", lw = 1)
+#     axs2[1].set_title("z_h binning")
+    axs2[1].set_xlabel("$z_h$", fontsize=14)
+    axs2[2].scatter(qTQbinsno0, product_arrs[2],marker_size, c = marker_color, marker = marker_shape)
+    axs2[2].axhline(y=0, color="gray", lw = 1)
+#     axs2[2].set_title("qTdivQ binning")
+    axs2[2].set_xlabel("$q_T/Q$", fontsize=14)
+    fig2.tight_layout()
     plot.savefig(dir_prefix+"Analysis/BoxAffinity/Plots_S24/" + date_dir + plotFileName)
 
 # Binned = False #set true to use pre-binned kinematcs; false to use tree_MC and bin after with Box.py

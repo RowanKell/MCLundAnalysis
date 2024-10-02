@@ -33,6 +33,11 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
     phi       = params['phi']
     phi_ki       = params['phi_ki']
 
+    # #for closure check:
+    # R0 = params['R0']
+    # R1 = params['R1']
+    # R2 = params['R2']
+    
     R0_12 = np.maximum(
             np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)),
             np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
@@ -41,39 +46,10 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             R0_12,
             np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
             )
-    ''' ORIGINAL
-    R0 = np.maximum(
-            np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)),
-            np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)),
-            np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-            )
-    '''
-#     R01 = np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-#     R02 = np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-#     R03 = np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-#     print(f"R01, R02, R03: ({R01},{R02},{R03})")
-#     print(f"R0: {R0}")
-    
-#     if(np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)) > np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))):
-#         if(np.abs(rat.get_R01( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)) > np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))):
-#             R0check = 1
-#         else:
-#             R0check = 3
-#     else:
-#         if(np.abs(rat.get_R02( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki)) > np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))):
-#             R0check = 2
-#         else:
-#             R0check = 3
-#     print(f"R0check: {R0check}")
-
-        
-        
         
     R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-#     R2 = np.ones(len(R1))*(qT**2) / (Q**2)
-#     print(f"R1: {R1} | R2: {R2} | type(R1): {type(R1)} | type(R2): {type(R2)}")
     R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
-
+    
     R3 = np.abs(rat.get_R3( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
    
     R4 = np.maximum(
@@ -160,42 +136,34 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             
     return partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf
 
-def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff,useMCNP):
+def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,AffType,useMCNP):
     """
     Compute affinity accross kinematics of fname file 
     """
-    print("We open file ",fname) # Write what file we open from directory /expdata
+    # print("We open file ",fname) # Write what file we open from directory /expdata
+    #closure:
+    # kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_t","ki_t","theta_deltak","theta_H","theta_ki","xi","zeta","R0","R1","R2"]
     kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_t","ki_t","theta_deltak","theta_H","theta_ki","xi","zeta"]
     kinematic_list_short_driver = ["pT_BF","Q2","x","z"]
-    '''
-    file_dir = fname
-    num_files = len([name for name in os.listdir(file_dir) if not os.path.isdir(name)])
-    file_names = [name for name in os.listdir(file_dir) if not os.path.isdir(name)]
-    file_names_low = ["file_0.root","file_1.root","file_2.root","file_3.root","file_4.root","file_5.root","file_6.root"]
-    if(highAff):
+
+    if(AffType == "high"):
         tree_ext = ":tree_high"
-    else:
+    elif(AffType == "low"):
         tree_ext = ":tree_low"
-    for i in range(num_files):
-        if(i == 0):
-            uproot_df = up.open(file_dir + file_names_low[i] + tree_ext)
-            if(useMCNP):
-                tab = uproot_df.arrays(kinematic_list_short,library="pd")
+    elif(AffType == "All"):
+        tree_ext = ":tree_MC"
+    if os.path.isdir(fname):
+        counter = 0
+        for curr_file in os.listdir(fname):
+            if(counter == 0):
+                tab = up.open("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/September_16/" +curr_file + tree_ext).arrays(kinematic_list_short,library="pd")
             else:
-                tab = uproot_df.arrays(kinematic_list_short_driver,library="pd")
-            print(f"file name: {file_names_low[i]}")
-        else:
-            if(not highAff):
-                if(i > 6):
-                    break
-            if(useMCNP):
-                tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short,library="pd")],ignore_index = True)
-            else:
-                tab = pd.concat([tab,up.open(file_dir + file_names_low[i] + tree_ext).arrays(kinematic_list_short_driver,library="pd")],ignore_index = True)
-            print(f"file name: {file_names_low[i]}")
-'''
-    tab = up.open("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/August_25/short.root:tree_low").arrays(kinematic_list_short,library="pd")
-            
+                tab = pd.concat([tab,up.open("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/September_16/" +curr_file + tree_ext).arrays(kinematic_list_short,library="pd")])
+                
+    elif os.path.isfile(fname):
+        tab = up.open(fname + tree_ext).arrays(kinematic_list_short,library="pd")
+        
+    # tab = up.open("/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/September_16/" + tree_ext).arrays(kinematic_list_short,library="pd")
     npts = len(tab[list(tab.keys())[0]])
     
     #Rowan edits
@@ -216,10 +184,12 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     tab['targetaff']=0.0
     tab['unclassifiedaff']=0.0
 
-    tab['R0'] = 0.0
-    tab['R1'] = 0.0
+    #closure:
+    # tab['R0'] = 0.0
+    # tab['R1'] = 0.0
+    # tab['R2'] = 0.0
+    
     tab['R1p'] = 0.0
-    tab['R2'] = 0.0
     tab['R3'] = 0.0
     tab['R4'] = 0.0
     tab['R5'] = 0.0
@@ -241,7 +211,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
 
 
-    print("starting first loop")
+    # print("starting first loop")
 #     for i in tqdm(range(npts)):
 #         tab.loc[i,'qT'] = tab['pT'][i]/tab['z'][i] # We will modify it later in this cell line 129
 #         tab.loc[i,'xN'] = tab['x'][i] # We will modify it later
@@ -259,9 +229,8 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     # Rapidities yi, yf depend on external partonic variables
 
 
-    print("starting second loop")
-    for i in tqdm(range(npts)):
-        lprint('%d/%d'%(i,npts))        
+    print("starting first loop")
+    for i in tqdm(range(npts)): 
         x   = tab['x'][i]
         z   = tab['z'][i]
         pT  = tab['pT_BF'][i]           
@@ -280,7 +249,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
         params['x_bj'] = x
         params['z_h']  = z
-        
+
 
         
         #Our functions take pT/z as an argument TODO check it
@@ -365,6 +334,13 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         
         #gen_np_values(params,x,z,0,size=size)  # test here
         gen_np_values(params,x,z,2,useMCNP,size=size) # Main level=2
+        
+        # #closure check:
+        # params['R0'] = np.array([tab['R0'][i]])
+        # params['R1'] = np.array([tab['R1'][i]])
+        # params['R2'] = np.array([tab['R2'][i]])
+
+        
         partonic_affinity,current_affinity,tmd_affinity,tmd_np_affinity,collinear_affinity,collinear_loworder_affinity,collinear_highorder_affinity,matching_affinity,soft_affinity,target_affinity,unclassified_affinity,R0,R1,R2,R3,R4,R1p,yi,yf = get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin)
         
         tab.loc[i,'yi'] = np.mean(yi)
@@ -373,10 +349,9 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         ratios[0,i] = R0
         ratios[1,i] = R1
         ratios[2,i] = R2
-        
         if i == 0:
-            R0MAX = max(R0)
             R0MIN = min(R0)
+            R0MAX = max(R0)
             R1MAX = max(R1)
             R1MIN = min(R1)
             R2MAX = max(R2)
@@ -433,12 +408,12 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
         tab.loc[i,"theta_H"] = params['phi_i'] 
         tab.loc[i,"theta_deltak"] = params['phi']   
       
-    print("\n R0max = %s, R0min = %s"%(R0MAX, R0MIN))
-    print("\n R1max = %s, R1min = %s"%(R1MAX, R1MIN))
-    print("\n R2max = %s, R2min = %s"%(R2MAX, R2MIN))
-    print("\n R3max = %s, R3min = %s"%(R3MAX, R3MIN))
-    print("\n R4max = %s, R4min = %s"%(R4MAX, R4MIN))
-    print("\n R1pmax = %s, R1pmin = %s"%(R1PMAX, R1PMIN))
+    # print("\n R0max = %s, R0min = %s"%(R0MAX, R0MIN))
+    # print("\n R1max = %s, R1min = %s"%(R1MAX, R1MIN))
+    # print("\n R2max = %s, R2min = %s"%(R2MAX, R2MIN))
+    # print("\n R3max = %s, R3min = %s"%(R3MAX, R3MIN))
+    # print("\n R4max = %s, R4min = %s"%(R4MAX, R4MIN))
+    # print("\n R1pmax = %s, R1pmin = %s"%(R1PMAX, R1PMIN))
 
     tab=pd.DataFrame(tab)
     return tab, ratios
@@ -486,7 +461,7 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
         params['phi_i']     = np.random.uniform(lower_phi,upper_phi,size)
         params['phi_ki']     = np.random.uniform(lower_phi,upper_phi,size)
     
-def main00(rootFileName,highAff,useMCNP):
+def main00(rootFileName,AffType,useMCNP):
 
     fnames = {rootFileName}
     # The "box" size ~ qT/Q < 0.3 
@@ -512,7 +487,7 @@ def main00(rootFileName,highAff,useMCNP):
     size=1
     tabs = []
     for fname in fnames:
-        tab,ratios=process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,highAff,useMCNP)
+        tab,ratios=process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R3min,R1pmin,size,AffType,useMCNP)
 #         output = fname + "_w_affinity.xlsx"
         #write_affinity_to_excel(tab,output)
         tabs.append(tab)
