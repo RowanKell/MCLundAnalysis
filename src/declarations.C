@@ -1,6 +1,17 @@
 #include "BinVariable.C"
 #include <random>
 #pragma once
+
+//temp
+double kf_x;
+double kf_y;
+double kf_z;
+double kf_E;
+double kf_Plus;
+double kf_Minus;
+double event_num;
+double M_ki2;
+double R1p;
 //Constants 
 double pi = 3.14159265358979323846;
 

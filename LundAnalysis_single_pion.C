@@ -7,9 +7,9 @@
 int LundAnalysis_single_pion(
 
                     // hipoFile is the file we read in
-                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3052_3.hipo",
+                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis_pass1/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3052_3.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/September_24/run_1_100kevents.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/October_13/R1_adjust_flipped_Mki_sign_100k.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -49,13 +49,19 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("x",&x);
     tree_MC->Branch("z",&z_h);
     tree_MC->Branch("Q2",&Q2);
+    tree_MC->Branch("Q",&Q);
     tree_MC->Branch("R0",&R0); //initial parton momentum
     tree_MC->Branch("R1",&R1); //Measured in gN frame
     tree_MC->Branch("R2",&R2);
     tree_MC->Branch("R2_adjust",&R2_adjust);
     tree_MC->Branch("qTQ_HF",&qTQ_HF);
     tree_MC->Branch("qT_HF",&qT_HF);
+    tree_MC->Branch("qT_from_zN",&qT_from_zN);
+    tree_MC->Branch("qT_from_pT_BF",&qT_from_pT_BF);
+    tree_MC->Branch("qT_from_pT_PF_z",&qT_from_pT_PF_z);
+    tree_MC->Branch("qT_from_pT_HF_z",&qT_from_pT_HF_z);
     tree_MC->Branch("M_ki",&M_ki);
+    tree_MC->Branch("M_ki2",&M_ki2);
     tree_MC->Branch("M_kf",&M_kf);
     tree_MC->Branch("R01",&R01);
     tree_MC->Branch("R02",&R02);
@@ -65,10 +71,20 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("xi",&xi);
     tree_MC->Branch("zeta",&zeta);
     tree_MC->Branch("z_N",&z_N);
+    tree_MC->Branch("z_N_hat",&z_N_hat);
     tree_MC->Branch("x_N",&x_N);
+    tree_MC->Branch("x_N_hat",&x_N_hat);
     tree_MC->Branch("theta_ki",&theta_ki);
     tree_MC->Branch("theta_H",&theta_H);
     tree_MC->Branch("theta_deltak",&theta_deltak);
+    tree_MC->Branch("kf_x",&kf_x);
+    tree_MC->Branch("kf_y",&kf_y);
+    tree_MC->Branch("kf_z",&kf_z);
+    tree_MC->Branch("kf_E",&kf_E);
+    tree_MC->Branch("kf_Plus",&kf_Plus);
+    tree_MC->Branch("kf_Minus",&kf_Minus);
+    tree_MC->Branch("event_num",&event_num);
+    tree_MC->Branch("R1p",&R1p);
     
     TTree *tree_maxmin = new TTree("tree_maxmin","Tree with max and min Ri values");
     
@@ -216,6 +232,7 @@ int LundAnalysis_single_pion(
     while(chain.Next()==true){
         if(tree_count > 100000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
+        event_num = event_count;
         // cout << "\nstarting event #" << event_count << "\n";
         //Aesthetics/loading bar
         if(event_count == 1) {
@@ -450,6 +467,7 @@ int LundAnalysis_single_pion(
             ki_BF = ki;
             kf_BF = kf;
             k_BF = k;
+
             
             ki_BF.Boost(BFBoost);
             kf_BF.Boost(BFBoost);
@@ -465,6 +483,13 @@ int LundAnalysis_single_pion(
            
 
             
+            //tempt
+            kf_x = kf_BF.X();
+            kf_y = kf_BF.Y();
+            kf_z = kf_BF.Z();
+            kf_E = kf_BF.E();
+            kf_Plus = kf_BF.Plus() / pow(2,0.5);
+            kf_Minus = kf_BF.Minus() / pow(2,0.5);
             
             
             //
@@ -602,11 +627,13 @@ int LundAnalysis_single_pion(
             
             //Checking parton distributions
             M_ki = pow(ki2,0.5);
+            M_ki2 = ki_BF * ki_BF;
             M_kf = pow(kf2,0.5);
             delta_k_t = pow(deltak2,0.5);
             
             ki_t = Ptfunc(ki_BF);
-            
+
+            //cout << "ki_BF^2: " << ki_BF * ki_BF << "\n" << "kf_BF^2: " << kf_BF * kf_BF << "\n" << "deltak_T_vect^2: " << deltak_T_vect * deltak_T_vect << "\n"; 
 
 
             R0 = R0func(ki_BF, kf_BF, deltak_T_vect, Q2);
@@ -620,6 +647,8 @@ int LundAnalysis_single_pion(
             */
             
             R2_adjust = R2func_adjust(qT_HF, Q2);
+
+            R1p = (pi1_BF * proton_BF) / Q2;
             
             R01 = abs((ki_BF * ki_BF) / Q2);
             R02 = abs((kf_BF * kf_BF) / Q2);
@@ -646,6 +675,13 @@ int LundAnalysis_single_pion(
             theta_H = atan2(qT_from_zN_vect.Py() , qT_from_zN_vect.Px());
             theta_deltak = atan2(deltak_T_vect.Py() , deltak_T_vect.Px());
 
+            double R41 = abs(ki * ki / (k * k));
+            double R42 = abs(kf * kf / (k * k));
+            double R43 = abs(deltak_T_vect * deltak_T_vect / (k * k));
+            // cout << "\nevent_num: " << event_num << "\n";
+            // cout << "\nR41: " << R41 << "\n";
+            // cout << "\nR42: " << R42 << "\n";
+            // cout << "\nR43: " << R43 << "\n";
             // cout << "theta_H, theta_qT: " << theta_H << ", " << theta_qT << "\n";
 /*
             //thetaki
@@ -744,6 +780,7 @@ int LundAnalysis_single_pion(
 
             //use qT_from_zN_vect for qT when paper uses bold q_T
             double M_B2 = pow(m_1,2);
+            cout << "\n z_N: " << z_N << "\n";
             double theory_pi_BF_plus = (M_B2 + pow(z_N,2) *(qT_from_zN_vect * qT_from_zN_vect)) / (pow(2,0.5) * z_N * Q);
 
             
@@ -754,22 +791,23 @@ int LundAnalysis_single_pion(
             TVector2 theory_pi_BF_T = -z_N * qT_from_zN_vect;
             double theory_pi_BF_x_angles = -z_N * qT_from_zN * cos(theta_H);
             double theory_pi_BF_y_angles = -z_N * qT_from_zN * sin(theta_H);
-            cout << "pion in Breit Frame, rotated, LC variables: (+,-) = (" << pi1_BF.Plus()/ pow(2,0.5) << ", " << pi1_BF.Minus()/ pow(2,0.5) << ")\n";
-            cout << "pion breit frame transverse momentum: (x,y): (" << pi1_BF.Px() << ", " << pi1_BF.Py() << ")\n";
-            cout << "Theory (plus,minus,x,y) (" <<theory_pi_BF_plus_angles << ", " << theory_pi_BF_minus << ", " <<  theory_pi_BF_x_angles << ", " << theory_pi_BF_y_angles << ")\n";
+            cout << "\npion in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << pi1_BF.Plus()/ pow(2,0.5) << ", " << pi1_BF.Minus()/ pow(2,0.5) << ", " << pi1_BF.Px() << ", " << pi1_BF.Py() << ")\n";
+            cout << "Theory (plus,minus,x,y) (" <<theory_pi_BF_plus << ", " << theory_pi_BF_minus << ", " <<  theory_pi_BF_x_angles << ", " << theory_pi_BF_y_angles << ")\n";
 */
 /*
             //CHECKING LIGHT CONE FOR ki - note - angles not used for ki
+            cout << "ki_T: " << pow(kiT_BF_vect * kiT_BF_vect,0.5) << "\n";
+            cout << "M_ki: " << ki_BF * ki_BF << "\n";
             double theory_ki_BF_Plus = Q / (x_N_hat * pow(2,0.5));
             double theory_ki_BF_Minus = (x_N_hat * ((ki_BF * ki_BF) + (kiT_BF_vect * kiT_BF_vect))) / (pow(2,0.5) * Q);
             
-            cout << "ki in Breit Frame, rotated, LC variables: (+,-) = (" << ki_BF.Plus()/ pow(2,0.5) << ", " << ki_BF.Minus()/ pow(2,0.5) << ")\n";
+            cout << "\nki in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << ki_BF.Plus()/ pow(2,0.5) << ", " << ki_BF.Minus()/ pow(2,0.5) << ", "<< ki_BF.X() << ", "<< ki_BF.Y()<< ")\n";
             cout << "ki theory (plus,minus) (" <<theory_ki_BF_Plus << ", " << theory_ki_BF_Minus << ")\n";
 */
-         /*  
+         /*
             //CHECKING LIGHT CONE FOR kf
 
-
+            //cout << "z_N_hat, Q, M_kf, qT, delta_k_t, theta_H, theta_deltak: " << z_N_hat << ", " << Q << ", " << pow(kf_BF * kf_BF,0.2)<< ", " << qT_from_zN<< ", " << delta_k_t<< ", " << theta_H<< ", " << theta_deltak<< "\n";
             double theory_kf_BF_Plus = (((kf_BF * kf_BF) + (kfT_BF_vect * kfT_BF_vect))) / (z_N_hat * pow(2,0.5) * Q);
             double theory_kf_BF_Plus_w_phi = (1 / (z_N_hat * pow(2,0.5) * Q)) * ((kf_BF * kf_BF) + pow((qT_from_zN * z_N_hat * sin(theta_H) - delta_k_t * sin(theta_deltak)),2) + pow((qT_from_zN * z_N_hat * cos(theta_H) - delta_k_t * cos(theta_deltak)),2));
             double theory_kf_BF_Plus_new_phi = (1 / (z_N_hat * pow(2,0.5) * Q)) * ((kf_BF * kf_BF) + pow((qT_from_zN_vect.Py() * z_N_hat - deltak_T_vect.Py()),2) + pow((qT_from_zN_vect.Px() * z_N_hat - deltak_T_vect.Px()),2));
@@ -781,14 +819,14 @@ int LundAnalysis_single_pion(
             
             
                 cout << "\n\n pion #" << i << "\n";
-                cout << "kf in Breit Frame, rotated, LC variables: (+,-) = (" << kf_BF.Plus()/ pow(2,0.5) << ", " << kf_BF.Minus()/ pow(2,0.5) << ")\n";
+                cout << "kf in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << kf_BF.Plus()/ pow(2,0.5) << ", " << kf_BF.Minus()/ pow(2,0.5) <<"," <<kf_BF.X() <<kf_BF.Y() <<  ")\n";
                 // cout << "kf theory (plus,minus) (" <<theory_kf_BF_Plus << ", " << theory_kf_BF_Minus << ")\n";
                 cout << "kf theory w phi (plus,minus) (" <<theory_kf_BF_Plus_w_phi << ", " << theory_kf_BF_Minus << ")\n";
                 // cout << "theta_H: " << theta_H << "\n";
                 // cout << "theta_deltak: " << theta_deltak << "\n";
             */
-            
-/*
+            /*
+
             //CHECKING LIGHT CONE FOR k (k = kf - q)
             cout << "\n\n";
             double theory_k_BF_x = -qT_from_zN * z_N_hat * cos(theta_H) + delta_k_t * cos(theta_deltak);
@@ -803,17 +841,19 @@ int LundAnalysis_single_pion(
             cout << "\n\n";
 
             double theory_kf_BF_plus = (1 / (pow(2,0.5) * Q * z_N_hat)) * ((kf_BF * kf_BF) + pow((qT_from_zN * z_N_hat * sin(theta_H) - (delta_k_t * sin(theta_deltak))),2) + pow((qT_from_zN * z_N_hat * cos(theta_H) - delta_k_t * cos(theta_deltak)),2));
+            
+            double theory_k_Plus_long = pow(2,0.5) * (M_kf * M_kf + Q2 * z_N_hat + pow(qT_from_zN,2) * pow(z_N_hat,2) - 2 * qT_from_zN * z_N_hat * delta_k_t * cos(theta_H - theta_deltak) + pow(delta_k_t,2)) / (2 * pow(Q2,0.5) * z_N_hat);
+            
             double theory_k_BF_x = -qT_from_zN * z_N_hat * cos(theta_H) + delta_k_t * cos(theta_deltak);
             double theory_k_BF_y = -qT_from_zN * z_N_hat * sin(theta_H) + delta_k_t * sin(theta_deltak);
             double theory_k_BF_Plus_kf_q = theory_kf_BF_plus - q_BF.Plus();
             double theory_k_BF_Plus = (pow(2,0.5) / 2) * Q + pow(2,0.5) * (pow(M_kf,2) + pow((theory_k_BF_y),2) + pow((theory_k_BF_x),2)) / (2 * Q * z_N_hat);
-            // double theory_k_BF_Minus = pow(2,0.5) * Q * (z_N_hat - 1) / 2;
-            // cout << "k in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << k_BF.Plus()/ pow(2,0.5) << ", " << k_BF.Minus()/ pow(2,0.5) << ", " << k_BF.Px() << ", "<<k_BF.Py()<<  ")\n";
-            // cout << "k theory (plus,minus,x,y) (" <<theory_k_BF_Plus << ", " << theory_k_BF_Minus << ", " <<theory_k_BF_x << ", " << theory_k_BF_y <<")\n";
+            double theory_k_BF_Minus = pow(2,0.5) * Q * (z_N_hat - 1) / 2;
+            cout << "k in Breit Frame, rotated, LC variables: (+,-,x,y) = (" << k_BF.Plus()/ pow(2,0.5) << ", " << k_BF.Minus()/ pow(2,0.5) << ", " << k_BF.Px() << ", "<<k_BF.Py()<<  ")\n";
+            cout << "k theory (plus long,minus,x,y) (" <<theory_k_Plus_long << ", " << theory_k_BF_Minus << ", " <<theory_k_BF_x << ", " << theory_k_BF_y <<")\n";
             cout << "kf_T: " << Ptfunc(kf_BF) << "\n";
-            cout << "hadron #" << i << " delta_k_t - qTz_N_hat: " <<  Ptfunc(deltak_T_vect -  qT_from_zN_vect * z_N_hat)<< "\n";
-*/
-            
+            //cout << "hadron #" << i << " delta_k_t - qTz_N_hat: " <<  Ptfunc(deltak_T_vect -  qT_from_zN_vect * z_N_hat)<< "\n";
+            */
             /*
             //CHECKING R2 against theory
             double R2_theory = (pow(M_kf,2) - z_N_hat * (pow(M_kf,2) + Q2 * z_N_hat - Q2 - pow(qT_from_zN,2) * z_N_hat + 2 * qT_from_zN * delta_k_t * cos(theta_H - theta_deltak)) + pow(delta_k_t,2)) / (Q2 * z_N_hat);
@@ -825,7 +865,7 @@ int LundAnalysis_single_pion(
             ////                                        ////
             //   
             
-            
+            // cout << "\nki_t: " << ki_t<<  ", M_ki: " << M_ki<<  ", theta_H: " << theta_H << ", theta_ki: " << theta_ki << "\n";
             //Missing mass
             if(Mx <= 1.5) {
                 continue;
@@ -900,9 +940,8 @@ int LundAnalysis_single_pion(
                 tree_high->Fill();
             }
             
-//         break;
+	// break;
         }
-	
 
     }
     cout << "\033[0m" << "\033[49m";

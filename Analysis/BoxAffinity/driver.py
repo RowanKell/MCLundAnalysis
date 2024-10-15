@@ -28,6 +28,7 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
     dkT       = params['delta_k_t']
     kit       = params['ki_t']
     ki        = params['M_ki']
+    ki2        = params['M_ki2']
     kf        = params['M_kf']
     phi_i     = params['phi_i']
     phi       = params['phi']
@@ -47,7 +48,8 @@ def get_affinity(params,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2min,R
             np.abs(rat.get_R03( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
             )
         
-    R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+    # R1 = np.abs(rat.get_R1( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
+    R1 = np.abs(rat.get_R1_adjust( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki2,kf,phi_i,phi,phi_ki))
     R2 = np.abs(rat.get_R2( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
     
     R3 = np.abs(rat.get_R3( M,M_h,x,z,Q,qT,xi,zeta,dkT,kit,ki,kf,phi_i,phi,phi_ki))
@@ -143,7 +145,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     # print("We open file ",fname) # Write what file we open from directory /expdata
     #closure:
     # kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_t","ki_t","theta_deltak","theta_H","theta_ki","xi","zeta","R0","R1","R2"]
-    kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_kf","delta_k_t","ki_t","theta_deltak","theta_H","theta_ki","xi","zeta"]
+    kinematic_list_short = ["pT_BF","Q2","x","z","R2_adjust","M_ki","M_ki2","M_kf","delta_k_t","ki_t","theta_deltak","theta_H","theta_ki","xi","zeta","qT_from_pT_BF"]
     kinematic_list_short_driver = ["pT_BF","Q2","x","z"]
 
     if(AffType == "high"):
@@ -207,6 +209,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
     
     #ROWAN EDIT
     tab['qTQ'] = 0.0
+    tab['qTQ_division'] = 0.0
 
 
 
@@ -253,8 +256,13 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
 
         
         #Our functions take pT/z as an argument TODO check it
-        params['q_t']  = pT/z    
-            
+        
+        #ROWAN EDIT
+        params['q_t'] = tab['qT_from_pT_BF'][i]
+        # params['q_t']  = pT/z    
+        tab.loc[i,'qTQ_division'] = pT/z
+
+        
         params['Q']    = Q2**0.5
 
         if tar.startswith('p'):
@@ -322,6 +330,7 @@ def process_kinematics(fname,R0max,R1max,R2max,R3max,R4max,R5max,R1pmax,R1min,R2
             params['delta_k_t'] = np.array([tab['delta_k_t'][i]])
             params['ki_t']     = np.array([tab['ki_t'][i]])
             params['M_ki']      = np.array([tab['M_ki'][i]])
+            params['M_ki2']      = -1 * np.array([tab['M_ki2'][i]])
             params['M_kf']      = np.array([tab['M_kf'][i]])
             params['zeta']      = np.array([tab['zeta'][i]])
             params['xi']      = np.array([tab['xi'][i]])
@@ -452,6 +461,7 @@ def gen_np_values(params,x,z,level,useMCNP,size=100):
         params['delta_k_t'] =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['ki_t']     =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['M_ki']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
+        params['M_ki2']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size)) 
         params['M_kf']      =  np.abs(np.random.normal((upper+lower)/2,(upper-lower)/2,size))
         params['xi']   = np.random.uniform(x,deltax,size) # Should we generate partonic variable in a wide interval?
         params['zeta'] = np.random.uniform(z,deltaz,size)

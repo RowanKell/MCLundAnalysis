@@ -50,7 +50,7 @@ if not useArgs:
     useDriver = True
 #     fileFromLundAnalysis = "Files_Spring_24/August_15/"
     # fileFromLundAnalysis = "Slurm_Spring_24/August_16/Run_3_single_pion/" #for multipleFiles
-    fileFromLundAnalysis = "Files_Spring_24/September_24/run_1_100kevents.root" #for multipleFiles
+    fileFromLundAnalysis = "Files_Spring_24/October_13/R1_adjust_100k.root" #for multipleFiles
     createMaxMin = False
     multipleFiles = False
     if(useDriver):
@@ -62,10 +62,10 @@ if not useArgs:
         useMCNP = False
         AffType = "All"
         if(useMCNP):
-            outRootFileName = "/" + outDayDir + f"old_R2_driver_MCNP_all_{AffType}.root"
+            outRootFileName = "/" + outDayDir + f"Mki2_sign_flipped_old_R2_driver_MCNP_all_{AffType}.root"
         else:
-            outRootFileName = "/" + outDayDir + f"old_R2_driver_{AffType}.root"
-        plotFileName = "driver_september_25_100k_events.pdf"
+            outRootFileName = "/" + outDayDir + f"Mki2_sign_flipped_old_R2_driver_all_{AffType}.root"
+        plotFileName = "driver_october_15_100k_events_adjusted.pdf"
         plot_title = "Driver Affinity old R2"
         calcAff = True
     else:
@@ -125,6 +125,7 @@ if(useDriver):
     x_N_t = array('d',[0])
     z_N_t = array('d',[0])
     qTQ_hadron_t = array('d',[0])
+    qTQ_division_t = array('d',[0])
     pT_BF_t = array('d',[0])
     tmdaff_t = array('d',[0])
     
@@ -145,6 +146,7 @@ if(useDriver):
     tree.Branch('pT_BF', pT_BF_t,'pT_BF_t/D')
     tree.Branch('z', z_t,'z_t/D')
     tree.Branch('qTQ_hadron', qTQ_hadron_t,'qTQ_hadron_t/D')
+    tree.Branch('qTQ_division', qTQ_division_t,'qTQ_division_t/D')
     tree.Branch('tmdaff', tmdaff_t,'tmdaff_t/D')
     
     #["M_ki","M_kf","delta_k_T","ki_T"]
@@ -175,6 +177,7 @@ if(useDriver):
         x_N_t[0] = tab['xN'][i]
         z_N_t[0] = tab['zN'][i]
         qTQ_hadron_t[0] = tab['qTQ'][i]
+        qTQ_division_t[0] = tab['qTQ_division'][i]
         tmdaff_t[0] = tab['tmdaff'][i]
         
         M_ki_t[0] = tab['M_ki'][i]
