@@ -351,7 +351,7 @@ int LundAnalysis_single_pion(
             }
         }
         
-        //Selecting initial quark
+        //Selecting final quark
         for(int i = 0; i < quark.v_id.size(); i++) {
             if(quark.v_parent[i] == 0) {
                 quark.final_id = i;
