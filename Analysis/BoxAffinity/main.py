@@ -47,10 +47,11 @@ useArgs = args.useArgs
 USER SET FLAGS AND PATHS
 '''
 if not useArgs:
-    useDriver = True
+    useDriver = False
 #     fileFromLundAnalysis = "Files_Spring_24/August_15/"
     # fileFromLundAnalysis = "Slurm_Spring_24/August_16/Run_3_single_pion/" #for multipleFiles
-    fileFromLundAnalysis = "Files_Spring_24/October_13/R1_adjust_100k.root" #for multipleFiles
+    # fileFromLundAnalysis = "Files_Spring_24/October_13/R1_adjust_100k.root" 
+    fileFromLundAnalysis = "Files_Spring_24/Feb_27/JLAB22_5k_no_filter_x_fix.root" #for multipleFiles
     createMaxMin = False
     multipleFiles = False
     if(useDriver):
@@ -65,13 +66,13 @@ if not useArgs:
             outRootFileName = "/" + outDayDir + f"Mki2_sign_flipped_old_R2_driver_MCNP_all_{AffType}.root"
         else:
             outRootFileName = "/" + outDayDir + f"Mki2_sign_flipped_old_R2_driver_all_{AffType}.root"
-        plotFileName = "driver_october_15_100k_events_adjusted.pdf"
-        plot_title = "Driver Affinity old R2"
+        plotFileName = "JLAB22Affinity_MC_5k.pdf"
+        plot_title = "JLAB22 Affinity (MC) (5K events)"
         calcAff = True
     else:
         inRootFileName = "/w/hallb-scshelf2102/clas12/users/rojokell/MCLundAnalysis/OutputFiles/" + fileFromLundAnalysis
-        plotFileName = "MC_september_25_100k_events.pdf"
-        plot_title = "MC Affinity"
+        plotFileName = "JLAB22Affinity_MC_5k.pdf"
+        plot_title = "JLAB22 Affinity (MC) (5K events)"
 else:
     useDriver = args.useDriver
     fileFromLundAnalysis = args.fileFromLundAnalysis

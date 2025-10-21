@@ -3,6 +3,8 @@
 #pragma once
 
 //temp
+double x_old;
+
 double kf_x;
 double kf_y;
 double kf_z;

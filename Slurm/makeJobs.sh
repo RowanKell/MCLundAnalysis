@@ -4,7 +4,7 @@ workdir="/work/clas12/users/rojokell/MCLundAnalysis"
 hipodir="/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus-1/v1/bkg45nA_10604MeV/"
 
 # hipodir="/lustre19/expphy/cache/clas12/rg-a/production/montecarlo/clasdis/fall2018/torus+1/v1/bkg50nA_10604MeV"
-slurm_output="${workdir}/OutputFiles/Slurm_Spring_24"
+slurm_output="${workdir}/OutputFiles/Slurm_Fall_25"
 daydir="${slurm_output}/${current_date}"
 #USER SET VALUES
 outputdir="${daydir}/Run_1_single_pion/"

@@ -7,9 +7,10 @@
 int LundAnalysis_single_pion(
 
                     // hipoFile is the file we read in
-                   const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis_pass1/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3052_3.hipo",
+                   // const char * hipoFile = "/cache/clas12/rg-a/production/montecarlo/clasdis_pass1/fall2018/torus-1/v1/bkg45nA_10604MeV/45nA_job_3052_3.hipo",
+                   const char * hipoFile = "/work/cebaf24gev/sidis/reconstructed/polarized-plus-22GeV-proton/hipo/0111.hipo",
                    // rootfile is the file we save data to
-                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/October_13/R1_adjust_flipped_Mki_sign_100k.root"
+                   const char * rootfile = "/work/clas12/users/rojokell/MCLundAnalysis/OutputFiles/Files_Spring_24/Feb_27/JLAB22_5k_no_filter_x_fix.root"
 )
 {
     //I'm not sure why this is here, but I think the vector class isn't included by default?
@@ -26,8 +27,8 @@ int LundAnalysis_single_pion(
     auto config_c12 = chain.GetC12Reader();
     
     //Pre-select only events with 1 electron and 1 proton | SHOULD CHECK IF THESE SHOULD BE ATLEAST
-    config_c12->addAtLeastPid(11,1);    //exactly 1 electron
-    config_c12->addAtLeastPid(2212,1);    //exactly 1 proton
+    // config_c12->addAtLeastPid(11,1);    //exactly 1 electron
+    // config_c12->addAtLeastPid(2212,1);    //exactly 1 proton
     
     //Add MC::Lund bank for taking Lund data
     auto idx_MCLund= config_c12->addBank("MC::Lund");
@@ -47,6 +48,7 @@ int LundAnalysis_single_pion(
     tree_MC->Branch("M_h",&m_1);
     tree_MC->Branch("pT_BF",&pT_BF);
     tree_MC->Branch("x",&x);
+    tree_MC->Branch("x_old",&x_old);
     tree_MC->Branch("z",&z_h);
     tree_MC->Branch("Q2",&Q2);
     tree_MC->Branch("Q",&Q);
@@ -227,10 +229,11 @@ int LundAnalysis_single_pion(
     auto& c12=chain.C12ref();
     //This value counts the number of events in total that pass the clas12reader cuts
     int event_count = 0;
+    int max_num_events = -1;
     
     //Loop over all events in the file that pass proton+electron cuts
     while(chain.Next()==true){
-        if(tree_count > 100000) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
+        if((tree_count > max_num_events) && (max_num_events > 0)) {break;} //Uncomment this line to stop the program after 1000 events, useful for debugging/testing
         event_count += 1;
         event_num = event_count;
         // cout << "\nstarting event #" << event_count << "\n";
@@ -282,6 +285,7 @@ int LundAnalysis_single_pion(
         Pidi diquark;
         
         MultiParticle Hadron;
+        // cout << "Event # " << event_num << "\n";
         //Loop over MC::Lund entries (particles) in this event using its ID = idx_MCLund
         for(auto imc=0;imc<c12->getBank(idx_MCLund)->getRows();imc++){
             auto mcparticles = c12->mcparts();
@@ -298,7 +302,7 @@ int LundAnalysis_single_pion(
             P = Pfunc(px,py,pz);
             E = Efunc(mass,P);
             vz = mcparticles->getVz(imc);
-            
+            // cout << "pid: " << pid << "\n";
             //
             //Kinematics
             // 
@@ -412,17 +416,19 @@ int LundAnalysis_single_pion(
             z_h = (init_target * pi1.lv) / (init_target * q);
             s = sfunc(protonMass, electronMass, electron_beam_energy);
             y = yfunc(electron_beam_energy,electron.E);
-            x = xfunc(Q2,s,y);
+            x = (Q2 / (2 * (init_target * q)));
+            x_old = xfunc(Q2,s,y);
             
             nu = nufunc(electron_beam_energy,electron.E);
             W = Wfunc(Q2,protonMass,nu);
             
             
             kf = quark.lv;
+            /* ORIGINAL QUARK CALCULATIONS ASSUMING kf = ki + q */
+/*BEGIN ORIGINAL*/
             ki = kf - q;
             k = kf - q;
-
-            
+/*END ORIGINAL*/
             
             //
             //// Breit Frame Kinematics
@@ -462,7 +468,9 @@ int LundAnalysis_single_pion(
             
             pT_BF_vect = PtVectfunc(pi1_BF);
             pT_BF = Ptfunc(pi1_BF);
-            
+
+
+
             //partons
             ki_BF = ki;
             kf_BF = kf;
